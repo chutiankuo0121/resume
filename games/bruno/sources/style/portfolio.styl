@@ -1,0 +1,31 @@
+// 中文使用本地字形，与原作手写字体并排显示。
+.portfolio-pause
+    position fixed
+    inset 0
+    z-index 9999
+    display grid
+    place-items center
+    background #201929ba
+    backdrop-filter blur(12px)
+    color #fff5e8
+    text-align center
+    &[hidden]
+        display none
+    p
+        font-size 38px
+        margin-bottom 24px
+    button
+        border 1px solid #fff5e877
+        border-radius 40px
+        padding 14px 38px
+        background #fff5e8
+        color #302938
+        font inherit
+        cursor pointer
+    small
+        display block
+        margin-top 24px
+        opacity 0.75
+
+.game .menu .title
+    letter-spacing 0.025em

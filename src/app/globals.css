@@ -1,0 +1,340 @@
+@import "lenis/dist/lenis.css";
+@import "./fonts.css";
+
+
+:root {
+  color-scheme: dark;
+  font-family: var(--font-body);
+  font-synthesis: none;
+  /* 界面尺寸使用 CSS px，不乘 DPR，也不按画布或窗口宽度缩放。 */
+  --axis-font-size: 16px;
+  --scroll-font-size: 18px;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 100%;
+  margin: 0;
+}
+html {
+  /* 自定义滚动条叠在画面上；不保留原生滚动槽，也不改变页面的滚动机制。 */
+  scrollbar-width: none;
+}
+body {
+  background: #0f0f0f;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+button:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: -5px;
+}
+.journey {
+  position: relative;
+  height: 1530svh;
+}
+.astra {
+  isolation: isolate;
+  position: relative;
+}
+.experience {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0f0f0f;
+}
+.scene {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+/* 视觉仅 4px，透明热区 16px；轨道无底色、边框和上下箭头。 */
+.page-scrollbar {
+  position: fixed;
+  top: 14px;
+  right: 2px;
+  bottom: 14px;
+  z-index: 4;
+  width: 16px;
+  color: #fff;
+  background: transparent;
+  /* 与文字一样按底图差值反色：黑底白滑块，白底黑滑块。 */
+  mix-blend-mode: difference;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 6px;
+  width: 4px;
+  height: 64px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.page-scrollbar[data-dragging] {
+  cursor: grabbing;
+}
+.page-scrollbar:focus-visible {
+  outline: none;
+}
+.page-scrollbar:focus-visible .scrollbar-thumb {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+
+/* Elimar 的 Header / Nav 布局：41px 轴、90° 旋转、差值混合。
+   来源见 THIRD_PARTY_NOTICES.md；类名和章节内容适配当前项目。 */
+.chapter-axis {
+  --chapter-progress: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+}
+.is-ready .chapter-axis {
+  opacity: 1;
+}
+.axis-bar {
+  position: absolute;
+  display: flex;
+  width: 100%;
+  height: 41px;
+  color: #eee;
+  border-bottom: 1px solid currentColor;
+  pointer-events: auto;
+}
+.axis-title {
+  display: flex;
+  flex: 2;
+  align-items: center;
+  min-width: 0;
+  padding: 0 16px;
+  font-size: var(--axis-font-size);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.axis-items {
+  display: flex;
+  justify-content: center;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid currentColor;
+  list-style: none;
+}
+.axis-item {
+  border-right: 1px solid currentColor;
+}
+.axis-link,
+.axis-fill {
+  display: grid;
+  grid-template-columns: 22px auto;
+  align-items: center;
+  gap: 0.5em;
+  height: 100%;
+  padding: 0 16px;
+  font-size: var(--axis-font-size);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.axis-link {
+  position: relative;
+  overflow: hidden;
+  max-width: 55px;
+  border: 0;
+  background: transparent;
+  transition:
+    max-width 0.8s ease-in-out,
+    background-color 0.6s ease-out;
+}
+.axis-link:hover {
+  background: rgb(238 238 238 / 13%);
+}
+.axis-link[aria-current],
+.axis-link:hover,
+.axis-link:focus-visible {
+  max-width: 500px;
+}
+.axis-number,
+.axis-label {
+  white-space: nowrap;
+}
+.axis-label {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+.axis-link[aria-current] .axis-label,
+.axis-link:hover .axis-label,
+.axis-link:focus-visible .axis-label {
+  opacity: 1;
+}
+.axis-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  color: #171717;
+  background: #eee;
+  opacity: 0;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    270deg,
+    #000,
+    #000 50%,
+    transparent 0,
+    transparent
+  );
+  mask-position: calc(-100% * var(--chapter-progress));
+  mask-size: 200%;
+}
+.axis-link[aria-current] .axis-fill {
+  opacity: 1;
+}
+
+/* 原站 ScrollIndicator 的双份文字循环与竖线；固定尺寸替代 vw 比例。
+   旋转整个裁切窗口，文字仍沿自身 X 轴滑动，屏幕上呈现向上滚动。 */
+.scroll-indicator {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 9px);
+  z-index: 1;
+  width: 18px;
+  height: 134px;
+  color: #eee;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+}
+.is-ready .scroll-indicator {
+  opacity: var(--scroll-hint-opacity, 1);
+}
+.scroll-indicator::before {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 0.5px);
+  width: 1px;
+  height: 58px;
+  background: currentColor;
+  content: "";
+}
+.scroll-copy-window {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  /* 按实际字体计算字宽，避免系统字体差异裁掉首尾字母。 */
+  width: max-content;
+  height: 18px;
+  overflow: hidden;
+  white-space: nowrap;
+  transform: translateY(-100%) rotate(90deg);
+  transform-origin: left;
+}
+.scroll-copy {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  height: 100%;
+  padding: 0 4px;
+  font-family: var(--font-body);
+  font-size: var(--scroll-font-size);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: scroll-copy-loop 2s ease-in-out infinite;
+}
+.scroll-copy::after {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  top: 0;
+  left: 100%;
+  width: 100%;
+  height: 100%;
+  padding: inherit;
+  content: "Scroll";
+  text-align: center;
+}
+@keyframes scroll-copy-loop {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* 桌面旋转整条横轴，文字、分隔线和进度遮罩一起转到左侧。 */
+@media (min-width: 800px) {
+  .axis-bar {
+    width: 100svh;
+    border-bottom: 0;
+    border-top: 1px solid currentColor;
+    transform: rotate(90deg) translateY(-100%);
+    transform-origin: top left;
+  }
+  .axis-title {
+    padding: 0 10px 0 16px;
+  }
+}
+/* 窄屏顶部横轴只展开当前章节；五章使用相同的紧凑索引。 */
+@media (max-width: 799px) {
+  .page-scrollbar {
+    top: 53px;
+  }
+  .axis-link {
+    max-width: 48px;
+  }
+  .axis-link,
+  .axis-fill {
+    padding: 0 12px;
+  }
+  .axis-link[aria-current],
+  .axis-link:focus-visible {
+    max-width: 160px;
+  }
+  .axis-title {
+    display: none;
+  }
+}
+@media (max-width: 699px) {
+  .journey {
+    height: 1296svh;
+  }
+}
+.reduced-journey {
+  height: 100svh;
+}
+.reduced-journey .scroll-indicator {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

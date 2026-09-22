@@ -1,0 +1,348 @@
+/** 仅注册内容；实际摆放统一随机混排，游戏由布局算法安排在中央附近。 */
+import type { Work } from "./types";
+export { workKinds } from "./types";
+export type { Work, WorkKind, GameWork, AudioWork, ProjectWork } from "./types";
+import astra from "./astra";
+import multiAssetPortfolio from "./multi-asset-portfolio";
+import trendml from "./trendml";
+import doodleshooter from "./doodleshooter";
+import ooqo from "./ooqo";
+import bruno from "./bruno";
+
+import mortalSovereign from "./mortal-sovereign";
+import stellarChild from "./stellar-child";
+import oneDayInWuxia from "./one-day-in-wuxia";
+import guixuOperation from "./guixu-operation";
+import deliverance from "./deliverance";
+import secretWife from "./secret-wife";
+import abstractImmortals from "./abstract-immortals";
+import fordAssemblyLine from "./ford-assembly-line";
+import nanyang from "./nanyang";
+import spiritEye from "./spirit-eye";
+import overlord from "./overlord";
+import turtleImmortal from "./turtle-immortal";
+import danzhouHeir from "./danzhou-heir";
+import lifeTerminal from "./life-terminal";
+import aladdin from "./aladdin";
+import zhongKui from "./zhong-kui";
+import moonWorship from "./moon-worship";
+import pharaohSerpent from "./pharaoh-serpent";
+import lateBloom from "./late-bloom";
+import longMarch from "./long-march";
+import zombieTown from "./zombie-town";
+import missingStation from "./missing-station";
+import foretoldLove from "./foretold-love";
+import floatingLife from "./floating-life";
+import mumu from "./mumu";
+import leninAndPeople from "./lenin-and-people";
+import zhenhai from "./zhenhai";
+
+import jimeng7563199425426853146 from "./jimeng-7563199425426853146";
+import jimeng7439588820086983976 from "./jimeng-7439588820086983976";
+import jimeng7532862930409311538 from "./jimeng-7532862930409311538";
+import jimeng7585940764526415113 from "./jimeng-7585940764526415113";
+import jimeng7575860385002032430 from "./jimeng-7575860385002032430";
+import jimeng7664384002215693614 from "./jimeng-7664384002215693614";
+import jimeng7673159292568079654 from "./jimeng-7673159292568079654";
+import jimeng7575212443849297190 from "./jimeng-7575212443849297190";
+import jimeng7649264852338232585 from "./jimeng-7649264852338232585";
+import jimeng7616671259664977178 from "./jimeng-7616671259664977178";
+import jimeng7681561564197031193 from "./jimeng-7681561564197031193";
+import jimeng7681561564192836889 from "./jimeng-7681561564192836889";
+import jimeng7681561564192771353 from "./jimeng-7681561564192771353";
+import jimeng7681561564192738585 from "./jimeng-7681561564192738585";
+import jimeng7681561564192705817 from "./jimeng-7681561564192705817";
+import jimeng7670804534637235502 from "./jimeng-7670804534637235502";
+import jimeng7651568317546663214 from "./jimeng-7651568317546663214";
+import jimeng7670710217948155146 from "./jimeng-7670710217948155146";
+import jimeng7662390827305504010 from "./jimeng-7662390827305504010";
+import jimeng7671463978358377754 from "./jimeng-7671463978358377754";
+import jimeng7657457885185674506 from "./jimeng-7657457885185674506";
+import jimeng7670710150256151859 from "./jimeng-7670710150256151859";
+import jimeng7582069734980521226 from "./jimeng-7582069734980521226";
+import jimeng7599291216848588059 from "./jimeng-7599291216848588059";
+import jimeng7587758198472346906 from "./jimeng-7587758198472346906";
+import jimeng7669669193033305390 from "./jimeng-7669669193033305390";
+import jimeng7605951587776859419 from "./jimeng-7605951587776859419";
+import jimeng7592632778592668978 from "./jimeng-7592632778592668978";
+import jimeng7587854269139750194 from "./jimeng-7587854269139750194";
+import jimeng7661472416773786890 from "./jimeng-7661472416773786890";
+import jimeng7579515455870618907 from "./jimeng-7579515455870618907";
+import jimeng7580774037538835763 from "./jimeng-7580774037538835763";
+import jimeng7681561564197063961 from "./jimeng-7681561564197063961";
+import jimeng7681561564196998425 from "./jimeng-7681561564196998425";
+import jimeng7681561564196932889 from "./jimeng-7681561564196932889";
+import jimeng7681561564196965657 from "./jimeng-7681561564196965657";
+import jimeng7681561564196900121 from "./jimeng-7681561564196900121";
+import jimeng7681561564193000729 from "./jimeng-7681561564193000729";
+import jimeng7681561564192967961 from "./jimeng-7681561564192967961";
+import jimeng7681561564192902425 from "./jimeng-7681561564192902425";
+import jimeng7618098833666346291 from "./jimeng-7618098833666346291";
+import jimeng7592149422079888691 from "./jimeng-7592149422079888691";
+import jimeng7584731994270059810 from "./jimeng-7584731994270059810";
+import jimeng7527590896615886114 from "./jimeng-7527590896615886114";
+import jimeng7603656437197294857 from "./jimeng-7603656437197294857";
+import jimeng7585958625496059145 from "./jimeng-7585958625496059145";
+import jimeng7562260710718197001 from "./jimeng-7562260710718197001";
+import jimeng7562735960706813235 from "./jimeng-7562735960706813235";
+import jimeng7615999476519456050 from "./jimeng-7615999476519456050";
+import jimeng7679737124412722475 from "./jimeng-7679737124412722475";
+import jimeng7654207645028519178 from "./jimeng-7654207645028519178";
+import jimeng7664878265298881830 from "./jimeng-7664878265298881830";
+import jimeng7663687164311391539 from "./jimeng-7663687164311391539";
+import jimeng7604823013875305779 from "./jimeng-7604823013875305779";
+import jimeng7632248945325968678 from "./jimeng-7632248945325968678";
+import jimeng7645889738653617458 from "./jimeng-7645889738653617458";
+import jimeng7628876348647296294 from "./jimeng-7628876348647296294";
+import jimeng7651257670397185326 from "./jimeng-7651257670397185326";
+import jimeng7651407346186325275 from "./jimeng-7651407346186325275";
+import jimeng7599975263392320778 from "./jimeng-7599975263392320778";
+
+import jimeng7634222417006677258 from "./jimeng-7634222417006677258";
+import jimeng7682233986071973144 from "./jimeng-7682233986071973144";
+import jimeng7587609100444388617 from "./jimeng-7587609100444388617";
+import jimeng7677905378390117658 from "./jimeng-7677905378390117658";
+import jimeng7674655698914954542 from "./jimeng-7674655698914954542";
+import jimeng7682236760641981720 from "./jimeng-7682236760641981720";
+import jimeng7680854539460676888 from "./jimeng-7680854539460676888";
+import jimeng7681102989263916312 from "./jimeng-7681102989263916312";
+import jimeng7667804064507366666 from "./jimeng-7667804064507366666";
+import jimeng7682245580801805593 from "./jimeng-7682245580801805593";
+import jimeng7681561564197162265 from "./jimeng-7681561564197162265";
+import jimeng7681561886722362649 from "./jimeng-7681561886722362649";
+import jimeng7681561886722297113 from "./jimeng-7681561886722297113";
+import jimeng7681561886722264345 from "./jimeng-7681561886722264345";
+import jimeng7681561886722231577 from "./jimeng-7681561886722231577";
+import jimeng7681561886722133273 from "./jimeng-7681561886722133273";
+import jimeng7681567529294155032 from "./jimeng-7681567529294155032";
+import jimeng7681022228682804542 from "./jimeng-7681022228682804542";
+import jimeng7662299870740483374 from "./jimeng-7662299870740483374";
+import jimeng7666447628388945161 from "./jimeng-7666447628388945161";
+import jimeng7667547925941210377 from "./jimeng-7667547925941210377";
+import jimeng7650349977511693614 from "./jimeng-7650349977511693614";
+import jimeng7643782482013277466 from "./jimeng-7643782482013277466";
+import jimeng7656753516148575498 from "./jimeng-7656753516148575498";
+import jimeng7570353798166646062 from "./jimeng-7570353798166646062";
+import jimeng7551840255356325166 from "./jimeng-7551840255356325166";
+import jimeng7654996193222642953 from "./jimeng-7654996193222642953";
+import jimeng7672413506712407342 from "./jimeng-7672413506712407342";
+import jimeng7676012798480108852 from "./jimeng-7676012798480108852";
+import jimeng7681897857334660414 from "./jimeng-7681897857334660414";
+import jimeng7676372250756500782 from "./jimeng-7676372250756500782";
+import jimeng7680872295510052158 from "./jimeng-7680872295510052158";
+import jimeng7680861914607471897 from "./jimeng-7680861914607471897";
+import jimeng7681143443351194905 from "./jimeng-7681143443351194905";
+import jimeng7641865546736160009 from "./jimeng-7641865546736160009";
+import jimeng7647039243478387994 from "./jimeng-7647039243478387994";
+import jimeng7680793246762601782 from "./jimeng-7680793246762601782";
+import jimeng7655346387583765798 from "./jimeng-7655346387583765798";
+import jimeng7624047177186299146 from "./jimeng-7624047177186299146";
+import jimeng7671545411869412646 from "./jimeng-7671545411869412646";
+import jimeng7620759320816258313 from "./jimeng-7620759320816258313";
+import jimeng7681561886722166041 from "./jimeng-7681561886722166041";
+import jimeng7681561886722329881 from "./jimeng-7681561886722329881";
+import jimeng7674880462967328009 from "./jimeng-7674880462967328009";
+import jimeng7681561564197096729 from "./jimeng-7681561564197096729";
+import jimeng7681567529294220568 from "./jimeng-7681567529294220568";
+import jimeng7681567529294122264 from "./jimeng-7681567529294122264";
+import jimeng7681561997682494745 from "./jimeng-7681561997682494745";
+import jimeng7681567529294253336 from "./jimeng-7681567529294253336";
+import jimeng7681561564197195033 from "./jimeng-7681561564197195033";
+import jimeng7681567529294187800 from "./jimeng-7681567529294187800";
+import jimeng7645433562178604298 from "./jimeng-7645433562178604298";
+import jimeng7676128520283720970 from "./jimeng-7676128520283720970";
+import jimeng7664120684641127690 from "./jimeng-7664120684641127690";
+import jimeng7652557637514464563 from "./jimeng-7652557637514464563";
+import jimeng7588147869715139867 from "./jimeng-7588147869715139867";
+import jimeng7642235127388572979 from "./jimeng-7642235127388572979";
+import jimeng7572459982755548454 from "./jimeng-7572459982755548454";
+import jimeng7641815080039959846 from "./jimeng-7641815080039959846";
+
+import sunoDancingWithMyEyesClosed from "./suno-e9548485-9bf8-46bc-ace1-83b5e21f872c";
+import sunoANewWorld from "./suno-58490298-ca5b-451b-9e59-e432153bb178";
+import sunoStayOrLeave from "./suno-f0f00357-0cd7-4fd5-96e5-d9314439f4e5";
+import sunoThisIsMyWorld from "./suno-057fa44a-a2c2-4089-8fca-52a637117f00";
+import sunoOnesAndZeros from "./suno-9f5adfa3-865d-482f-9ce6-38f5cc05a8ae";
+import sunoPorchLightOn from "./suno-538ab4ae-3ace-4abf-95f9-be0bed53b65d";
+import sunoNoMore from "./suno-8e7e59d7-b2db-461b-8384-22b7f61784ef";
+import sunoTogetherInRespect from "./suno-c1a16429-f3fe-4d99-bdcf-61ee13ed6f00";
+import sunoDeadstar from "./suno-4eed94d1-9d36-4a8b-aa74-71250bbb8b0f";
+import sunoPickNone from "./suno-9bca6f37-af92-436c-a4c6-aa22c908b7d1";
+import minimaxQuietStreet from "./minimax-quiet-street";
+import minimaxLightAndShadow from "./minimax-light-and-shadow";
+import minimaxDistantHands from "./minimax-distant-hands";
+import minimaxWillTheNightBeKind from "./minimax-will-the-night-be-kind";
+import minimaxYouthUprising from "./minimax-youth-uprising";
+import minimaxVelvetTones from "./minimax-velvet-tones";
+
+export const works: Work[] = [
+  multiAssetPortfolio,
+  trendml,
+  sunoDancingWithMyEyesClosed,
+  sunoANewWorld,
+  sunoStayOrLeave,
+  sunoThisIsMyWorld,
+  sunoOnesAndZeros,
+  sunoPorchLightOn,
+  sunoNoMore,
+  sunoTogetherInRespect,
+  sunoDeadstar,
+  sunoPickNone,
+  minimaxQuietStreet,
+  minimaxLightAndShadow,
+  minimaxDistantHands,
+  minimaxWillTheNightBeKind,
+  minimaxYouthUprising,
+  minimaxVelvetTones,
+
+  astra,
+  doodleshooter,
+  ooqo,
+  bruno,
+  mortalSovereign,
+  stellarChild,
+  oneDayInWuxia,
+  guixuOperation,
+  deliverance,
+  secretWife,
+  abstractImmortals,
+  fordAssemblyLine,
+  nanyang,
+  spiritEye,
+  overlord,
+  turtleImmortal,
+  danzhouHeir,
+  lifeTerminal,
+  aladdin,
+  zhongKui,
+  moonWorship,
+  pharaohSerpent,
+  lateBloom,
+  longMarch,
+  zombieTown,
+  missingStation,
+  foretoldLove,
+  floatingLife,
+  mumu,
+  leninAndPeople,
+  zhenhai,
+  jimeng7563199425426853146,
+  jimeng7439588820086983976,
+  jimeng7532862930409311538,
+  jimeng7585940764526415113,
+  jimeng7575860385002032430,
+  jimeng7664384002215693614,
+  jimeng7673159292568079654,
+  jimeng7575212443849297190,
+  jimeng7649264852338232585,
+  jimeng7616671259664977178,
+  jimeng7681561564197031193,
+  jimeng7681561564192836889,
+  jimeng7681561564192771353,
+  jimeng7681561564192738585,
+  jimeng7681561564192705817,
+  jimeng7670804534637235502,
+  jimeng7651568317546663214,
+  jimeng7670710217948155146,
+  jimeng7662390827305504010,
+  jimeng7671463978358377754,
+  jimeng7657457885185674506,
+  jimeng7670710150256151859,
+  jimeng7582069734980521226,
+  jimeng7599291216848588059,
+  jimeng7587758198472346906,
+  jimeng7669669193033305390,
+  jimeng7605951587776859419,
+  jimeng7592632778592668978,
+  jimeng7587854269139750194,
+  jimeng7661472416773786890,
+  jimeng7579515455870618907,
+  jimeng7580774037538835763,
+  jimeng7681561564197063961,
+  jimeng7681561564196998425,
+  jimeng7681561564196932889,
+  jimeng7681561564196965657,
+  jimeng7681561564196900121,
+  jimeng7681561564193000729,
+  jimeng7681561564192967961,
+  jimeng7681561564192902425,
+  jimeng7618098833666346291,
+  jimeng7592149422079888691,
+  jimeng7584731994270059810,
+  jimeng7527590896615886114,
+  jimeng7603656437197294857,
+  jimeng7585958625496059145,
+  jimeng7562260710718197001,
+  jimeng7562735960706813235,
+  jimeng7615999476519456050,
+  jimeng7679737124412722475,
+  jimeng7654207645028519178,
+  jimeng7664878265298881830,
+  jimeng7663687164311391539,
+  jimeng7604823013875305779,
+  jimeng7632248945325968678,
+  jimeng7645889738653617458,
+  jimeng7628876348647296294,
+  jimeng7651257670397185326,
+  jimeng7651407346186325275,
+  jimeng7599975263392320778,
+  jimeng7634222417006677258,
+  jimeng7682233986071973144,
+  jimeng7587609100444388617,
+  jimeng7677905378390117658,
+  jimeng7674655698914954542,
+  jimeng7682236760641981720,
+  jimeng7680854539460676888,
+  jimeng7681102989263916312,
+  jimeng7667804064507366666,
+  jimeng7682245580801805593,
+  jimeng7681561564197162265,
+  jimeng7681561886722362649,
+  jimeng7681561886722297113,
+  jimeng7681561886722264345,
+  jimeng7681561886722231577,
+  jimeng7681561886722133273,
+  jimeng7681567529294155032,
+  jimeng7681022228682804542,
+  jimeng7662299870740483374,
+  jimeng7666447628388945161,
+  jimeng7667547925941210377,
+  jimeng7650349977511693614,
+  jimeng7643782482013277466,
+  jimeng7656753516148575498,
+  jimeng7570353798166646062,
+  jimeng7551840255356325166,
+  jimeng7654996193222642953,
+  jimeng7672413506712407342,
+  jimeng7676012798480108852,
+  jimeng7681897857334660414,
+  jimeng7676372250756500782,
+  jimeng7680872295510052158,
+  jimeng7680861914607471897,
+  jimeng7681143443351194905,
+  jimeng7641865546736160009,
+  jimeng7647039243478387994,
+  jimeng7680793246762601782,
+  jimeng7655346387583765798,
+  jimeng7624047177186299146,
+  jimeng7671545411869412646,
+  jimeng7620759320816258313,
+  jimeng7681561886722166041,
+  jimeng7681561886722329881,
+  jimeng7674880462967328009,
+  jimeng7681561564197096729,
+  jimeng7681567529294220568,
+  jimeng7681567529294122264,
+  jimeng7681561997682494745,
+  jimeng7681567529294253336,
+  jimeng7681561564197195033,
+  jimeng7681567529294187800,
+  jimeng7645433562178604298,
+  jimeng7676128520283720970,
+  jimeng7664120684641127690,
+  jimeng7652557637514464563,
+  jimeng7588147869715139867,
+  jimeng7642235127388572979,
+  jimeng7572459982755548454,
+  jimeng7641815080039959846,
+];

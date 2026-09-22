@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterResource" load_steps=4 format=3 uid="uid://dqlwd5tymo60x"]
+
+[ext_resource type="Texture2D" uid="uid://bhhq6qdffor4j" path="res://assets/sprites/ui/actions/portal.png" id="1_ys065"]
+[ext_resource type="Texture2D" uid="uid://bv266s2uk1bmf" path="res://assets/sprites/characters/eye.png" id="2_bh8km"]
+[ext_resource type="Script" uid="uid://bxsukocx6neog" path="res://scripts/character_resource.gd" id="2_fuyfx"]
+
+[resource]
+script = ExtResource("2_fuyfx")
+character_name = "Oye"
+head_sprite = ExtResource("2_bh8km")
+active_effect_sprite = ExtResource("1_ys065")
+description = "能力：瞬间移动"
+active_effect = 4
+value = 100.0
+active_cooldown = 5
+unlock_description = "达成 10 连击"
+unlock_type = 1
+unlock_value = 10
+metadata/_custom_type_script = "uid://bxsukocx6neog"

@@ -1,0 +1,10 @@
+京華老宋体 v2.002 / KingHwa_OldSong
+Font © Copyright 2022 TerryWang. All rights reserved.
+字体作者：王廷瑞（TerryWang / 特里王）
+
+本站使用其字形生成 WOFF2 网页子集，名称 Astra KingHwa，保留字体原始版权元数据。
+来源：https://github.com/KonghaYao/chinese-free-web-font-storage/tree/branch/packages/jhlst/fonts
+源文件：京華老宋体v2.002.ttf
+SHA-256: 35d92af5ac4e9485e8e7749098e67211da5885d2697d95aea979fe4acd19ee2a
+
+该字体不属于本站原创；分发仓库的 MIT 声明不代表字体本身采用 MIT 许可。

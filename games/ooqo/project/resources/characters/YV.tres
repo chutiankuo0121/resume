@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterResource" load_steps=5 format=3 uid="uid://b3e8by7tdbx8h"]
+
+[ext_resource type="Texture2D" uid="uid://bkpqyvyr2ekgu" path="res://assets/sprites/ui/actions/dollar.png" id="1_utvgb"]
+[ext_resource type="Texture2D" uid="uid://bjko1aq357isv" path="res://assets/sprites/characters/yv.png" id="1_xh8nt"]
+[ext_resource type="Script" uid="uid://bxsukocx6neog" path="res://scripts/character_resource.gd" id="2_fuyfx"]
+[ext_resource type="Script" uid="uid://b71n7qcf355ov" path="res://scripts/object_resource.gd" id="2_u74x3"]
+
+[resource]
+script = ExtResource("2_fuyfx")
+character_name = "YV"
+head_sprite = ExtResource("1_xh8nt")
+active_effect_sprite = ExtResource("1_utvgb")
+description = "能力：生成一个道具"
+active_effect = 2
+active_cooldown = 5
+unlock_description = "获得 1000 分"
+unlock_type = 2
+unlock_value = 1000
+metadata/_custom_type_script = "uid://bxsukocx6neog"

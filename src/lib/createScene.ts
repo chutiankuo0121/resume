@@ -1,0 +1,433 @@
+import * as THREE from "three";
+import {
+  fullscreenVertex,
+  blurFragment,
+  compositeFragment,
+} from "./shaders/composite";
+import { particleVertex, particleFragment } from "./shaders/particles";
+import { createBlackHole } from "./createBlackHole";
+import { transitionFragment } from "./shaders/blackHole";
+import type { FrameClock, TransitionState } from "./transition";
+import { createCameraRig } from "./camera";
+import { createPointerMotion, holeFollowScale } from "./pointer";
+import { createCrystal } from "./createCrystal";
+import { paperFragment } from "./shaders/elimarExit";
+import type { LoadingState, LoadingTask } from "./loading/progress";
+import { loadingHoleScale } from "./loading/config";
+
+type Options = {
+  canvas: HTMLCanvasElement;
+  transition: TransitionState;
+  clock: FrameClock;
+  loading: LoadingState;
+  onProgress: (task: LoadingTask) => void;
+  onReady: () => void;
+  onError: (message: string) => void;
+};
+
+export function createScene({
+  canvas,
+  transition,
+  clock,
+  loading,
+  onProgress,
+  onReady,
+  onError,
+}: Options) {
+  let disposed = false,
+    ready = false;
+  let renderer: THREE.WebGLRenderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      alpha: false,
+      premultipliedAlpha: false,
+      powerPreference: "high-performance",
+    });
+  } catch {
+    onError("当前浏览器未能开启 WebGL 2。请开启硬件加速后重试。");
+    return () => {};
+  }
+  // 合成使用显示域灰度。中间目标保留浮点高光，不做隐式 gamma 或色调映射。
+  if (!renderer.extensions.has("EXT_color_buffer_float")) {
+    renderer.dispose();
+    onError("当前设备不支持浮点渲染目标，请使用支持 WebGL 2 的浏览器和显卡。");
+    return () => {};
+  }
+  renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.autoClear = false;
+  const materials = new Set<THREE.Material>();
+  function material<T extends THREE.Material>(m: T) {
+    materials.add(m);
+    return m;
+  }
+  const lightScene = new THREE.Scene(),
+    pointScene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(33, 1, 0.1, 40);
+  const cameraRig = createCameraRig(camera);
+  const postCamera = new THREE.Camera();
+  const postScene = new THREE.Scene();
+  const makeTarget = () =>
+    new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.HalfFloatType,
+      format: THREE.RGBAFormat,
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      depthBuffer: true,
+    });
+  const lighting = makeTarget(),
+    blurX = makeTarget(),
+    soft = makeTarget(),
+    sharp = makeTarget(),
+    crystalTarget = makeTarget();
+  const targets = [lighting, blurX, soft, sharp, crystalTarget];
+  // 未模糊明暗层同时保存深度，粒子复用它遮挡背面，无需额外绘制网格。
+  lighting.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
+  lighting.depthTexture.minFilter = THREE.NearestFilter;
+  lighting.depthTexture.magFilter = THREE.NearestFilter;
+  const hole = createBlackHole(renderer);
+  const holeCenter = new THREE.Vector2(0.5, 0.505);
+  const followScale = new THREE.Vector2();
+  const blur = material(
+    new THREE.ShaderMaterial({
+      vertexShader: fullscreenVertex,
+      fragmentShader: blurFragment,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uInput: { value: lighting.texture },
+        uStep: { value: new THREE.Vector2() },
+      },
+    }),
+  );
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), blur);
+  postScene.add(quad);
+  const composite = material(
+    new THREE.ShaderMaterial({
+      vertexShader: fullscreenVertex,
+      fragmentShader: compositeFragment,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uSoft: { value: soft.texture },
+        uSharp: { value: sharp.texture },
+        uBoundary: { value: 0.49 },
+        uAtmosphereMap: { value: cameraRig.atmosphereMap },
+        uLightReveal: { value: 0 },
+        uFormReveal: { value: 0 },
+      },
+    }),
+  );
+  const exitComposite = material(composite.clone());
+  exitComposite.uniforms = composite.uniforms;
+  // 退出时裁掉相机身后的雾光平面，避免反向投影让亮雾重新进入画面。
+  exitComposite.defines = { ELIMAR_EXIT: 1 };
+  const paper = material(
+    new THREE.ShaderMaterial({
+      vertexShader: fullscreenVertex,
+      fragmentShader: paperFragment,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uScene: { value: crystalTarget.texture },
+        uReveal: { value: 0 },
+      },
+    }),
+  );
+  const transitionMaterial = material(
+    new THREE.ShaderMaterial({
+      vertexShader: fullscreenVertex,
+      fragmentShader: transitionFragment,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uCrystal: { value: crystalTarget.texture },
+        uParticles: { value: hole.texture },
+        uResolution: { value: new THREE.Vector2() },
+        uTime: { value: 0 },
+        uHoleCenter: { value: holeCenter },
+        uHoleScale: { value: 1 },
+        uHoleApproach: { value: 0 },
+        uCrystalReveal: { value: 0 },
+      },
+    }),
+  );
+  const pointMaterial = material(
+    new THREE.ShaderMaterial({
+      vertexShader: particleVertex,
+      fragmentShader: particleFragment,
+      depthTest: true,
+      depthWrite: true,
+      transparent: true,
+      uniforms: {
+        uTime: { value: 0 },
+        uPixelRatio: { value: 1 },
+        uViewportScale: { value: 1 },
+        uMotionDepthOffset: { value: 11.125 / 2 },
+        uEntry: { value: 0 },
+        uModelDepth: { value: lighting.depthTexture },
+        uModelCoverage: { value: lighting.texture },
+        uDepthSize: { value: new THREE.Vector2(1, 1) },
+        uCameraClip: { value: new THREE.Vector2(camera.near, camera.far) },
+      },
+    }),
+  );
+  const crystal = createCrystal({
+    lightScene,
+    pointScene,
+    pointMaterial,
+    onProgress,
+  });
+  const pointer = createPointerMotion();
+  const motionPreference = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  );
+  let width = 1,
+    height = 1,
+    dpr = 1,
+    time = 0;
+  let lastTimestamp = 0;
+  let shaderError = false;
+  renderer.debug.onShaderError = (gl, program) => {
+    shaderError = true;
+    console.error("着色器编译失败:", gl.getProgramInfoLog(program));
+    onError("画面着色器未能编译，请重新加载预览。");
+  };
+
+  function resize() {
+    width = canvas.clientWidth;
+    height = canvas.clientHeight;
+    if (!width || !height) return;
+    // 像素比封顶以控制填充开销，点的视觉尺寸仍按 CSS 像素计算。
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    const mobile = width < 700;
+    camera.setViewOffset(
+      width,
+      height,
+      -width * (mobile ? 0.045 : 0.12),
+      0,
+      width,
+      height,
+    );
+    camera.updateProjectionMatrix();
+    lighting.setSize(
+      Math.round(width * dpr * 0.5),
+      Math.round(height * dpr * 0.5),
+    );
+    blurX.setSize(lighting.width, lighting.height);
+    soft.setSize(lighting.width, lighting.height);
+    pointMaterial.uniforms.uDepthSize.value.set(
+      lighting.width,
+      lighting.height,
+    );
+    sharp.setSize(Math.round(width * dpr), Math.round(height * dpr));
+    crystalTarget.setSize(sharp.width, sharp.height);
+    hole.resize(width, height, dpr);
+    transitionMaterial.uniforms.uResolution.value.set(
+      width * dpr,
+      height * dpr,
+    );
+    followScale.set(...holeFollowScale(width, height));
+    pointMaterial.uniforms.uPixelRatio.value = dpr;
+    pointMaterial.uniforms.uViewportScale.value = mobile ? 0.6 : 1;
+  }
+  function move(e: PointerEvent) {
+    if (loading.reveal < 1) return;
+    // 触摸用于滚动，不残留鼠标悬停偏移。
+    if (e.pointerType !== "touch") {
+      const r = canvas.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 2 - 1,
+        y = ((e.clientY - r.top) / r.height) * 2 - 1;
+      pointer.set(x, y);
+      crystal.setPointer(x, y);
+    }
+  }
+  function leave() {
+    pointer.set(0, 0);
+    crystal.setPointer(0, 0);
+  }
+  function lost(e: Event) {
+    e.preventDefault();
+    ready = false;
+    shaderError = true;
+    onError("画面连接中断，点击重新加载恢复预览。");
+  }
+  function resetFrameTimestamp() {
+    // 后台恢复时从当前相位继续，避免把离开页面的时间计为一次巨大步进。
+    lastTimestamp = 0;
+  }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("blur", leave);
+  document.documentElement.addEventListener("pointerleave", leave);
+  canvas.addEventListener("webglcontextlost", lost);
+  document.addEventListener("visibilitychange", resetFrameTimestamp);
+  const observer = new ResizeObserver(resize);
+  observer.observe(canvas);
+  resize();
+
+  async function load() {
+    try {
+      await crystal.ready;
+      if (disposed) return;
+      // 模型与粒子着色器先在 GPU 编译完成，100% 才真正代表首屏可以交接。
+      await Promise.all([
+        renderer.compileAsync(lightScene, camera),
+        renderer.compileAsync(pointScene, camera),
+      ]);
+      if (disposed || shaderError) return;
+      ready = true;
+      drawLoading();
+      if (!shaderError) onReady();
+    } catch (error) {
+      if (!disposed) {
+        console.error(error);
+        onError("晶石资源载入失败，请重新加载预览。");
+      }
+    }
+  }
+  void load();
+
+  function drawLoading() {
+    // 先保持小黑洞随进度长大，100% 后才迅速扩张到首页原尺寸。
+    // 始终使用正式黑洞的 Shader、粒子层和时钟，结尾没有叠化或换图。
+    holeCenter.set(0.5, 0.505);
+    hole.render(time, pointer.hole, 1, 1, holeCenter);
+    const uniforms = transitionMaterial.uniforms;
+    uniforms.uTime.value = time;
+    uniforms.uHoleScale.value = loadingHoleScale(loading.progress, loading.reveal);
+    uniforms.uHoleApproach.value = 0;
+    uniforms.uCrystalReveal.value = 0;
+    quad.material = transitionMaterial;
+    renderer.setRenderTarget(null);
+    renderer.setClearColor(0xf8f8f7, 1);
+    renderer.clear();
+    renderer.render(postScene, postCamera);
+  }
+
+  function draw() {
+    // 章节完全退场后只保留白色页面，停止模型、多层模糊和粒子绘制。
+    if (transition.whiteout === 1) {
+      renderer.setRenderTarget(null);
+      renderer.setClearColor(0xffffff, 1);
+      renderer.clear();
+      return;
+    }
+    const mobile = width < 700;
+    const entry = transition.crystalEntry;
+    const framingDepth = cameraRig.update(
+      transition.cameraTravel,
+      mobile,
+      pointer.crystal,
+      transition.focus,
+      transition.exit,
+    );
+    pointMaterial.uniforms.uMotionDepthOffset.value = 11.125 / 2 + framingDepth;
+    pointMaterial.uniforms.uEntry.value = entry;
+    const compact = THREE.MathUtils.clamp((1.6 - camera.aspect) / 0.6, 0, 1);
+    composite.uniforms.uBoundary.value = mobile ? 0.29 : 0.49 - compact * 0.12;
+    composite.uniforms.uLightReveal.value = transition.lightReveal;
+    composite.uniforms.uFormReveal.value = THREE.MathUtils.smoothstep(
+      entry,
+      0.1,
+      0.58,
+    );
+    if (transition.crystalReveal > 0) {
+      // 1. 明暗与深度 → 2. 两次模糊 → 3. 清晰圆点 → 4. 灰度合成。
+      renderer.setRenderTarget(lighting);
+      renderer.setClearColor(0, 0);
+      renderer.clear();
+      renderer.render(lightScene, camera);
+      quad.material = blur;
+      blur.uniforms.uInput.value = lighting.texture;
+      blur.uniforms.uStep.value.set(0.004, 0);
+      renderer.setRenderTarget(blurX);
+      renderer.clear();
+      renderer.render(postScene, postCamera);
+      blur.uniforms.uInput.value = blurX.texture;
+      blur.uniforms.uStep.value.set(0, 0.004);
+      renderer.setRenderTarget(soft);
+      renderer.clear();
+      renderer.render(postScene, postCamera);
+      renderer.setRenderTarget(sharp);
+      // 中性清屏灰对应合成公式中的 0.09084171，不能当普通黑底替换。
+      renderer.setClearColor(0x555555, 1);
+      renderer.clear();
+      renderer.render(pointScene, camera);
+      quad.material = transition.exit > 0 ? exitComposite : composite;
+      renderer.setRenderTarget(crystalTarget);
+      renderer.setClearColor(0, 1);
+      renderer.clear();
+      renderer.render(postScene, postCamera);
+    }
+    // 5. 推近洞口，而非降低透明度。按对角线覆盖，宽屏和竖屏都能完全入黑。
+    // 缩放与透视距离成反比，越靠近洞口，边缘离开视野的速度越快。
+    const targetScale =
+      (8 * Math.hypot(width, height)) / Math.min(width, height);
+    const holeScale =
+      1 / THREE.MathUtils.lerp(1, 1 / targetScale, transition.holeApproach);
+    holeCenter.set(
+      0.5 + pointer.hole.x * followScale.x * transition.pointerWeight,
+      0.505 - pointer.hole.y * followScale.y * transition.pointerWeight,
+    );
+    if (transition.holeApproach < 1)
+      hole.render(
+        time,
+        pointer.hole,
+        transition.pointerWeight,
+        holeScale,
+        holeCenter,
+      );
+    const uniforms = transitionMaterial.uniforms;
+    uniforms.uTime.value = time;
+    uniforms.uHoleScale.value = holeScale;
+    uniforms.uHoleApproach.value = transition.holeApproach;
+    uniforms.uCrystalReveal.value = transition.crystalReveal;
+    paper.uniforms.uReveal.value = transition.whiteout;
+    quad.material = transition.exit > 0 ? paper : transitionMaterial;
+    renderer.setRenderTarget(null);
+    renderer.setClearColor(0, 1);
+    renderer.clear();
+    renderer.render(postScene, postCamera);
+  }
+  function animate(timestamp: number) {
+    if (disposed || loading.failed) return;
+    const elapsed = lastTimestamp ? (timestamp - lastTimestamp) / 1000 : 0;
+    lastTimestamp = timestamp;
+    if (document.hidden) return;
+    const dt = Math.min(elapsed, 0.05);
+    const reduced = motionPreference.matches;
+    pointer.update(dt, reduced);
+    crystal.update(dt, transition.crystalEntry, reduced, transition.focus);
+    // 平滑输入限制单帧步长，粒子用真实秒数，避免低帧率改变运动速度。
+    if (!reduced) time += elapsed;
+    pointMaterial.uniforms.uTime.value = time;
+    if (!shaderError) {
+      if (loading.reveal < 1) drawLoading();
+      else if (ready) draw();
+    }
+  }
+  const unsubscribe = clock.subscribe(animate);
+  return () => {
+    if (disposed) return;
+    disposed = true;
+    unsubscribe();
+    observer.disconnect();
+    hole.dispose();
+    crystal.dispose();
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("blur", leave);
+    document.documentElement.removeEventListener("pointerleave", leave);
+    canvas.removeEventListener("webglcontextlost", lost);
+    document.removeEventListener("visibilitychange", resetFrameTimestamp);
+    quad.geometry.dispose();
+    materials.forEach((m) => m.dispose());
+    targets.forEach((t) => t.dispose());
+    // React 重挂载会复用 canvas；仅释放资源，不主动丢失其 WebGL 上下文。
+    renderer.dispose();
+  };
+}

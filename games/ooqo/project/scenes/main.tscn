@@ -1,0 +1,774 @@
+[gd_scene load_steps=69 format=3 uid="uid://cablalujd6va0"]
+
+[ext_resource type="Script" uid="uid://c51dhxq6ccl4g" path="res://scripts/main.gd" id="1_fv21b"]
+[ext_resource type="Script" uid="uid://b2n4reby476q" path="res://scripts/level_resource.gd" id="2_tel4y"]
+[ext_resource type="Resource" uid="uid://bbpocc62orq55" path="res://resources/levels/level_0.tres" id="3_qkpxi"]
+[ext_resource type="Resource" uid="uid://72umxngdtnt3" path="res://resources/levels/level_1.tres" id="4_5q0nq"]
+[ext_resource type="Resource" uid="uid://bflmrepi3u4v2" path="res://resources/levels/level_2.tres" id="5_dgi5k"]
+[ext_resource type="Resource" uid="uid://bj6rjtusa32mn" path="res://resources/levels/level_3.tres" id="6_j8jky"]
+[ext_resource type="Script" uid="uid://b71n7qcf355ov" path="res://scripts/object_resource.gd" id="7_kmb1v"]
+[ext_resource type="Resource" uid="uid://cjsg205e7njim" path="res://resources/levels/level_4.tres" id="7_vc5cj"]
+[ext_resource type="Resource" uid="uid://bsj34scaej83e" path="res://resources/fishes/fish.tres" id="8_fuf3a"]
+[ext_resource type="Resource" uid="uid://do44ensh4t8uk" path="res://resources/fishes/big_fish.tres" id="9_pibwh"]
+[ext_resource type="Resource" uid="uid://5q5awopw727u" path="res://resources/upgrades/cane.tres" id="10_c6pm6"]
+[ext_resource type="Resource" uid="uid://sy0tuxwk5ayk" path="res://resources/upgrades/shoe.tres" id="11_5he1u"]
+[ext_resource type="Resource" uid="uid://cplp8dtfasksm" path="res://resources/upgrades/magnet.tres" id="12_5poiv"]
+[ext_resource type="Resource" uid="uid://kxqpuauin4u4" path="res://resources/upgrades/umbrella.tres" id="14_nvyfr"]
+[ext_resource type="Resource" uid="uid://cuerunb6u1f1g" path="res://resources/end_portal.tres" id="15_cjqg0"]
+[ext_resource type="AudioStream" uid="uid://bu5q0prpba67d" path="res://assets/audio/GameOff_Mus_01 Loop.wav" id="16_ty1g6"]
+[ext_resource type="Script" uid="uid://b87jek5xw2ya2" path="res://scripts/colors.gd" id="16_vchkt"]
+[ext_resource type="Script" uid="uid://bqr50b8a5prtd" path="res://scripts/grid.gd" id="17_txyw0"]
+[ext_resource type="PackedScene" uid="uid://ckp64p0ofal5m" path="res://scenes/character.tscn" id="18_2f3dj"]
+[ext_resource type="Texture2D" uid="uid://px765xxxbw7f" path="res://assets/sprites/FlowMap.png" id="21_j2jfr"]
+[ext_resource type="FontVariation" path="res://fonts/game-font.tres" id="22_bjg73"]
+[ext_resource type="PackedScene" uid="uid://ljyqaok0p7pa" path="res://scenes/uis/button.tscn" id="24_2cjbq"]
+[ext_resource type="Shader" uid="uid://pve4rsyth5m4" path="res://shaders/water.gdshader" id="25_0loja"]
+[ext_resource type="Texture2D" uid="uid://eukcsnhvbgkv" path="res://assets/sprites/voronoi.png" id="26_ids8r"]
+[ext_resource type="Shader" uid="uid://dw1kwdj7ajxo5" path="res://shaders/canvas_wobbly_shader.gdshader" id="26_tel4y"]
+[ext_resource type="Script" uid="uid://drt20frltyy3q" path="res://scripts/uis/combo_control.gd" id="27_dnhof"]
+[ext_resource type="PackedScene" uid="uid://brwaam4on8k8b" path="res://scenes/uis/combo_unit_control.tscn" id="28_1v6qk"]
+[ext_resource type="Texture2D" uid="uid://dtftqwpvc5vtl" path="res://assets/sprites/ui/actions/umbrella.png" id="29_c6pm6"]
+[ext_resource type="Texture2D" uid="uid://wh6vcej6t1ho" path="res://assets/sprites/ui/cross.png" id="30_5he1u"]
+[ext_resource type="AudioStream" uid="uid://ckaw4ns3fpixo" path="res://assets/audio/sfx/Jump_Launch_001.wav" id="32_5he1u"]
+[ext_resource type="Texture2D" uid="uid://bab5aa4p74xda" path="res://assets/sprites/ui/nine-patch-border.png" id="32_5q0nq"]
+[ext_resource type="Script" uid="uid://evjj08c3krjn" path="res://scripts/active_control.gd" id="32_j8jky"]
+[ext_resource type="AudioStream" uid="uid://bmam22sqpv13i" path="res://assets/audio/sfx/Jump_Launch_002.wav" id="33_5poiv"]
+[ext_resource type="AudioStream" uid="uid://pa5edkc3rcgy" path="res://assets/audio/sfx/Jump_Launch_003.wav" id="34_2cjbq"]
+[ext_resource type="PackedScene" uid="uid://cc5lbkhk10ino" path="res://scenes/uis/charges_control.tscn" id="34_dgi5k"]
+[ext_resource type="AudioStream" uid="uid://ccb220vm6uv7p" path="res://assets/audio/sfx/Jump_Launch_004.wav" id="35_chjal"]
+[ext_resource type="AudioStream" uid="uid://happy2ftf3ws" path="res://assets/audio/sfx/Jump_Launch_005.wav" id="36_cjqg0"]
+[ext_resource type="AudioStream" uid="uid://b3to8t2s2uff8" path="res://assets/audio/sfx/Jump_Launch_006.wav" id="37_vchkt"]
+[ext_resource type="AudioStream" uid="uid://bfdrtxke47c8" path="res://assets/audio/sfx/Jump_Launch_007.wav" id="38_txyw0"]
+[ext_resource type="AudioStream" uid="uid://dakll7rw0rlmw" path="res://assets/audio/sfx/Jump_Launch_008.wav" id="39_vc5cj"]
+[ext_resource type="Script" uid="uid://bvudd4e0t6jb5" path="res://scripts/final_score_control.gd" id="40_chjal"]
+[ext_resource type="AudioStream" uid="uid://dt2b216q0p0lq" path="res://assets/audio/sfx/Jump_Launch_009.wav" id="40_nvyfr"]
+[ext_resource type="Script" uid="uid://b6dir60bs2k8u" path="res://scripts/uis/unlock_control_container.gd" id="41_2cjbq"]
+[ext_resource type="Shader" uid="uid://dfres2gk08qge" path="res://shaders/button.gdshader" id="42_bjg73"]
+[ext_resource type="PackedScene" uid="uid://coi6pa3wr02p4" path="res://scenes/uis/unlock_control.tscn" id="42_chjal"]
+[ext_resource type="Texture2D" uid="uid://dalw35n4ch5rk" path="res://assets/sprites/characters/ikke.png" id="43_cjqg0"]
+[ext_resource type="Texture2D" uid="uid://ghymgceqlwkg" path="res://assets/sprites/upgrades/star.png" id="44_bu4jf"]
+[ext_resource type="Script" uid="uid://cup54nyno2wss" path="res://scripts/uis/settings_menu.gd" id="44_txyw0"]
+[ext_resource type="Material" uid="uid://biuelfgbaxa51" path="res://materials/button_material.tres" id="44_vchkt"]
+[ext_resource type="PackedScene" uid="uid://3dkqxknb3p7p" path="res://scenes/uis/settings_control.tscn" id="50_j2jfr"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7mycd"]
+render_priority = 0
+shader = ExtResource("25_0loja")
+shader_parameter/water_color = Color(0.030196087, 0.048627462, 0.06980394, 1)
+shader_parameter/light_foam_color = Color(0.045294113, 0.07294116, 0.10470587, 1)
+shader_parameter/dark_foam_color = Color(0.015098044, 0.024313731, 0.03490197, 1)
+shader_parameter/voronoi_texture = ExtResource("26_ids8r")
+shader_parameter/voronoi_size = 0.06
+shader_parameter/speed = 1.0
+shader_parameter/amplitude = 0.3
+shader_parameter/frequency = 0.3
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_1bvp3"]
+size = Vector2(100, 100)
+subdivide_width = 400
+subdivide_depth = 400
+
+[sub_resource type="Environment" id="Environment_5vw27"]
+ambient_light_source = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_kq58d"]
+font = ExtResource("22_bjg73")
+font_size = 64
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_qsp4k"]
+font = ExtResource("22_bjg73")
+font_size = 92
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_fv21b"]
+font = ExtResource("22_bjg73")
+font_size = 39
+font_color = Color(0.5859375, 0.5859375, 0.5859375, 1)
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_kek77"]
+font = ExtResource("22_bjg73")
+font_size = 64
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5q0nq"]
+resource_local_to_scene = true
+shader = ExtResource("26_tel4y")
+shader_parameter/texture_albedo = ExtResource("32_5q0nq")
+shader_parameter/texture_flow_map = ExtResource("21_j2jfr")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/displacement_steps = 4
+shader_parameter/displacement_power = 0.5
+shader_parameter/displacement_size = 16.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dgi5k"]
+resource_local_to_scene = true
+shader = ExtResource("26_tel4y")
+shader_parameter/texture_albedo = ExtResource("29_c6pm6")
+shader_parameter/texture_flow_map = ExtResource("21_j2jfr")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/displacement_steps = 4
+shader_parameter/displacement_power = 0.5
+shader_parameter/displacement_size = 16.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5poiv"]
+resource_local_to_scene = true
+shader = ExtResource("26_tel4y")
+shader_parameter/texture_albedo = ExtResource("30_5he1u")
+shader_parameter/texture_flow_map = ExtResource("21_j2jfr")
+shader_parameter/color = Color(0.20392157, 0.20392157, 0.20392157, 1)
+shader_parameter/displacement_steps = 4
+shader_parameter/displacement_power = 0.5
+shader_parameter/displacement_size = 16.0
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_ty1g6"]
+streams_count = 9
+stream_0/stream = ExtResource("32_5he1u")
+stream_1/stream = ExtResource("33_5poiv")
+stream_2/stream = ExtResource("34_2cjbq")
+stream_3/stream = ExtResource("35_chjal")
+stream_4/stream = ExtResource("36_cjqg0")
+stream_5/stream = ExtResource("37_vchkt")
+stream_6/stream = ExtResource("38_txyw0")
+stream_7/stream = ExtResource("39_vc5cj")
+stream_8/stream = ExtResource("40_nvyfr")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bu4jf"]
+shader = ExtResource("42_bjg73")
+shader_parameter/texture_flow_map = ExtResource("21_j2jfr")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/displacement_steps = 3
+shader_parameter/displacement_power = 150.0
+shader_parameter/displacement_size = 100.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_o7ddy"]
+font = ExtResource("22_bjg73")
+font_size = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_txyw0"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.1, 0.1, 0.1, 0.8627451)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vc5cj"]
+resource_local_to_scene = true
+shader = ExtResource("26_tel4y")
+shader_parameter/texture_albedo = ExtResource("43_cjqg0")
+shader_parameter/texture_flow_map = ExtResource("21_j2jfr")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/displacement_steps = 8
+shader_parameter/displacement_power = 2.0
+shader_parameter/displacement_size = 16.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nvyfr"]
+resource_local_to_scene = true
+shader = ExtResource("26_tel4y")
+shader_parameter/texture_albedo = ExtResource("32_5q0nq")
+shader_parameter/texture_flow_map = ExtResource("21_j2jfr")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/displacement_steps = 4
+shader_parameter/displacement_power = 2.0
+shader_parameter/displacement_size = 16.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_ty1g6"]
+font = ExtResource("22_bjg73")
+font_size = 32
+font_color = Color(0.359375, 0.359375, 0.359375, 1)
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_4c57u"]
+font = ExtResource("22_bjg73")
+font_size = 64
+outline_color = Color(0, 0, 0, 1)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_fv21b")
+levels = Array[ExtResource("2_tel4y")]([ExtResource("3_qkpxi"), ExtResource("4_5q0nq"), ExtResource("5_dgi5k"), ExtResource("6_j8jky"), ExtResource("7_vc5cj")])
+fishes = Array[ExtResource("7_kmb1v")]([ExtResource("8_fuf3a"), ExtResource("9_pibwh")])
+upgrades = Array[ExtResource("7_kmb1v")]([ExtResource("10_c6pm6"), ExtResource("11_5he1u"), ExtResource("12_5poiv"), ExtResource("14_nvyfr")])
+end_portal = ExtResource("15_cjqg0")
+
+[node name="MainTheme" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("16_ty1g6")
+autoplay = true
+bus = &"Music"
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.65307707, 0.75729156, 0, -0.75729156, 0.65307707, 1.3848572, 7.136898, 6.4730587)
+
+[node name="Colors" type="Node3D" parent="."]
+script = ExtResource("16_vchkt")
+default_color = Color(0.3019608, 0.4862745, 0.69803923, 1)
+base_color = Color(0.3019608, 0.4862745, 0.69803923, 1)
+
+[node name="Grid" type="Node3D" parent="."]
+script = ExtResource("17_txyw0")
+grid_size = Vector2i(10, 6)
+tile_size = Vector2(1.3, 1.3)
+tile_height_variation = 0.25
+
+[node name="Character" parent="." instance=ExtResource("18_2f3dj")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -0.009594381, 0, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.9321217, -0.12628701, 0.33941236, 0, 0.93722725, 0.34871927, -0.36214522, -0.3250488, 0.87360984, 0, 0, 0)
+
+[node name="Water" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.2623286, 0)
+material_override = SubResource("ShaderMaterial_7mycd")
+mesh = SubResource("PlaneMesh_1bvp3")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_5vw27")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="LevelLabel" type="Label" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -96.0
+offset_top = 33.0
+offset_right = 96.0
+offset_bottom = 126.0
+grow_horizontal = 2
+text = "第 1 关"
+label_settings = SubResource("LabelSettings_kq58d")
+horizontal_alignment = 1
+
+[node name="Control" type="Control" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -176.0
+offset_top = 17.0
+offset_right = -23.0
+offset_bottom = 129.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/Control/Control"]
+material = ExtResource("44_vchkt")
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -162.0
+offset_bottom = 114.0
+grow_horizontal = 0
+text = "125"
+label_settings = SubResource("LabelSettings_qsp4k")
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="Score2" type="Label" parent="CanvasLayer/Control/Control"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -162.0
+offset_bottom = 93.0
+grow_horizontal = 0
+text = "得分"
+label_settings = SubResource("LabelSettings_fv21b")
+horizontal_alignment = 2
+
+[node name="ComboControl" type="Control" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 23.0
+offset_right = 405.0
+offset_bottom = 117.0
+mouse_filter = 2
+script = ExtResource("27_dnhof")
+
+[node name="ComboLabel" type="Label" parent="CanvasLayer/Control/ComboControl"]
+layout_mode = 1
+offset_right = 162.0
+offset_bottom = 65.0
+text = "x2"
+label_settings = SubResource("LabelSettings_kek77")
+
+[node name="UnitContainer" type="GridContainer" parent="CanvasLayer/Control/ComboControl"]
+layout_mode = 0
+offset_top = 27.0
+offset_right = 313.0
+offset_bottom = 235.0
+theme_override_constants/h_separation = -10
+theme_override_constants/v_separation = -24
+columns = 5
+
+[node name="ComboUnitControl" parent="CanvasLayer/Control/ComboControl/UnitContainer" instance=ExtResource("28_1v6qk")]
+layout_mode = 2
+
+[node name="ComboUnitControl2" parent="CanvasLayer/Control/ComboControl/UnitContainer" instance=ExtResource("28_1v6qk")]
+layout_mode = 2
+
+[node name="ComboUnitControl3" parent="CanvasLayer/Control/ComboControl/UnitContainer" instance=ExtResource("28_1v6qk")]
+layout_mode = 2
+
+[node name="ComboUnitControl4" parent="CanvasLayer/Control/ComboControl/UnitContainer" instance=ExtResource("28_1v6qk")]
+layout_mode = 2
+
+[node name="ComboUnitControl5" parent="CanvasLayer/Control/ComboControl/UnitContainer" instance=ExtResource("28_1v6qk")]
+layout_mode = 2
+
+[node name="ActiveControl" type="Control" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -47.0
+offset_top = -132.0
+offset_right = 47.0
+offset_bottom = -38.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_default_cursor_shape = 2
+script = ExtResource("32_j8jky")
+active_color = Color(0.59552, 1, 0.44921875, 1)
+disabled_color = Color(0.20392157, 0.20392157, 0.20392157, 1)
+
+[node name="Border" type="TextureRect" parent="CanvasLayer/Control/ActiveControl"]
+material = SubResource("ShaderMaterial_5q0nq")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -11.0
+offset_top = -11.0
+offset_right = 11.0
+offset_bottom = 11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("32_5q0nq")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ActiveEffectSprite" type="TextureRect" parent="CanvasLayer/Control/ActiveControl"]
+material = SubResource("ShaderMaterial_dgi5k")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("29_c6pm6")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CrossSprite" type="Control" parent="CanvasLayer/Control/ActiveControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CrossSprite1" type="TextureRect" parent="CanvasLayer/Control/ActiveControl/CrossSprite"]
+material = SubResource("ShaderMaterial_5poiv")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -18.0
+offset_top = -18.0
+offset_right = 18.0
+offset_bottom = 18.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("30_5he1u")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CrossSprite2" type="TextureRect" parent="CanvasLayer/Control/ActiveControl/CrossSprite"]
+material = SubResource("ShaderMaterial_5poiv")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -18.0
+offset_top = 4.0
+offset_right = 18.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -1.5987216
+pivot_offset = Vector2(54, 54)
+texture = ExtResource("30_5he1u")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ChargesControl" parent="CanvasLayer/Control/ActiveControl" instance=ExtResource("34_dgi5k")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -33.0
+offset_top = 50.0
+offset_right = 33.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+gap = 5
+
+[node name="TriggerEffectAudio" type="AudioStreamPlayer" parent="CanvasLayer/Control/ActiveControl"]
+stream = SubResource("AudioStreamRandomizer_ty1g6")
+bus = &"SFX"
+
+[node name="SpaceLabel" type="Label" parent="CanvasLayer/Control/ActiveControl"]
+material = SubResource("ShaderMaterial_bu4jf")
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -45.0
+offset_top = -3.0
+offset_right = 45.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "[空格键]"
+label_settings = SubResource("LabelSettings_o7ddy")
+
+[node name="FinalScoreControl" type="Control" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("40_chjal")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/Control/FinalScoreControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_txyw0")
+
+[node name="GameOver" type="Label" parent="CanvasLayer/Control/FinalScoreControl/Panel"]
+visible = false
+material = ExtResource("44_vchkt")
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -96.0
+offset_top = 33.0
+offset_right = 96.0
+offset_bottom = 126.0
+grow_horizontal = 2
+text = "本局结束"
+label_settings = SubResource("LabelSettings_kq58d")
+horizontal_alignment = 1
+
+[node name="Completed" type="Label" parent="CanvasLayer/Control/FinalScoreControl/Panel"]
+material = ExtResource("44_vchkt")
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -96.0
+offset_top = 33.0
+offset_right = 96.0
+offset_bottom = 126.0
+grow_horizontal = 2
+text = "通关啦！"
+label_settings = SubResource("LabelSettings_kq58d")
+horizontal_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Control/FinalScoreControl/Panel/Completed"]
+material = ExtResource("44_vchkt")
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -54.5
+offset_top = -31.5
+offset_right = -7.4705963
+offset_bottom = 9.5
+grow_vertical = 2
+texture = ExtResource("44_bu4jf")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextureRect2" type="TextureRect" parent="CanvasLayer/Control/FinalScoreControl/Panel/Completed"]
+material = ExtResource("44_vchkt")
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 2.0
+offset_top = -32.5
+offset_right = 49.02942
+offset_bottom = 8.5
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("44_bu4jf")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ScoreContainer" type="Control" parent="CanvasLayer/Control/FinalScoreControl"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -143.0
+offset_right = 127.0
+offset_bottom = -56.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CharacterControl" type="Control" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 12.0
+offset_top = -36.5
+offset_right = 44.29358
+offset_bottom = -4.5
+grow_vertical = 2
+
+[node name="CharacterTexture" type="TextureRect" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer/CharacterControl"]
+material = SubResource("ShaderMaterial_vc5cj")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -34.0
+offset_top = -48.0
+offset_right = 34.0
+offset_bottom = 48.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("43_cjqg0")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextureRect2" type="TextureRect" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer/CharacterControl"]
+material = SubResource("ShaderMaterial_nvyfr")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -42.70642
+offset_top = -39.0
+offset_right = 42.70642
+offset_bottom = 39.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("32_5q0nq")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Control" type="Control" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 80.0
+offset_top = -57.5
+offset_right = 259.0
+offset_bottom = 120.5
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer/Control"]
+material = ExtResource("44_vchkt")
+layout_mode = 1
+offset_right = 155.0
+offset_bottom = 33.0
+text = "得分"
+label_settings = SubResource("LabelSettings_ty1g6")
+vertical_alignment = 1
+
+[node name="FinalScoreLabel" type="Label" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer/Control"]
+material = ExtResource("44_vchkt")
+layout_mode = 1
+offset_left = -6.0
+offset_top = -19.5
+offset_right = 482.0
+offset_bottom = 125.5
+text = "222222"
+label_settings = SubResource("LabelSettings_4c57u")
+vertical_alignment = 1
+
+[node name="ButtonsContainer" type="VBoxContainer" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer"]
+layout_mode = 1
+offset_left = -11.0
+offset_top = 135.0
+offset_right = 314.0
+offset_bottom = 400.0
+theme_override_constants/separation = 0
+
+[node name="RestartButton" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "重新开始"
+alignment = 0
+
+[node name="CharactersButton" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "选择角色"
+alignment = 0
+
+[node name="MainMenu" parent="CanvasLayer/Control/FinalScoreControl/ScoreContainer/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "主菜单"
+alignment = 0
+
+[node name="Menu" type="Control" parent="CanvasLayer/Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("44_txyw0")
+
+[node name="Panel" type="Panel" parent="CanvasLayer/Control/Menu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_txyw0")
+
+[node name="SettingsContainer" type="Control" parent="CanvasLayer/Control/Menu"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/Menu/SettingsContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -175.0
+offset_top = -121.0
+offset_right = 175.0
+offset_bottom = 121.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SettingsControl" parent="CanvasLayer/Control/Menu/SettingsContainer/VBoxContainer" instance=ExtResource("50_j2jfr")]
+layout_mode = 2
+
+[node name="SettingsReturnButton" parent="CanvasLayer/Control/Menu/SettingsContainer/VBoxContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "返回"
+
+[node name="ButtonsContainer" type="VBoxContainer" parent="CanvasLayer/Control/Menu"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -425.5
+offset_top = -132.5
+offset_right = 425.5
+offset_bottom = 132.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 35
+
+[node name="ResumeGameButton" parent="CanvasLayer/Control/Menu/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "继续游戏"
+
+[node name="RestartButton" parent="CanvasLayer/Control/Menu/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "重新开始"
+
+[node name="CharactersButton" parent="CanvasLayer/Control/Menu/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "选择角色"
+
+[node name="SettingsButton" parent="CanvasLayer/Control/Menu/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "设置"
+
+[node name="MainMenu" parent="CanvasLayer/Control/Menu/ButtonsContainer" instance=ExtResource("24_2cjbq")]
+layout_mode = 2
+text = "主菜单"
+
+[node name="UnlockControlContainer" type="Control" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -398.0
+offset_top = -18.0
+offset_right = -19.0
+offset_bottom = -18.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("41_2cjbq")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/UnlockControlContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 149.0
+offset_top = 146.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="UnlockControl" parent="CanvasLayer/Control/UnlockControlContainer/VBoxContainer" instance=ExtResource("42_chjal")]
+layout_mode = 2
+
+[node name="UnlockControl2" parent="CanvasLayer/Control/UnlockControlContainer/VBoxContainer" instance=ExtResource("42_chjal")]
+layout_mode = 2
+
+[node name="UnlockControl3" parent="CanvasLayer/Control/UnlockControlContainer/VBoxContainer" instance=ExtResource("42_chjal")]
+layout_mode = 2

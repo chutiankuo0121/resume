@@ -1,0 +1,84 @@
+/* 加载和正式开场共用主画布。固定画布覆盖深链接落点，完成后恢复原粘性布局。 */
+html:has(.astra[data-loading="true"]) { overflow: hidden; }
+.astra[data-loading="true"] .experience {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  z-index: 20;
+  background: #f8f8f7;
+}
+.astra[data-loading="true"] > .chapter-axis,
+.astra[data-loading="true"] > .page-scrollbar {
+  visibility: hidden;
+}
+.loading-prelude {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  touch-action: none;
+  overscroll-behavior: none;
+  mix-blend-mode: difference;
+}
+.prelude-copy {
+  position: absolute;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  left: max(28px, env(safe-area-inset-left));
+  width: max-content;
+  color: #fff;
+  opacity: var(--loading-copy-opacity, 1);
+  pointer-events: none;
+}
+.prelude-counter {
+  display: flex;
+  font: 400 144px/1 var(--font-heading);
+  letter-spacing: -.04em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.prelude-digit {
+  display: block;
+  width: .62em;
+  height: 1em;
+  overflow: hidden;
+  text-align: center;
+}
+.prelude-digit-strip {
+  display: block;
+  will-change: transform;
+}
+.prelude-digit-strip > span {
+  display: block;
+  height: 1em;
+}
+.prelude-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  padding: 30px;
+  color: #252523;
+  background: #f8f8f7;
+  text-align: center;
+  font: 17px/1.8 var(--font-body);
+}
+.prelude-error button {
+  border: 1px solid #25252360;
+  padding: 8px 28px;
+  background: transparent;
+}
+.loading-prelude[data-failed="true"] .prelude-copy { visibility: hidden; }
+.loading-prelude[data-failed="true"] { mix-blend-mode: normal; }
+/* 揭幕完成才让身份文字入场，雾场先到，文字后到。 */
+.experience.is-ready .opening-titles { animation: opening-after-loading 1s ease-out both; }
+@keyframes opening-after-loading {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (max-width: 799px) {
+  .prelude-copy {
+    bottom: max(18px, env(safe-area-inset-bottom));
+    left: max(16px, env(safe-area-inset-left));
+  }
+  .prelude-counter { font-size: 88px; }
+}

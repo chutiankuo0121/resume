@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ObjectResource" load_steps=3 format=3 uid="uid://sy0tuxwk5ayk"]
+
+[ext_resource type="Script" uid="uid://b71n7qcf355ov" path="res://scripts/object_resource.gd" id="1_rulj0"]
+[ext_resource type="Texture2D" uid="uid://mmoh3uddab1c" path="res://assets/sprites/upgrades/upgrade-shoe.png" id="2_rulj0"]
+
+[resource]
+script = ExtResource("1_rulj0")
+texture = ExtResource("2_rulj0")
+score = 0.0
+effect = 2
+value = 2.0
+description = "移动次数 +2！"
+metadata/_custom_type_script = "uid://b71n7qcf355ov"

@@ -1,0 +1,358 @@
+[gd_scene load_steps=34 format=3 uid="uid://dl8w77uxmq0if"]
+
+[ext_resource type="Script" uid="uid://cxnfrff5gkkbx" path="res://scripts/uis/title_control.gd" id="1_p6dhs"]
+[ext_resource type="Shader" uid="uid://dfres2gk08qge" path="res://shaders/button.gdshader" id="2_pyl7j"]
+[ext_resource type="Texture2D" uid="uid://cxcq0prg5ar5m" path="res://assets/sprites/ui/ooqo-title.png" id="3_4rr2b"]
+[ext_resource type="FontVariation" path="res://fonts/game-font.tres" id="3_b3w7a"]
+[ext_resource type="CompressedTexture2DArray" uid="uid://cwvt3fxyqsfxt" path="res://assets/sprites/tilesarray.png" id="4_blk4q"]
+[ext_resource type="Shader" uid="uid://kk5eotwckwoj" path="res://shaders/scene_transition.gdshader" id="4_kcc3o"]
+[ext_resource type="Texture2D" uid="uid://px765xxxbw7f" path="res://assets/sprites/FlowMap.png" id="5_w65of"]
+[ext_resource type="Texture2D" uid="uid://ptwnvkclhydm" path="res://assets/sprites/upgrades/fish.png" id="7_hiwto"]
+[ext_resource type="AudioStream" uid="uid://dlbr15o2xmvfg" path="res://assets/audio/GameOff_Mus_02 MainTitle 143bpm Loop.wav" id="9_pmcd8"]
+[ext_resource type="Resource" uid="uid://dtswsmddjfa73" path="res://resources/characters/nohz.tres" id="11_8magm"]
+[ext_resource type="Texture2D" uid="uid://dep7pgsiwc7x3" path="res://assets/sprites/rect.png" id="11_fgbvm"]
+[ext_resource type="Script" uid="uid://bxsukocx6neog" path="res://scripts/character_resource.gd" id="13_blk4q"]
+[ext_resource type="Resource" uid="uid://b0v358lg7qpbk" path="res://resources/characters/default.tres" id="14_8magm"]
+[ext_resource type="Resource" uid="uid://cljw1d0fw8t6b" path="res://resources/characters/ikk.tres" id="15_pmcd8"]
+[ext_resource type="Texture2D" uid="uid://bunvlygd1uik3" path="res://assets/sprites/particle.png" id="15_wtvjo"]
+[ext_resource type="Resource" uid="uid://b3e8by7tdbx8h" path="res://resources/characters/YV.tres" id="16_e75f2"]
+[ext_resource type="PackedScene" uid="uid://ljyqaok0p7pa" path="res://scenes/uis/button.tscn" id="16_fgbvm"]
+[ext_resource type="PackedScene" uid="uid://3dkqxknb3p7p" path="res://scenes/uis/settings_control.tscn" id="17_e75f2"]
+[ext_resource type="Resource" uid="uid://dqlwd5tymo60x" path="res://resources/characters/oye.tres" id="17_wtvjo"]
+[ext_resource type="Resource" uid="uid://cgyvpdxxyqfg5" path="res://resources/characters/paha.tres" id="18_t8o15"]
+[ext_resource type="PackedScene" uid="uid://fgs77dbhgmfo" path="res://scenes/uis/character_select_control.tscn" id="19_vjr5h"]
+[ext_resource type="Texture2D" uid="uid://dt3i0nx6owjfj" path="res://assets/sprites/ui/actions/back.png" id="20_fgbvm"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vjr5h"]
+shader = ExtResource("4_kcc3o")
+shader_parameter/textures = ExtResource("4_blk4q")
+shader_parameter/texture_size = Vector2(156, 136)
+shader_parameter/screen_size = Vector2(1160, 650)
+shader_parameter/alpha = 1.0
+shader_parameter/fsize = 2.245
+shader_parameter/texture_flow_map = ExtResource("5_w65of")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hiwto"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0, 0, 0, 0.13333334)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="Shader" id="Shader_w65of"]
+code = "shader_type canvas_item;
+uniform sampler2D texture_albedo;
+uniform sampler2D texture_flow_map;
+uniform vec3 color: source_color = vec3(1.0);
+uniform int displacement_steps = 4;
+uniform float displacement_power = 2.0;
+uniform float displacement_size = 5.0;
+
+void vertex() {
+	// Called for every vertex the material is visible on.
+}
+
+void fragment() {
+	// Called for every pixel the material is visible on.
+	vec3 displacement = texture(texture_flow_map, UV / displacement_size + vec2(float(int(TIME * 8.0) % displacement_steps) / 10.0)).xyz;
+	vec2 pos = UV + displacement.xy * 0.02 * displacement_power;
+	vec4 tex = texture(texture_albedo, pos);
+    COLOR = vec4(tex.rgb * color, tex.a);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fgbvm"]
+resource_local_to_scene = true
+shader = SubResource("Shader_w65of")
+shader_parameter/texture_albedo = ExtResource("3_4rr2b")
+shader_parameter/texture_flow_map = ExtResource("5_w65of")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/displacement_steps = 10
+shader_parameter/displacement_power = 0.6
+shader_parameter/displacement_size = 15.0
+
+[sub_resource type="Curve" id="Curve_t8o15"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.25247526, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_opmo2"]
+curve = SubResource("Curve_t8o15")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_owywo"]
+particle_flag_disable_z = true
+angle_min = -720.0
+angle_max = 720.0
+gravity = Vector3(0, -98, 0)
+scale_min = 0.049999997
+scale_max = 0.099999994
+scale_curve = SubResource("CurveTexture_opmo2")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ygloa"]
+resource_local_to_scene = true
+shader = SubResource("Shader_w65of")
+shader_parameter/texture_albedo = ExtResource("7_hiwto")
+shader_parameter/texture_flow_map = ExtResource("5_w65of")
+shader_parameter/color = Color(0.8352941, 0.50980395, 1, 1)
+shader_parameter/displacement_steps = 10
+shader_parameter/displacement_power = 1.4
+shader_parameter/displacement_size = 10.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_e75f2"]
+shader = ExtResource("2_pyl7j")
+shader_parameter/texture_flow_map = ExtResource("5_w65of")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/displacement_steps = 8
+shader_parameter/displacement_power = 200.0
+shader_parameter/displacement_size = 100.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_wtvjo"]
+font = ExtResource("3_b3w7a")
+font_size = 42
+
+[sub_resource type="LabelSettings" id="LabelSettings_e75f2"]
+font = ExtResource("3_b3w7a")
+font_size = 32
+
+[node name="Title" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p6dhs")
+character_resources = Array[ExtResource("13_blk4q")]([ExtResource("14_8magm"), ExtResource("18_t8o15"), ExtResource("17_wtvjo"), ExtResource("11_8magm"), ExtResource("16_e75f2"), ExtResource("15_pmcd8")])
+
+[node name="MainTitle2" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_pmcd8")
+autoplay = true
+bus = &"Music"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_vjr5h")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("11_fgbvm")
+
+[node name="TitleControl" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="CanvasLayer/TitleControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hiwto")
+
+[node name="Title" type="Control" parent="CanvasLayer/TitleControl/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -273.5
+offset_top = -267.0
+offset_right = 273.5
+offset_bottom = 41.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/TitleControl/Panel/Title"]
+material = SubResource("ShaderMaterial_fgbvm")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -232.62674
+offset_top = -91.0
+offset_right = 232.62674
+offset_bottom = 91.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_4rr2b")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="CanvasLayer/TitleControl/Panel/Title"]
+position = Vector2(193.5, 126)
+amount = 10
+amount_ratio = 0.1
+texture = ExtResource("15_wtvjo")
+lifetime = 3.0
+explosiveness = 0.1
+process_material = SubResource("ParticleProcessMaterial_owywo")
+
+[node name="Fish" type="TextureRect" parent="CanvasLayer/TitleControl/Panel/Title"]
+material = SubResource("ShaderMaterial_ygloa")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -149.0
+offset_top = -73.0
+offset_right = -61.17395
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("7_hiwto")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ButtonsContainer" type="VBoxContainer" parent="CanvasLayer/TitleControl"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 419.0
+offset_top = -42.0
+offset_right = -419.0
+offset_bottom = 277.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PlayButton" parent="CanvasLayer/TitleControl/ButtonsContainer" instance=ExtResource("16_fgbvm")]
+layout_mode = 2
+
+[node name="SettingsButton" parent="CanvasLayer/TitleControl/ButtonsContainer" instance=ExtResource("16_fgbvm")]
+layout_mode = 2
+text = "设置"
+
+[node name="SettingsContainer" type="Control" parent="CanvasLayer/TitleControl"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SettingsControl" parent="CanvasLayer/TitleControl/SettingsContainer" instance=ExtResource("17_e75f2")]
+layout_mode = 1
+offset_top = -8.0
+offset_bottom = 234.0
+
+[node name="SettingsReturnButton" parent="CanvasLayer/TitleControl/SettingsContainer" instance=ExtResource("16_fgbvm")]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -71.1254
+offset_right = 246.0
+grow_vertical = 0
+text = "返回"
+icon = ExtResource("20_fgbvm")
+
+[node name="CharacterSelect" type="Control" parent="CanvasLayer/TitleControl"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/TitleControl/CharacterSelect"]
+material = SubResource("ShaderMaterial_e75f2")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -157.5
+offset_top = -36.0
+offset_right = 157.5
+offset_bottom = 7.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "选择角色"
+label_settings = SubResource("LabelSettings_wtvjo")
+horizontal_alignment = 1
+
+[node name="CharacterDescription" type="Label" parent="CanvasLayer/TitleControl/CharacterSelect"]
+material = SubResource("ShaderMaterial_e75f2")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -144.0
+offset_top = 212.0
+offset_right = 144.0
+offset_bottom = 281.0
+grow_horizontal = 2
+grow_vertical = 2
+text = ""
+label_settings = SubResource("LabelSettings_e75f2")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CharactersContainer" type="GridContainer" parent="CanvasLayer/TitleControl/CharacterSelect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -394.0
+offset_top = 74.0
+offset_right = 394.0
+offset_bottom = 334.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 6
+
+[node name="CharacterSelectControl" parent="CanvasLayer/TitleControl/CharacterSelect/CharactersContainer" instance=ExtResource("19_vjr5h")]
+layout_mode = 2
+
+[node name="CharacterSelectControl2" parent="CanvasLayer/TitleControl/CharacterSelect/CharactersContainer" instance=ExtResource("19_vjr5h")]
+layout_mode = 2
+
+[node name="CharacterSelectControl3" parent="CanvasLayer/TitleControl/CharacterSelect/CharactersContainer" instance=ExtResource("19_vjr5h")]
+layout_mode = 2
+
+[node name="CharacterSelectControl4" parent="CanvasLayer/TitleControl/CharacterSelect/CharactersContainer" instance=ExtResource("19_vjr5h")]
+layout_mode = 2
+
+[node name="CharacterSelectControl5" parent="CanvasLayer/TitleControl/CharacterSelect/CharactersContainer" instance=ExtResource("19_vjr5h")]
+layout_mode = 2
+
+[node name="CharacterSelectControl6" parent="CanvasLayer/TitleControl/CharacterSelect/CharactersContainer" instance=ExtResource("19_vjr5h")]
+layout_mode = 2
+
+[node name="ReturnButton" parent="CanvasLayer/TitleControl/CharacterSelect" instance=ExtResource("16_fgbvm")]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -71.125404
+offset_right = 246.0
+grow_vertical = 0
+text = "返回"
+icon = ExtResource("20_fgbvm")

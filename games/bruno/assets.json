@@ -1,0 +1,752 @@
+{
+  "commit": "41046b57eeed8d156d9c3fd7fa259900baef7816",
+  "files": [
+    {
+      "path": "achievements/glyphs.ktx",
+      "size": 2926,
+      "sha": "92a938640bb5aa31c8ecf91b4b4c0d188b7f4652"
+    },
+    {
+      "path": "areas/satanStar.ktx",
+      "size": 1915,
+      "sha": "4b6daf82e781d2031d3fba6cf1ee38c2b4e871f3"
+    },
+    {
+      "path": "basis/README.md",
+      "size": 1448,
+      "sha": "2d7744fcf80c1d7337c53ab38db7a05d9c276d0c"
+    },
+    {
+      "path": "basis/basis_transcoder.js",
+      "size": 57533,
+      "sha": "22e3be38d1e0ed2e9bd887057af9a5b0b0fe7efc"
+    },
+    {
+      "path": "basis/basis_transcoder.wasm",
+      "size": 527333,
+      "sha": "bc64682561438128604ac550da774f8cc6617460"
+    },
+    {
+      "path": "behindTheScene/stars.ktx",
+      "size": 18026,
+      "sha": "20232744f83e1004242b1daddc81b385ada6095b"
+    },
+    {
+      "path": "birchTrees/birchTreesReferences-compressed.glb",
+      "size": 23980,
+      "sha": "cd864bdc0b6d8a335c1c22597f5c7ae7bcad9e2e"
+    },
+    {
+      "path": "birchTrees/birchTreesVisual-compressed.glb",
+      "size": 5084,
+      "sha": "34ed098d77771cef2dd17776463dd7fc0da7c533"
+    },
+    {
+      "path": "cherryTrees/cherryTreesVisual-compressed.glb",
+      "size": 5232,
+      "sha": "3a831e4d83c7f3dbc2022792c5fa7136beea8f03"
+    },
+    {
+      "path": "draco/README.md",
+      "size": 1489,
+      "sha": "4d891646db2fad57251a676e3abaafee4eba0512"
+    },
+    {
+      "path": "draco/draco_decoder.wasm",
+      "size": 285747,
+      "sha": "e5a5e06eb51fb061a94a9682cc7e338038fae25c"
+    },
+    {
+      "path": "draco/draco_wasm_wrapper.js",
+      "size": 58763,
+      "sha": "bb5b1224121134740fe6832a1aa8605bb128d2fd"
+    },
+    {
+      "path": "explosiveCrates/explosiveCrates-compressed.glb",
+      "size": 8588,
+      "sha": "cf98c2eea24b539424bc97db3763ad2949343868"
+    },
+    {
+      "path": "fences/fences-compressed.glb",
+      "size": 8692,
+      "sha": "d640e5a7d1687919a2bd8d815c2614cbb25475ad"
+    },
+    {
+      "path": "floor/slabs.ktx",
+      "size": 12715,
+      "sha": "84d4e26c66c64c15436d8fbc3d9b8f043e13c02a"
+    },
+    {
+      "path": "flowers/flowersReferences-compressed.glb",
+      "size": 19412,
+      "sha": "c337597397f23033f6b01e404bc1b0a258ea1004"
+    },
+    {
+      "path": "foliage/foliageSDF.ktx",
+      "size": 3076,
+      "sha": "b5b6eb4c7cc9030d49c7ad1c7f471c7045484989"
+    },
+    {
+      "path": "interactivePoints/interactivePointsKeyIconA.ktx",
+      "size": 819,
+      "sha": "50918ba5fecd0fe5881bc029b93df4683e97ef92"
+    },
+    {
+      "path": "interactivePoints/interactivePointsKeyIconCross.ktx",
+      "size": 773,
+      "sha": "a67da29f0f9eb61ea9046dd41b3dd954216ad4f8"
+    },
+    {
+      "path": "interactivePoints/interactivePointsKeyIconEnter.ktx",
+      "size": 813,
+      "sha": "70bdf49457a2785a0efa99b5d337235583a712ee"
+    },
+    {
+      "path": "intro/sound.ktx",
+      "size": 947,
+      "sha": "9f85735f5225665d3a921cc7c7d60e0f3e57eb5c"
+    },
+    {
+      "path": "jukebox/jukeboxMusicNotes.ktx",
+      "size": 627,
+      "sha": "032c97c182ab77c7ba2542a062f7a3e3e0a5afa4"
+    },
+    {
+      "path": "lanterns/lanterns-compressed.glb",
+      "size": 11388,
+      "sha": "7e05816b059f495d1e667a7315a9db80e862aed2"
+    },
+    {
+      "path": "oakTrees/oakTreesReferences-compressed.glb",
+      "size": 21572,
+      "sha": "4b8dd5bcc22c89209e2995a1b9300687587aa182"
+    },
+    {
+      "path": "oakTrees/oakTreesVisual-compressed.glb",
+      "size": 5188,
+      "sha": "9e4b5d7175f87fd11eb90ff9ea508c0b70017780"
+    },
+    {
+      "path": "overlay/overlayPattern.ktx",
+      "size": 16672,
+      "sha": "f2be488bc3988ad2678a8221ea3d59ff1d557508"
+    },
+    {
+      "path": "palette.ktx",
+      "size": 1504,
+      "sha": "44325ec9d46a1332aae6f22d24440d9ce3354345"
+    },
+    {
+      "path": "playground/playgroundPhysical-compressed.glb",
+      "size": 1904,
+      "sha": "d5ecb0d2ece96b1faec915bd7a9f0670711cecce"
+    },
+    {
+      "path": "playground/playgroundVisual-compressed.glb",
+      "size": 27536,
+      "sha": "7b8106baf9c9a1a1859b017f583fdf3e099b80b7"
+    },
+    {
+      "path": "scenery/scenery-compressed.glb",
+      "size": 47892,
+      "sha": "52def109bfe7993631df37ac7b6b0ba8d0223617"
+    },
+    {
+      "path": "sounds/achievements/Money Reward 2.mp3",
+      "size": 35910,
+      "sha": "6f8e96c428803082594f0b08c31abd5aaa6c376b"
+    },
+    {
+      "path": "sounds/anvil/METLImpt_Anvil Single Hammer Strike Hammers_GENHD1-01372.mp3",
+      "size": 4339,
+      "sha": "d5c61224a57c591f72bcf7eb15b84e57415b6157"
+    },
+    {
+      "path": "sounds/bell/Death Hit.mp3",
+      "size": 32957,
+      "sha": "178740d00ceb722139fa25f9e8e92fce416ec13a"
+    },
+    {
+      "path": "sounds/bell/Epic Bell Impact Hit.mp3",
+      "size": 30555,
+      "sha": "c6c0771850c01c7ec51aa57fdc0bafc8d14ddb6a"
+    },
+    {
+      "path": "sounds/birdTweets/20711 finch bird isolated tweet-full.mp3",
+      "size": 14047,
+      "sha": "cb2c420cebb9b1a7218293489d7b1f8c79f4343b"
+    },
+    {
+      "path": "sounds/birdTweets/24074 small bird tweet calling-full-1.mp3",
+      "size": 2397,
+      "sha": "41900752b6b482e1c080144f9b581d4d46457757"
+    },
+    {
+      "path": "sounds/birdTweets/24074 small bird tweet calling-full-2.mp3",
+      "size": 2553,
+      "sha": "ad8d6f9432d58f091115646a2095526b105b3247"
+    },
+    {
+      "path": "sounds/birdTweets/30673 Yellowhammer bird tweet 3-full.mp3",
+      "size": 13551,
+      "sha": "aa931cd6c4de111c8661c4929a5d3fa467ab5692"
+    },
+    {
+      "path": "sounds/birdTweets/31062 Ortolan bird tweet-full.mp3",
+      "size": 14896,
+      "sha": "516d4501617ffd84dc6afb95c6c235d43b7baf1a"
+    },
+    {
+      "path": "sounds/birdTweets/31451 Ortolan bunting bird isolated tweet-full.mp3",
+      "size": 8742,
+      "sha": "da3d5ba6b72d411064b6edf59d03fc28f4424d52"
+    },
+    {
+      "path": "sounds/circuit/applause/huge win.mp3",
+      "size": 118132,
+      "sha": "d93419b9323a67bae48297ff209e18ba9c83cb7e"
+    },
+    {
+      "path": "sounds/circuit/checkpoint/Win Score 1.mp3",
+      "size": 12930,
+      "sha": "bc23e5201883578fd191d10dbc51388d35283808"
+    },
+    {
+      "path": "sounds/circuit/countdown/Game Start Countdown 31-1.mp3",
+      "size": 11950,
+      "sha": "57b330fb1b1012bc3ce2d09032c060cbdc72f483"
+    },
+    {
+      "path": "sounds/circuit/countdown/Game Start Countdown 31-2.mp3",
+      "size": 13613,
+      "sha": "2150c294eebde77043782c28e218ac3e5b059a94"
+    },
+    {
+      "path": "sounds/circuit/finish/Big Win Fanfare 2.mp3",
+      "size": 42702,
+      "sha": "51d5abbe78b76a476110687a0ce5f4e6d392edb6"
+    },
+    {
+      "path": "sounds/clicks/Source Metal Clicks Delicate Light Sharp Clip Mid 07.mp3",
+      "size": 2969,
+      "sha": "a4560c02f829846548103d2a8da1c34b7be2142a"
+    },
+    {
+      "path": "sounds/crickets/Crickets.mp3",
+      "size": 70381,
+      "sha": "188e4854ee9eed14d15000bc5c0a5c3ca6b5c5ec"
+    },
+    {
+      "path": "sounds/ding/Cash Register 03.mp3",
+      "size": 14564,
+      "sha": "b9abb845cd8467a3f2c1197784239d3fbbfb8653"
+    },
+    {
+      "path": "sounds/explosions/SmallImpactMediumE PE281202.mp3",
+      "size": 26339,
+      "sha": "e3aa4db059f081dcfa06437697c147552e96a032"
+    },
+    {
+      "path": "sounds/explosions/SmallImpactMediumE PE281203.mp3",
+      "size": 23989,
+      "sha": "1b981c8b71df62a9f2207ceb67e21bcdd6c480ec"
+    },
+    {
+      "path": "sounds/fire/Fire Burning.mp3",
+      "size": 106454,
+      "sha": "be3b1475403e228c71c1a4ed8a94aaeea06b6a07"
+    },
+    {
+      "path": "sounds/fire/Mountain Audio - Fire Burning in a Wood Stove 1.mp3",
+      "size": 125610,
+      "sha": "15805ff01385ab06c98f5eff393d283adc20a853"
+    },
+    {
+      "path": "sounds/hits/bricks/24445 brick light hitting-full-2.mp3",
+      "size": 1722,
+      "sha": "3b522ec11cd220e71a8a940ebc3d0d3071524de0"
+    },
+    {
+      "path": "sounds/hits/bricks/41559 Stone brick fall hit 01-full-1.mp3",
+      "size": 2920,
+      "sha": "4813daa8533702a67122dc563ce896b2a6ac09ae"
+    },
+    {
+      "path": "sounds/hits/bricks/41563 Stone brick fall hit 05-full-1.mp3",
+      "size": 4616,
+      "sha": "420c90cfb852ac8e708dc173a7ce8be692adf7a3"
+    },
+    {
+      "path": "sounds/hits/bricks/BrickSetDown_BW.5803-1.mp3",
+      "size": 2919,
+      "sha": "58d8886becb111370733497140c2ce5af5505b03"
+    },
+    {
+      "path": "sounds/hits/defaults/Impact Soft 01.mp3",
+      "size": 2632,
+      "sha": "48290670dbf0e93464c89052f24116cde7c92655"
+    },
+    {
+      "path": "sounds/hits/defaults/Impact Soft 02.mp3",
+      "size": 3519,
+      "sha": "8d9f36b6bf55ff641c7d029471149b7d774f76ff"
+    },
+    {
+      "path": "sounds/hits/defaults/Impact Soft 03.mp3",
+      "size": 2868,
+      "sha": "51ca6639a767bd1edadf6f83db89e62b9d4e0987"
+    },
+    {
+      "path": "sounds/hits/defaults/Impact Soft 04.mp3",
+      "size": 3494,
+      "sha": "40ffe5fb2ca5efc7bc98bc66724ed39c925e0a5b"
+    },
+    {
+      "path": "sounds/hits/defaults/Stone_Hit_Crash_071-1.mp3",
+      "size": 5645,
+      "sha": "ac88c1ecb93f17952499451a9fcae910b1d5b6a7"
+    },
+    {
+      "path": "sounds/hits/defaults/Stone_Hit_Crash_106-1.mp3",
+      "size": 7354,
+      "sha": "e22457ea97886ef0ba34d4c13eab724bbede89d6"
+    },
+    {
+      "path": "sounds/hits/defaults/Stone_Hit_Crash_106-2.mp3",
+      "size": 5895,
+      "sha": "9d325a062df9f41f4585ee2b2bb07fa3c2e6c2da"
+    },
+    {
+      "path": "sounds/hits/metal/EQUIPTact_Fire Gear_SDFIRE0411.mp3",
+      "size": 4066,
+      "sha": "83c4f7ccafa8a5fd68bb2c7996bfa109a67e1405"
+    },
+    {
+      "path": "sounds/hits/metal/Metal Clip Hit.mp3",
+      "size": 3387,
+      "sha": "b7258a1c70a6ebf39001d64d06cfb8556e302d4d"
+    },
+    {
+      "path": "sounds/hits/metal/Metalic 3.mp3",
+      "size": 3725,
+      "sha": "32ac1dda762eecc24fc7164d74bc11866e560229"
+    },
+    {
+      "path": "sounds/hits/pins/ComedyCrash 6115_16_4.mp3",
+      "size": 3247,
+      "sha": "757d8ee994e91ed83330b7606b670a1e2197df32"
+    },
+    {
+      "path": "sounds/jingleBells/Mountain Audio - Christmas Bells.mp3",
+      "size": 75263,
+      "sha": "ac16393c04ac6dad254cf1a1f8cf807e6fcb02e9"
+    },
+    {
+      "path": "sounds/jukebox/DVDPlayerChangeDisc_BW.49824.mp3",
+      "size": 16313,
+      "sha": "3da34ed48528e227894b5ace53d5c70b9f5732a2"
+    },
+    {
+      "path": "sounds/magic/Environmental Loop Scifi Bright Glassy Wandering Tones Layered 02.mp3",
+      "size": 106083,
+      "sha": "1c5cb6d92309ea8b9a69d1a1feb4fdc4b5bfe302"
+    },
+    {
+      "path": "sounds/magic/Ghostly Whisper Background Loop 9.mp3",
+      "size": 149337,
+      "sha": "aa641010e134ddb8016fb5bfd2db3656d471ed11"
+    },
+    {
+      "path": "sounds/magic/Mountain Audio - Small Chimes - Loop.mp3",
+      "size": 155057,
+      "sha": "c53a2299f57ed3cdb87efd7acc690c7a0c742803"
+    },
+    {
+      "path": "sounds/mecanism/assemble.mp3",
+      "size": 16441,
+      "sha": "5dfb583cc904d1733c941c53da0c244f254c1893"
+    },
+    {
+      "path": "sounds/mecanism/click.mp3",
+      "size": 2125,
+      "sha": "d2248728b6236d243692790e788c899f1264dc2a"
+    },
+    {
+      "path": "sounds/mecanism/slide.mp3",
+      "size": 10156,
+      "sha": "e0b748a7888220078bb047b5465b07217b7cca16"
+    },
+    {
+      "path": "sounds/musics/Baguira.mp3",
+      "size": 6201600,
+      "sha": "979264845c1058da4fd62bebed2d9164449702db"
+    },
+    {
+      "path": "sounds/musics/Boy.mp3",
+      "size": 6509760,
+      "sha": "c7348a96f8b4f9921728c81917999dd4369fc0f6"
+    },
+    {
+      "path": "sounds/musics/Sudo.mp3",
+      "size": 6173760,
+      "sha": "f4e9b9ca7494d27d94a3c28929b6b156bb3c07d1"
+    },
+    {
+      "path": "sounds/musics/license.md",
+      "size": 7047,
+      "sha": "1625c1793607996fcfc46420e8aa2f3d2b7efd1e"
+    },
+    {
+      "path": "sounds/owl/OwlHootingReverberantSeveral_Rik8a_03.mp3",
+      "size": 17142,
+      "sha": "2d73149608d4dc8edde4da80c25ca8def9804f13"
+    },
+    {
+      "path": "sounds/paper/PaperMovement_fNAyV_01-2.mp3",
+      "size": 5573,
+      "sha": "d456809b55849767ab791208b094cd5c3f0d2a08"
+    },
+    {
+      "path": "sounds/paper/PaperMovement_fNAyV_01-3.mp3",
+      "size": 6637,
+      "sha": "5127c0860b1f5f697b1dcd484823da7d6aa89cb5"
+    },
+    {
+      "path": "sounds/rain/soundjay_rain-on-leaves_main-01.mp3",
+      "size": 149788,
+      "sha": "00b7fb5874c096376098c03481af7f4ccbe88f88"
+    },
+    {
+      "path": "sounds/reveal/reveal-1.mp3",
+      "size": 43139,
+      "sha": "0989d8f5fe285d005559f4a4e49693dfaf1e0783"
+    },
+    {
+      "path": "sounds/rolling/06290 medium ball rolling lp.mp3",
+      "size": 82775,
+      "sha": "1fc973cad9ca414ec3d48dc0dce093b78ff3b6d3"
+    },
+    {
+      "path": "sounds/rooster/rooster-crowing.mp3",
+      "size": 33194,
+      "sha": "c45bd058aab0f5f3299ab1b113aa2f0981c9c19e"
+    },
+    {
+      "path": "sounds/swoosh/Swoosh 02.mp3",
+      "size": 20479,
+      "sha": "2a38afca277fdb842b06329d6b48acbee849e4c4"
+    },
+    {
+      "path": "sounds/swoosh/Swoosh 05.mp3",
+      "size": 34642,
+      "sha": "7cf9583021cfe803821b0cb208947e909a140b27"
+    },
+    {
+      "path": "sounds/thunder/distant/Thunder32GentleCr SIG014001.mp3",
+      "size": 117271,
+      "sha": "8242a51739c74824018982281037fc67a1ac279a"
+    },
+    {
+      "path": "sounds/thunder/distant/Thunder44LowRippl SIG015201.mp3",
+      "size": 65358,
+      "sha": "1929aca9ff6284bfbcb5b032c49859b419a93ee3"
+    },
+    {
+      "path": "sounds/thunder/near/Lightning-Streak-with-Thunder-Crash_TTX028903.mp3",
+      "size": 49752,
+      "sha": "7c571f707a04e1a6fbb93162e0fd3717b2d77634"
+    },
+    {
+      "path": "sounds/thunder/near/THUNDER_GEN-HDF-23300.mp3",
+      "size": 48860,
+      "sha": "b24371f21c9fe05140d28e1210c3e7846253b3c1"
+    },
+    {
+      "path": "sounds/thunder/near/ThunderSharpStrikingRumblingCrackling_JMDKp_04.mp3",
+      "size": 28805,
+      "sha": "8eb871cbc0edaf09cab4ba63633eb0cb0faa4456"
+    },
+    {
+      "path": "sounds/vehicle/energy/Energy_-_force_field_8_loop.mp3",
+      "size": 112724,
+      "sha": "468191cf55b09d921809b3d7814c01ef8ec53205"
+    },
+    {
+      "path": "sounds/vehicle/engine/muscle car engine loop idle.mp3",
+      "size": 56933,
+      "sha": "3cf358f23218f6408175a988d75f17a6b6fad725"
+    },
+    {
+      "path": "sounds/vehicle/floor/Source Stone Loop Small Rubbing Pebbles On Concrete 02.mp3",
+      "size": 102986,
+      "sha": "f1fa8078c0a7e53d0bfc0edb2cf7eae9762aba10"
+    },
+    {
+      "path": "sounds/vehicle/floor/wheels-on-pebbles-road.mp3",
+      "size": 147735,
+      "sha": "beb0e5b4ac55427a4a169836a32a3fee76bea56e"
+    },
+    {
+      "path": "sounds/vehicle/honk/Car Horn Long 4.mp3",
+      "size": 15227,
+      "sha": "1e163c6fe75b31a15fce562b11b769c5874d8c40"
+    },
+    {
+      "path": "sounds/vehicle/paint/Spray Paint 14.mp3",
+      "size": 9099,
+      "sha": "4d6e02da74781bd6a7498b4b08ee87e17ddbcab8"
+    },
+    {
+      "path": "sounds/vehicle/spin/41051 Glass stone turning loop 09-full.mp3",
+      "size": 60230,
+      "sha": "7e9ace818394054661879ec7f96e1b4ac0bb9845"
+    },
+    {
+      "path": "sounds/vehicle/springs/HandleSqueak_BW.60329.mp3",
+      "size": 4687,
+      "sha": "f76f78cc41acda16b30b6d03e0dc0c86b4001435"
+    },
+    {
+      "path": "sounds/vehicle/springs/SpringMetalMovements_1u54Y_01.mp3",
+      "size": 4583,
+      "sha": "a9a5a084e8d3954eca46380547bc344d52ebaa1c"
+    },
+    {
+      "path": "sounds/vehicle/suspensions/Robotic_Lifeforms_2_-_Air_Source_-_Piston_Studio_Chair_07.mp3",
+      "size": 8603,
+      "sha": "29858f8860554aa0735d08016e60d9850a462d16"
+    },
+    {
+      "path": "sounds/waves/lake-waves.mp3",
+      "size": 288833,
+      "sha": "285a85fddcec6632670ebce2246aa8bf1dfd4841"
+    },
+    {
+      "path": "sounds/wind/13582-wind-in-forest-loop.mp3",
+      "size": 166316,
+      "sha": "27abf09c42afadc8f97f6072fcc1292c8ad925b7"
+    },
+    {
+      "path": "sounds/wolf/TimberWolvesGroupHowlingSomeWhimpering_S2h0E_04.mp3",
+      "size": 34272,
+      "sha": "ac8436b69384cec6ec3cdaaa9a4aaec0f204974b"
+    },
+    {
+      "path": "terrain/terrain-compressed.glb",
+      "size": 26208,
+      "sha": "95d47f344e8048f47c0d9e3079532cd24cec4dd8"
+    },
+    {
+      "path": "terrain/terrain.ktx",
+      "size": 350064,
+      "sha": "514197b3e563c1a625c5b95f2a626e15bbd1d980"
+    },
+    {
+      "path": "tornado/tornadoPathReferences-compressed.glb",
+      "size": 1808,
+      "sha": "1e847cfe57b8225b6e4f1cfb457d8358b3fa50fa"
+    },
+    {
+      "path": "ui/achievements/check.svg",
+      "size": 984,
+      "sha": "49358106f656adc10bed2076784c217601ffa10e"
+    },
+    {
+      "path": "ui/achievements/rewards/abyssal.webp",
+      "size": 1412,
+      "sha": "bccddda1a253590319468df18bacd876440f23e9"
+    },
+    {
+      "path": "ui/achievements/rewards/black.webp",
+      "size": 864,
+      "sha": "d5aa334f85ee11d3651ddbd723aa05eca5d2b550"
+    },
+    {
+      "path": "ui/achievements/rewards/flames.webp",
+      "size": 1640,
+      "sha": "1b8724d77e8417d279fd4472bcceea2982f77f7f"
+    },
+    {
+      "path": "ui/achievements/rewards/orange.webp",
+      "size": 952,
+      "sha": "a1ab49b160944bcceae0d970b51c3091f5a396cf"
+    },
+    {
+      "path": "ui/achievements/rewards/red.webp",
+      "size": 938,
+      "sha": "ab56bf22077664a4f0c61c1773d50b95d28f3bd1"
+    },
+    {
+      "path": "ui/achievements/rewards/white.webp",
+      "size": 862,
+      "sha": "8df20cea997d4836b62a1afeff98ef0af143b8cf"
+    },
+    {
+      "path": "ui/actions/actions-icon-arrow.webp",
+      "size": 334,
+      "sha": "01f3ebe478afd77c439739d357227a1091f30aa5"
+    },
+    {
+      "path": "ui/actions/actions-icon-close.webp",
+      "size": 510,
+      "sha": "bd773261743d0ecd144278e210dece55f96d6657"
+    },
+    {
+      "path": "ui/actions/actions-icon-open.webp",
+      "size": 610,
+      "sha": "cdd771f36ef1fcec27281f341f5ee6fd30835d9c"
+    },
+    {
+      "path": "ui/audio/audioOff.svg",
+      "size": 528,
+      "sha": "0af6f3971deacc1a75ed9e4b2ffe50e0064fc0ce"
+    },
+    {
+      "path": "ui/audio/audioOn.svg",
+      "size": 544,
+      "sha": "49335df1c73c2c6a136899e62e80771d26f73120"
+    },
+    {
+      "path": "ui/close.svg",
+      "size": 215,
+      "sha": "f307a85bdfb68f9978efc34bb9ed6cebddac2a86"
+    },
+    {
+      "path": "ui/controls/gamepad-circle.webp",
+      "size": 318,
+      "sha": "fb2e0ef8373c00d0c926c9c0ea93da52b5336d9e"
+    },
+    {
+      "path": "ui/controls/gamepad-cross.webp",
+      "size": 292,
+      "sha": "d341f7a1a66d0244b89e97816f3439aacf08d3f0"
+    },
+    {
+      "path": "ui/controls/gamepad-square.webp",
+      "size": 250,
+      "sha": "aed146cb1ab52bbae3e67126af656559f74a051d"
+    },
+    {
+      "path": "ui/controls/gamepad-triangle.webp",
+      "size": 310,
+      "sha": "bef07e877c15713dba796b46036b88b4f13cf24d"
+    },
+    {
+      "path": "ui/controls/gamepad.svg",
+      "size": 1811,
+      "sha": "6677cadf64933efb042fa8680f497759611ce69a"
+    },
+    {
+      "path": "ui/controls/mouse-keyboard.svg",
+      "size": 1613,
+      "sha": "53b17f0d67182162e1fbc53a2ed314ca75bce933"
+    },
+    {
+      "path": "ui/controls/touch.svg",
+      "size": 584,
+      "sha": "6b9df9e07125cd439b56a7fe0df1abed9c6c83be"
+    },
+    {
+      "path": "ui/gear.svg",
+      "size": 1569,
+      "sha": "f717bb84b6f74cbb15692a07c4483791c6812401"
+    },
+    {
+      "path": "ui/home.svg",
+      "size": 859,
+      "sha": "d2aaa379475dada155559df7e8da9c5672168271"
+    },
+    {
+      "path": "ui/lock.svg",
+      "size": 858,
+      "sha": "403a8afe70cf6472da0d39a4f8b5c454caed573c"
+    },
+    {
+      "path": "ui/map.svg",
+      "size": 1050,
+      "sha": "9e5ba23ca5f116be4ee39f98fb66823ad94e90b5"
+    },
+    {
+      "path": "ui/map/player.webp",
+      "size": 6854,
+      "sha": "9baeb2a99ad479af4c313ff3351591534d71d64c"
+    },
+    {
+      "path": "ui/medal.svg",
+      "size": 805,
+      "sha": "6b456dff16b9efe0c2521460afaf5e6c6475cc2f"
+    },
+    {
+      "path": "ui/music-note.svg",
+      "size": 1104,
+      "sha": "d3086e769e4ce2d748a1525c97b8a1c1433f9bb5"
+    },
+    {
+      "path": "ui/previews/achievements.webp",
+      "size": 49930,
+      "sha": "dd561df84b51b7fb683053dfb5368b0937c393f4"
+    },
+    {
+      "path": "ui/previews/controls.webp",
+      "size": 28070,
+      "sha": "ff8dff55b76d5075d9d49c14ad852c91a18f794e"
+    },
+    {
+      "path": "ui/previews/home.webp",
+      "size": 30314,
+      "sha": "4b36dc0eea937f109a2acf9a3d5752fb28a747d0"
+    },
+    {
+      "path": "ui/wheel.svg",
+      "size": 2281,
+      "sha": "c48e15d8492a810a8abf230563cb1f14c089d101"
+    },
+    {
+      "path": "vehicle/default-compressed.glb",
+      "size": 34824,
+      "sha": "d9af370fb59363691a2bdd91f7b2244a052c8bcf"
+    },
+    {
+      "path": "vehicle/oldSchool-compressed.glb",
+      "size": 15316,
+      "sha": "af81a8e2d1b48f496d6749c74e00462f643a4a03"
+    }
+  ],
+  "modelSources": [
+    {
+      "path": "areas/areas-compressed.glb",
+      "size": 639312,
+      "sha": "c99f230d75c4bb3fea7c0be9208b87c0cc93c33c"
+    },
+    {
+      "path": "benches/benches-compressed.glb",
+      "size": 7080,
+      "sha": "55bffe06e41ebbbb0cdd832357c28551744feb83"
+    },
+    {
+      "path": "bricks/bricks-compressed.glb",
+      "size": 7456,
+      "sha": "6609a0f74d30b0a0533fcf5da14932609d509d24"
+    },
+    {
+      "path": "bushes/bushesReferences-compressed.glb",
+      "size": 25588,
+      "sha": "a1936c9ea9740f94bbf8a67158505ab538488e00"
+    },
+    {
+      "path": "cherryTrees/cherryTreesReferences-compressed.glb",
+      "size": 19624,
+      "sha": "2a31ead80dfbc608756d9c1e8da288ad1e578b96"
+    },
+    {
+      "path": "poleLights/poleLights-compressed.glb",
+      "size": 43204,
+      "sha": "7ca293b8c103d342a7d098f2cfc824e93d4e5b55"
+    },
+    {
+      "path": "respawns/respawnsReferences-compressed.glb",
+      "size": 2836,
+      "sha": "f7ad75c2a9f82ef339c6784fcc2cd098e9c61a20"
+    }
+  ]
+}

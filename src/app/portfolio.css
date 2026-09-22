@@ -1,0 +1,46 @@
+/* 整屏为 WebGL 透视作品场；交互参数统一在相机代码内设定。 */
+.portfolio {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background: #fff;
+  color: #232321;
+  font-family: var(--font-body);
+}
+/* 预览与全屏共用画布，展开进度由中转页控制。 */
+.work-stage {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.work-canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: auto;
+  outline: none;
+}
+.portfolio[data-interactive="true"] .work-canvas {
+  cursor: grab;
+}
+.work-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.work-status {
+  position: absolute;
+  top: 45%;
+  left: 20%;
+  right: 20%;
+  text-align: center;
+  font:
+    13px/1.8 var(--font-body);
+}

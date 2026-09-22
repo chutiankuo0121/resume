@@ -1,0 +1,308 @@
+/* 画册式时间轴：刻度线贯穿章节，每个时期拥有独立的粘性画面。 */
+.resume-timeline {
+  --timeline-margin: max(72px, calc((100vw - 1520px) / 2));
+  --date-column: 108px;
+  --timeline-reveal: 0;
+  position: relative;
+  z-index: 1;
+  margin-top: -100svh;
+  background: #fff;
+  color: #28262a;
+  opacity: var(--timeline-reveal);
+}
+.astra:not(.is-ready) .resume-timeline {
+  visibility: hidden;
+}
+.career-ruler {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 100svh;
+  pointer-events: none;
+}
+.career-ruler::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--timeline-margin) + var(--date-column) - 2px);
+  width: 4px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 10px,
+    #464248 10px 11px
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 2%,
+    #000 20%,
+    #000 80%,
+    transparent 98%
+  );
+  content: "";
+}
+.career-periods {
+  margin-top: -100svh;
+}
+.career-period {
+  position: relative;
+}
+.career-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: 100svh;
+}
+.career-background {
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 2%,
+    #000 20%,
+    #000 80%,
+    transparent 98%
+  );
+  pointer-events: none;
+}
+.career-background img {
+  object-fit: cover;
+  filter: grayscale(1);
+}
+.career-layout {
+  position: relative;
+  margin: 0 var(--timeline-margin);
+  padding: 100px 0 110px calc(var(--date-column) + 54px);
+}
+.career-years {
+  margin: 0 0 48px;
+  color: #c7c4c9;
+  font-family: var(--font-heading);
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -2px;
+  white-space: nowrap;
+}
+.career-intro,
+.career-story {
+  position: relative;
+}
+.career-intro::before,
+.career-story::before {
+  position: absolute;
+  left: -59px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #343137;
+  content: "";
+}
+.career-intro h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.career-role {
+  margin: 10px 0 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+  color: #817c84;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.career-description,
+.career-detail {
+  max-width: 400px;
+  margin: 22px 0 0;
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: #706b74;
+  text-wrap: pretty;
+}
+.career-story {
+  max-width: 510px;
+  margin-top: 96px;
+}
+.career-statement {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.8px;
+  text-wrap: balance;
+}
+.career-detail {
+  max-width: 370px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.career-projects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 20px;
+}
+.career-project {
+  color: #343137;
+  font: 12px/1.6 var(--font-body);
+  text-underline-offset: 5px;
+}
+/* 中文短句以语义停顿换行，避免窄屏把“做成”等词拆到两行。 */
+.career-statement span {
+  display: inline-block;
+  max-width: 100%;
+}
+.career-visual {
+  position: relative;
+  margin: 56px 0 0;
+  width: min(100%, 420px);
+}
+.career-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.career-visual figcaption {
+  margin-top: 14px;
+  font-family: var(--font-body);
+  color: #7f7b82;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 800px) and (prefers-reduced-motion: no-preference) {
+  .career-period {
+    height: 300svh;
+  }
+  /* 早期经历用较短篇幅，重点岗位保留完整的分层滚动节奏。 */
+  .career-period[data-compact="true"] {
+    height: 220svh;
+  }
+  .career-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+  }
+  .career-layout {
+    height: 100%;
+    padding: 0;
+  }
+  .career-years {
+    position: absolute;
+    top: 13svh;
+    left: 0;
+    margin: 0;
+    font-size: 64px;
+    transform: rotate(-90deg) translateX(-100%);
+    transform-origin: top left;
+  }
+  .career-intro,
+  .career-story,
+  .career-visual {
+    position: absolute;
+    margin: 0;
+    will-change: transform;
+  }
+  .career-intro,
+  .career-story {
+    left: calc(var(--date-column) + 54px);
+  }
+  .career-intro {
+    top: 12svh;
+    width: 32%;
+    max-width: 400px;
+  }
+  .career-story {
+    top: 37svh;
+    width: 39%;
+    max-width: 510px;
+  }
+  .career-visual {
+    top: 36svh;
+    right: 0;
+    width: 32%;
+    max-width: 410px;
+  }
+  .career-visual img {
+    max-height: 60svh;
+    object-fit: contain;
+    object-position: right top;
+  }
+  .career-period[data-landscape="true"] .career-visual {
+    top: 46svh;
+    width: 45%;
+    max-width: 640px;
+  }
+  .career-period[data-landscape="true"] .career-story {
+    width: 34%;
+    max-width: 410px;
+  }
+  .career-background {
+    opacity: 0;
+  }
+}
+@media (min-width: 800px) and (max-width: 1199px) {
+  .resume-timeline {
+    --timeline-margin: 65px;
+    --date-column: 70px;
+  }
+  .career-years {
+    font-size: 48px;
+  }
+  .career-statement {
+    font-size: 28px;
+  }
+  .career-description {
+    font-size: 16px;
+  }
+  .career-detail {
+    font-size: 14px;
+  }
+}
+@media (max-width: 799px) {
+  .resume-timeline {
+    --timeline-margin: 26px;
+    --date-column: 0px;
+  }
+  .career-layout {
+    padding: 94px 0 80px 28px;
+  }
+  .career-years {
+    margin-bottom: 38px;
+    font-size: 30px;
+    letter-spacing: -1px;
+  }
+  .career-intro::before,
+  .career-story::before {
+    left: -33px;
+  }
+  .career-story {
+    margin-top: 56px;
+  }
+  .career-statement {
+    font-size: 30px;
+  }
+  .career-description {
+    font-size: 17px;
+  }
+  .career-visual {
+    margin-top: 38px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .resume-timeline {
+    margin-top: 0;
+    opacity: 1;
+  }
+}

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CharacterResource" load_steps=6 format=3 uid="uid://cljw1d0fw8t6b"]
+
+[ext_resource type="Texture2D" uid="uid://dalw35n4ch5rk" path="res://assets/sprites/characters/ikke.png" id="1_c4e0c"]
+[ext_resource type="Texture2D" uid="uid://buwwwytj6p7r5" path="res://assets/sprites/ui/actions/combooo.png" id="1_othj5"]
+[ext_resource type="Script" uid="uid://bxsukocx6neog" path="res://scripts/character_resource.gd" id="2_kftgp"]
+[ext_resource type="Script" uid="uid://b71n7qcf355ov" path="res://scripts/object_resource.gd" id="2_u8dj6"]
+[ext_resource type="Resource" uid="uid://cm07v10447eft" path="res://resources/upgrades/combooo.tres" id="5_dicfr"]
+
+[resource]
+script = ExtResource("2_kftgp")
+character_name = "Ikk"
+head_sprite = ExtResource("1_c4e0c")
+active_effect_sprite = ExtResource("1_othj5")
+description = "提高连击上限，减少连击步幅
+能力：生成 3 连击道具"
+max_combo = 10.0
+move_per_combo = 0.7
+active_effect = 2
+value = 2.0
+active_cooldown = 5
+unlock_description = "收集所有鱼，并满步数过关"
+unlock_type = 5
+spawned_upgrades = Array[ExtResource("2_u8dj6")]([ExtResource("5_dicfr")])
+metadata/_custom_type_script = "uid://bxsukocx6neog"

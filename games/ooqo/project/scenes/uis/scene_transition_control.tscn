@@ -1,0 +1,87 @@
+[gd_scene load_steps=11 format=3 uid="uid://ioeg753fcpyw"]
+
+[ext_resource type="Shader" uid="uid://kk5eotwckwoj" path="res://shaders/scene_transition.gdshader" id="1_2gjj2"]
+[ext_resource type="Script" uid="uid://cxxlycrtk431o" path="res://scripts/uis/scene_transition_control.gd" id="1_rs54f"]
+[ext_resource type="Texture2D" uid="uid://px765xxxbw7f" path="res://assets/sprites/FlowMap.png" id="2_rs54f"]
+[ext_resource type="CompressedTexture2DArray" uid="uid://cwvt3fxyqsfxt" path="res://assets/sprites/tilesarray.png" id="4_v82fa"]
+[ext_resource type="Texture2D" uid="uid://dep7pgsiwc7x3" path="res://assets/sprites/rect.png" id="8_3i8tq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kq58d"]
+shader = ExtResource("1_2gjj2")
+shader_parameter/textures = ExtResource("4_v82fa")
+shader_parameter/texture_size = Vector2(156, 136)
+shader_parameter/screen_size = Vector2(1160, 650)
+shader_parameter/alpha = 1.0
+shader_parameter/texture_flow_map = ExtResource("2_rs54f")
+shader_parameter/fsize = 2.245
+
+[sub_resource type="Animation" id="Animation_h7gdl"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TextureRect:material:shader_parameter/alpha")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+
+[sub_resource type="Animation" id="Animation_h3c5i"]
+resource_name = "close"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TextureRect:material:shader_parameter/alpha")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_73exn"]
+resource_name = "open"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TextureRect:material:shader_parameter/alpha")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_bmsr1"]
+_data = {
+&"RESET": SubResource("Animation_h7gdl"),
+&"close": SubResource("Animation_h3c5i"),
+&"open": SubResource("Animation_73exn")
+}
+
+[node name="SceneTransitionControl" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_rs54f")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_kq58d")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_3i8tq")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_bmsr1")
+}
+speed_scale = 2.0

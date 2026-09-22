@@ -1,0 +1,321 @@
+/* 主线只经过这一屏目录。作品与技能共用预览实例，展开后独立接管输入。 */
+.explore-hub {
+  position: relative;
+  height: 145svh;
+  background: #e9e9e7;
+}
+.hub-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #ecece9;
+}
+.hub-stage.is-open {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  height: 100dvh;
+}
+.hub-pane {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hub-pane--work {
+  z-index: 1;
+  background: #eeeee9;
+}
+.hub-pane--skills {
+  z-index: 2;
+  background: transparent;
+}
+.hub-stage[data-opened="work"] .hub-pane--work,
+.hub-stage[data-opened="skills"] .hub-pane--skills {
+  pointer-events: auto;
+}
+.hub-stage[data-fullscreen="work"] .hub-pane--skills,
+.hub-stage[data-fullscreen="skills"] .hub-pane--work {
+  visibility: hidden;
+}
+.hub-stage[data-opened="work"] .skills-index {
+  visibility: hidden;
+}
+.hub-chain {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hub-choices {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  transition: opacity 0.3s;
+}
+.hub-choice {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  text-align: left;
+}
+.hub-label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #fff;
+}
+.hub-choice--work .hub-label {
+  left: max(90px, 9%);
+  top: 14%;
+  color: #171717;
+  text-shadow:
+    0 0 24px #fff,
+    0 0 10px #fff;
+}
+.hub-choice--skills .hub-label {
+  right: 8%;
+  bottom: 15%;
+  text-shadow: 0 2px 24px #000a;
+}
+.hub-label > span {
+  font:
+    400 62px/1 var(--font-heading);
+  letter-spacing: -0.045em;
+}
+.hub-label i {
+  display: inline-block;
+  margin-left: 10px;
+  font:
+    normal 30px/1 var(--font-body);
+  vertical-align: middle;
+  transition: transform 0.6s;
+}
+.hub-choice:hover i {
+  transform: translate(4px, -4px);
+}
+.hub-choice:focus-visible {
+  outline: 0;
+}
+.hub-choice:focus-visible .hub-label {
+  outline: 1px solid currentColor;
+  outline-offset: 12px;
+}
+.hub-back,
+.hub-continue {
+  position: absolute;
+  z-index: 5;
+  border: 0;
+  background: none;
+  padding: 14px;
+  font:
+    12px/1.3 var(--font-body);
+}
+.hub-back {
+  top: 24px;
+  left: 34px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.35s;
+  background: #ffffffe0;
+  color: #222;
+  border: 1px solid #2222;
+  border-radius: 30px;
+  backdrop-filter: blur(12px);
+}
+.hub-back span {
+  margin-left: 10px;
+}
+.hub-continue {
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  letter-spacing: 0.03em;
+  color: #fff;
+  text-shadow: 0 1px 8px #000;
+}
+.hub-continue span {
+  margin-left: 20px;
+}
+.hub-stage.is-open .hub-choices,
+.hub-stage.is-open .hub-continue {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.hub-stage.is-open .hub-back {
+  visibility: visible;
+  opacity: 1;
+}
+.hub-stage:not(.is-open) .skills-index {
+  visibility: hidden;
+}
+.astra[data-exploring="true"] > .chapter-axis,
+.astra[data-exploring="true"] > .page-scrollbar {
+  visibility: hidden;
+}
+.contact {
+  min-height: 100svh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 100px max(85px, 9vw) 45px;
+  color: #20201f;
+  background: #eeeee9;
+}
+.contact-kicker {
+  margin: 0 0 46px;
+  font:
+    12px/1.5 var(--font-body);
+  letter-spacing: 0.18em;
+}
+.contact h2 {
+  margin: 0 0 42px;
+  font:
+    400 76px / 1.05 var(--font-heading);
+  letter-spacing: -0.055em;
+}
+.contact h2 em {
+  font-weight: 400;
+  font-style: normal;
+  color: #797974;
+}
+.contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  align-items: end;
+  gap: 64px;
+  margin-bottom: 56px;
+}
+.contact-name {
+  margin: 0 0 14px;
+  font: 400 30px/1.5 var(--font-heading);
+}
+.contact-name span {
+  display: inline-block;
+  margin-left: 18px;
+  font: 12px/1.5 var(--font-body);
+  color: #73736e;
+}
+.contact-focus,
+.contact-introduction,
+.contact-education {
+  font: 17px/1.9 var(--font-body);
+}
+.contact-focus {
+  margin: 0 0 16px;
+}
+.contact-introduction {
+  max-width: 490px;
+  margin: 0 0 16px;
+  color: #656560;
+}
+.contact-education {
+  margin: 0 0 26px;
+  font-size: 12px;
+  color: #73736e;
+}
+.contact-email {
+  color: inherit;
+  font: 21px/1.6 var(--font-body);
+  text-underline-offset: 6px;
+}
+.contact-wechat {
+  margin: 0;
+}
+.contact-wechat img {
+  display: block;
+  width: 220px;
+  height: 220px;
+}
+.contact-wechat figcaption {
+  margin-top: 14px;
+  font: 12px/1.6 var(--font-body);
+  color: #73736e;
+  text-align: center;
+}
+.contact-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 36px;
+  border-top: 1px solid #2223;
+  padding-top: 24px;
+  font:
+    12px/1.6 var(--font-body);
+}
+.contact-footer p {
+  color: #73736e;
+  margin: 0;
+}
+.contact-footer > :last-child {
+  margin-left: auto;
+}
+@media (min-width: 800px) and (max-width: 1199px) {
+  .contact h2 {
+    font-size: 56px;
+  }
+  .contact-layout {
+    gap: 32px;
+  }
+}
+@media (max-width: 799px) {
+  .explore-hub {
+    height: 130svh;
+  }
+  .hub-choice--work .hub-label {
+    top: 15%;
+    left: 30px;
+  }
+  .hub-choice--skills .hub-label {
+    right: 30px;
+    bottom: 15%;
+  }
+  .hub-label > span {
+    font-size: 44px;
+  }
+  .hub-back {
+    left: 16px;
+    top: 48px;
+  }
+  .contact {
+    padding: 90px 28px 35px;
+  }
+  .contact h2 {
+    font-size: 48px;
+  }
+  .contact-layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .contact-wechat {
+    justify-self: start;
+  }
+  .contact-footer {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .contact-footer p {
+    width: 100%;
+    order: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .explore-hub {
+    height: 100svh;
+  }
+  .hub-label i,
+  .hub-back,
+  .hub-choices {
+    transition: none;
+  }
+}

@@ -1,0 +1,125 @@
+/* HTML 字体保持清晰，差值混合让文字随黑白雾场反色。 */
+.opening-titles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  color: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+}
+.experience.is-ready .opening-titles {
+  opacity: 1;
+}
+.opening-identity,
+.opening-statement {
+  position: absolute;
+  top: 46%;
+  left: calc(50% + 20px);
+  width: calc(100% - 140px);
+  /* 外层居中，GSAP 只移动内层 copy，避免解析百分比变换时覆盖垂直锚点。 */
+  translate: -50% -50%;
+  text-align: center;
+}
+.opening-identity h1 {
+  margin: 0;
+  font: 400 132px/1.25 var(--font-heading);
+  letter-spacing: 0.06em;
+  text-indent: 0.06em;
+}
+.opening-identity-copy {
+  display: flow-root;
+}
+.opening-eyebrow {
+  margin: 0 0 32px;
+  font: 18px/1.5 var(--font-body);
+  letter-spacing: 0.12em;
+}
+.opening-name {
+  margin: 22px 0 0;
+  font: 400 30px/1.4 var(--font-heading);
+  letter-spacing: 0.15em;
+  text-indent: 0.15em;
+}
+.opening-focus {
+  margin: 36px 0 0;
+  font: 17px/1.8 var(--font-body);
+  letter-spacing: 0.12em;
+}
+.opening-statement {
+  visibility: hidden;
+  opacity: 0;
+}
+.opening-statement h2 {
+  margin: 0;
+  font: 400 136px/1.35 var(--font-heading);
+  letter-spacing: 0.035em;
+  text-indent: 0.035em;
+  white-space: nowrap;
+}
+.opening-letter {
+  display: inline-block;
+  text-indent: 0;
+}
+.opening-statement p {
+  margin: 30px 0 0;
+  font: 26px/1.5 var(--font-body);
+  letter-spacing: 0.06em;
+}
+@media (min-width: 800px) and (max-width: 1199px) {
+  .opening-identity h1,
+  .opening-statement h2 { font-size: 108px; }
+}
+@media (max-width: 799px) {
+  .opening-identity,
+  .opening-statement {
+    left: 50%;
+    width: calc(100% - 40px);
+    top: 47%;
+  }
+  .opening-identity h1 { font-size: 76px; }
+  .opening-statement h2 { font-size: 58px; }
+  .opening-name { font-size: 23px; }
+  .opening-eyebrow { font-size: 16px; margin-bottom: 24px; }
+  .opening-focus { font-size: 14px; letter-spacing: 0.03em; }
+  .opening-statement p { font-size: 22px; margin-top: 22px; }
+}
+@media (max-width: 359px) {
+  .opening-identity h1 { font-size: 64px; }
+  .opening-statement h2 { font-size: 48px; }
+}
+/* 减少动态效果时保留完整文字信息，取消逐帧变形与三个标题的重叠。 */
+@media (prefers-reduced-motion: reduce) {
+  .opening-identity {
+    top: 37%;
+  }
+  .opening-identity-copy {
+    visibility: visible !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .opening-identity h1 { font-size: 76px; }
+  .opening-eyebrow { display: none; }
+  .opening-statements {
+    position: absolute;
+    top: 66%;
+    left: 10%;
+    right: 10%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 26px;
+  }
+  .opening-statement {
+    position: static;
+    width: auto;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    translate: none;
+  }
+  .opening-statement h2 { font-size: 24px; }
+  .opening-letter { opacity: 1 !important; filter: none !important; transform: none !important; }
+  .opening-statement p { display: none; }
+}
