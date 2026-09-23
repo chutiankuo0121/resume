@@ -133,6 +133,7 @@ export async function createSkillsScene({
   let width = 1,
     height = 1,
     compact = false;
+  let inViewport = false, viewExpansion = -1, shownCycle = "";
   let progress = 0,
     lastTime = 0,
     disposed = false,
@@ -169,7 +170,8 @@ export async function createSkillsScene({
     let nearest = -1,
       distance = Infinity;
     // 只与整块屏幕的局部平面求交，不逐个检测上万个实例。
-    if (pointerActive && !document.querySelector("dialog[open]")) {
+    const surfaceActive = pointerActive && !document.querySelector("dialog[open]");
+    if (surfaceActive) {
       raycaster.setFromCamera(
         pointerNdc.set((pointerX / width) * 2 - 1, 1 - (pointerY / height) * 2),
         camera,
@@ -198,8 +200,6 @@ export async function createSkillsScene({
     screens.forEach((screen, index) =>
       screen.pointerField.update(dt, index === nearest ? touchUv : null),
     );
-    const surfaceActive =
-      pointerActive && !document.querySelector("dialog[open]");
     surfaceField.update(
       dt,
       surfaceActive
@@ -212,6 +212,7 @@ export async function createSkillsScene({
     width = canvas.clientWidth;
     height = canvas.clientHeight;
     if (!width || !height) return;
+    viewExpansion = -1;
     compact = width < 800;
     const dpr = Math.min(
       devicePixelRatio,
@@ -242,7 +243,7 @@ export async function createSkillsScene({
       });
       lastActive = active;
     }
-    hit.disabled = focus < 0.35;
+    if (hit.disabled !== (focus < 0.35)) hit.disabled = focus < 0.35;
   }
 
   function tick(seconds: number) {
@@ -250,11 +251,9 @@ export async function createSkillsScene({
       lastTime = 0;
       return;
     }
-    const rect = canvas.getBoundingClientRect();
     if (
       !presentation.visible ||
-      rect.top >= window.innerHeight ||
-      rect.bottom <= 0
+      !inViewport
     ) {
       stage.inert = true;
       lastTime = 0;
@@ -283,9 +282,11 @@ export async function createSkillsScene({
       Math.abs(scrollNudge) < 0.0001
     )
       progress = targetProgress;
-    root.dataset.cycleProgress = String(
-      modulo(progress, skills.length) / skills.length,
-    );
+    const cycle = String(modulo(progress, skills.length) / skills.length);
+    if (cycle !== shownCycle) {
+      root.dataset.cycleProgress = cycle;
+      shownCycle = cycle;
+    }
     time.value += dt;
     follow.lerp(pointer, 1 - Math.exp(-dt * 1.2));
     // 环形排列负责技能切换；预览到全屏的取景由中转页统一控制。
@@ -322,14 +323,17 @@ export async function createSkillsScene({
     // 预览把主卡取景到右下，展开时连续归位，水面仍覆盖整个画幅。
     const framing = 1 - presentation.expansion;
     camera.position.z += 3.2 * framing;
-    camera.setViewOffset(
-      width,
-      height,
-      -width * (compact ? 0.08 : 0.22) * framing,
-      -height * 0.17 * framing,
-      width,
-      height,
-    );
+    if (viewExpansion !== presentation.expansion) {
+      viewExpansion = presentation.expansion;
+      camera.setViewOffset(
+        width,
+        height,
+        -width * (compact ? 0.08 : 0.22) * framing,
+        -height * 0.17 * framing,
+        width,
+        height,
+      );
+    }
     camera.updateMatrixWorld();
     light.value.set(
       camera.position.x * 0.175,
@@ -503,6 +507,10 @@ export async function createSkillsScene({
   };
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(canvas);
+  const visibility = new IntersectionObserver(entries => {
+    inViewport = entries[entries.length - 1].isIntersecting;
+  });
+  visibility.observe(canvas);
   stage.addEventListener("wheel", wheel, { passive: false });
   window.addEventListener("keydown", key);
   skillIndex.addEventListener("click", selectSkill);
@@ -513,6 +521,7 @@ export async function createSkillsScene({
       disposed = true;
       gsap.ticker.remove(tick);
       resizeObserver.disconnect();
+      visibility.disconnect();
       controls.dispose();
       navigation?.kill();
       stage.removeEventListener("wheel", wheel);

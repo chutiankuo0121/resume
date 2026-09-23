@@ -46,6 +46,7 @@ export default function GamePlayer({
     // 不能把 iframe 的 load 当成成功：404 页也会触发 load，等待游戏自己的就绪消息。
     let timeout = window.setTimeout(() => setStatus("error"), 30_000);
     let lastProgress = 0;
+    let shownPercent = -1;
     let awaitingReady = true;
     function receive(event: MessageEvent) {
       if (
@@ -69,7 +70,12 @@ export default function GamePlayer({
           lastProgress = value;
           clearTimeout(timeout);
           timeout = window.setTimeout(() => setStatus("error"), 30_000);
-          setProgress(value);
+          // 下载保活仍跟随每个字节进展，React 只在屏幕上的整数百分比变化时更新。
+          const percent = Math.round(value * 100);
+          if (percent !== shownPercent) {
+            shownPercent = percent;
+            setProgress(value);
+          }
           break;
         }
         case "ready":

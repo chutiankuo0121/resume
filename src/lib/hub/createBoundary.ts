@@ -14,6 +14,10 @@ export function createBoundary(
 ) {
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const stage = canvas.parentElement!;
+  const skillRoot = skills.querySelector<HTMLElement>("#skills")!;
+  const points = new Array<string>(65), reversed = new Array<string>(65);
+  const abscissas = Array.from({ length: 65 }, (_, i) => `${((i / 64) * 100).toFixed(3)}%`);
+  let lastWorkClip = "", lastSkillsClip = "", lastMask = "";
   const stars = createStarFlow(canvas, state);
   let visible = false,
     previous = 0,
@@ -38,22 +42,24 @@ export function createBoundary(
     state.pointerStrength +=
       ((motion.matches ? 0 : pointer.strength) - state.pointerStrength) *
       follow;
-    const points = Array.from(
-      { length: 65 },
-      (_, i) =>
-        `${((i / 64) * 100).toFixed(3)}% ${(boundaryCurve(i / 64, state) * 100).toFixed(3)}%`,
-    );
-    workButton.style.clipPath = `polygon(0% 0%,100% 0%,${points.slice().reverse().join(",")})`;
-    skillsButton.style.clipPath = `polygon(${points.join(",")},100% 100%,0% 100%)`;
+    for (let i = 0; i <= 64; i++) {
+      const point = `${abscissas[i]} ${(boundaryCurve(i / 64, state) * 100).toFixed(3)}%`;
+      points[i] = reversed[64 - i] = point;
+    }
+    const workClip = `polygon(0% 0%,100% 0%,${reversed.join(",")})`;
+    const skillsClip = `polygon(${points.join(",")},100% 100%,0% 100%)`;
+    if (lastWorkClip !== workClip) workButton.style.clipPath = lastWorkClip = workClip;
+    if (lastSkillsClip !== skillsClip) skillsButton.style.clipPath = lastSkillsClip = skillsClip;
     // 无动态画廊时，静态卡片也保留羽化边界；展开后恢复完整可滚动的卡片。
-    const staticGallery = skills.querySelector<HTMLElement>(".skills--static");
+    const staticGallery = skillRoot.classList.contains("skills--static") ? skillRoot : null;
     if (staticGallery) {
       const path = `M-1,2 L-1,${boundaryCurve(0, state)} L${points.map((_, i) => `${i / 64},${boundaryCurve(i / 64, state)}`).join(" L")} L2,${boundaryCurve(1, state)} L2,2 Z`;
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" preserveAspectRatio="none"><filter id="f" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".045"/></filter><path fill="white" filter="url(#f)" d="${path}"/></svg>`;
-      staticGallery.style.maskImage =
+      const mask =
         state.expansion > 0.99 && state.destination === "skills"
           ? "none"
           : `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+      if (lastMask !== mask) staticGallery.style.maskImage = lastMask = mask;
     }
     stars.render();
     drawnExpansion = state.expansion;

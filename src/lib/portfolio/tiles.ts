@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import type { Work } from "@/content/works";
-import type { PortfolioMedia } from "./media";
+import type { WorkSummary, PortfolioMedia } from "@/content/works/gallery";
 import { GRID, contain, type PortfolioLayout, type Rect } from "./layout";
 import { gridFragment, tileFragment, tileVertex } from "./shaders";
 import { createAudioTile, audioFragment } from "./audioTile";
@@ -9,7 +8,7 @@ import { canvasFont } from "../typography";
 
 export type Tile = {
   mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
-  work: Work | null;
+  work: WorkSummary | null;
   key: string;
   photo: boolean;
   width: number;
@@ -26,13 +25,17 @@ export function createPortfolioTiles(
   const materials: THREE.ShaderMaterial[] = [];
   const tiles: Tile[] = [];
   const template = new THREE.Group();
+  const empty = document.createElement("canvas");
+  empty.width = empty.height = 1;
+  const resident = new Map<string, { bytes: number; used: number }>();
+  const pending = new Map<string, HTMLImageElement>();
+  const sourceByKey = new Map(media.map(item => [item.key, item.src]));
+  let usedBytes = 0, previousHover: WorkSummary | null = null;
 
   function texture(item: PortfolioMedia) {
     if (textures.has(item.src)) return textures.get(item.src)!;
-    // 元数据阶段已加载封面，直接上传同一个 Image，不再发起第二次加载。
-    const map = new THREE.Texture(
-      item.image ?? document.createElement("canvas"),
-    );
+    // 图片到达后只更新纹理；格子、材质和所有循环副本都不重建。
+    const map = new THREE.Texture(empty);
     map.needsUpdate = true;
     map.colorSpace = THREE.SRGBColorSpace;
     map.anisotropy = 4;
@@ -60,11 +63,12 @@ export function createPortfolioTiles(
     rect: Rect,
     map: THREE.Texture,
     key: string,
-    work: Work | null,
+    work: WorkSummary | null,
     photo: boolean,
     textWidth?: number,
+    imageAspect = map.image.width / map.image.height,
   ) {
-    const aspect = map.image.width / map.image.height;
+    const aspect = imageAspect;
     const tileAspect = rect.width / rect.height;
     const material = new THREE.ShaderMaterial({
       vertexShader: tileVertex,
@@ -142,7 +146,8 @@ export function createPortfolioTiles(
       const audio = createAudioTile(item.work);
       textures.set(item.key, audio.texture);
       add(placement.media, audio.texture, item.key, item.work, true, audio.textWidth);
-    } else add(placement.media, texture(item), item.key, item.work, true);
+    } else add(placement.media, texture(item), item.key, item.work, true, undefined,
+      item.textureWidth / item.textureHeight);
   }
 
   // 将同一布局的所有圆角分区合成一个几何体；不存在另一套 shader 分格公式。
@@ -192,15 +197,65 @@ export function createPortfolioTiles(
   grid.renderOrder = -1;
   grid.position.z = -0.001;
   template.add(grid);
+  const audioTiles = tiles.filter(tile => tile.work?.kind === "audio");
+  const byWork = new Map<string, Tile[]>();
+  for (const tile of tiles) if (tile.work) {
+    const group = byWork.get(tile.work.id) ?? [];
+    group.push(tile);
+    byWork.set(tile.work.id, group);
+  }
 
   return {
     template,
     tiles,
-    update(hover: Work | null, time: number) {
-      for (const tile of tiles) {
-        tile.mesh.material.uniforms.uTime.value = time;
-        tile.mesh.material.uniforms.uHover.value =
-          tile.work && hover?.id === tile.work.id ? 1 : 0;
+    enqueue(src: string, image: HTMLImageElement) { pending.set(src, image); },
+    get pending() { return pending.size > 0; },
+    upload(renderer: THREE.WebGLRenderer, wanted: string[], released: (src: string) => void) {
+      const protectedSources = new Set(wanted.map(key => sourceByKey.get(key)));
+      for (const src of protectedSources) {
+        const entry = src && resident.get(src);
+        if (entry) entry.used = performance.now();
+      }
+      const completed: string[] = [];
+      const start = performance.now();
+      // 逐帧上传，防止图片集中触发 texImage2D；不修改分辨率和颜色。
+      for (const [src, image] of pending) {
+        const map = textures.get(src)!;
+        // WebGL 2 的纹理存储不可原地改尺寸；释放 1px 占位存储后重新分配，材质引用保持不变。
+        map.dispose();
+        map.image = image;
+        map.needsUpdate = true;
+        renderer.initTexture(map);
+        const bytes = image.naturalWidth * image.naturalHeight * 4 * 4 / 3;
+        resident.set(src, { bytes, used: performance.now() });
+        usedBytes += bytes;
+        pending.delete(src);
+        completed.push(src);
+        if (completed.length >= 2 || performance.now() - start > 3) break;
+      }
+      // 128 MiB 为软预算；视野与邻域的共享贴图始终保留，不能为达标闪白。
+      if (usedBytes > 128 * 1024 * 1024) {
+        const candidates = [...resident].filter(([src]) => !protectedSources.has(src))
+          .sort((a, b) => a[1].used - b[1].used);
+        for (const [src, entry] of candidates) {
+          const map = textures.get(src)!;
+          map.dispose();
+          map.image = empty;
+          map.needsUpdate = true;
+          resident.delete(src);
+          usedBytes -= entry.bytes;
+          released(src);
+          if (usedBytes <= 128 * 1024 * 1024) break;
+        }
+      }
+      return completed;
+    },
+    update(hover: WorkSummary | null, time: number) {
+      for (const tile of audioTiles) tile.mesh.material.uniforms.uTime.value = time;
+      if (hover?.id !== previousHover?.id) {
+        for (const tile of byWork.get(previousHover?.id ?? "") ?? []) tile.mesh.material.uniforms.uHover.value = 0;
+        for (const tile of byWork.get(hover?.id ?? "") ?? []) tile.mesh.material.uniforms.uHover.value = 1;
+        previousHover = hover;
       }
     },
     dispose() {
@@ -209,6 +264,8 @@ export function createPortfolioTiles(
       gridMaterial.dispose();
       materials.forEach((m) => m.dispose());
       textures.forEach((t) => t.dispose());
+      pending.clear();
+      resident.clear();
     },
   };
 }

@@ -1,0 +1,29 @@
+/* 由 scripts/build-fonts.py 生成；上传版本化字体后再发布代码。 */
+@font-face {
+  font-family: "Astra KingHwa";
+  src: url("/fonts/astra-kinghwa.d2af99208dcb.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Astra Zhuque";
+  src: url("/fonts/astra-zhuque.52a3bdf75aaa.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Astra Cinzel";
+  src: url("/fonts/astra-cinzel.6d29830a126c.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Astra Cormorant";
+  src: url("/fonts/astra-cormorant.9b3a19c612f2.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}

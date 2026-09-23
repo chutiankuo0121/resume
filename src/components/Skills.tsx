@@ -1,91 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { skills, type Skill } from "@/content/skills";
-import { experience } from "@/content/experience";
-import { works, type Work } from "@/content/works";
-import WorkDetail from "./works/WorkDetail";
+import dynamic from "next/dynamic";
+import { useWorkDetail } from "./works/useWorkDetail";
+const SkillDetail = dynamic(() => import("./SkillDetail"));
 import type { PortalPresentation } from "@/lib/hub/presentation";
 
-function SkillDetail({
-  skill,
-  onClose,
-  onWork,
-}: {
-  skill: Skill;
-  onClose: () => void;
-  onWork: (work: Work) => void;
-}) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const element = dialog.current!;
-    element.showModal();
-    return () => element.close();
-  }, []);
-  return (
-    <dialog
-      ref={dialog}
-      className="skill-dialog"
-      aria-labelledby="skill-detail-title"
-      data-lenis-prevent
-      onClose={(event) => {
-        if (!event.currentTarget.open) onClose();
-      }}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) dialog.current?.close();
-      }}
-    >
-      <div className="skill-detail">
-        <header>
-          <span>{skill.family}</span>
-          <button
-            onClick={() => dialog.current?.close()}
-            autoFocus
-            aria-label="Close skill"
-          >
-            Close ×
-          </button>
-        </header>
-        <img className="skill-detail-art" src={skill.image} alt={skill.alt} />
-        <h3 id="skill-detail-title">{skill.title}</h3>
-        <p>{skill.description}</p>
-        <ul className="skill-tools">
-          {skill.tools.map((tool) => (
-            <li key={tool}>{tool}</li>
-          ))}
-        </ul>
-        {skill.works.length > 0 && <p className="skill-evidence-label">关联作品 / Selected work</p>}
-        <div className="skill-evidence">
-          {skill.works.map((id) => {
-            const work = works.find((item) => item.id === id);
-            return work ? (
-              <button key={id} onClick={() => onWork(work)}>
-                {/* 复用本地作品封面，原生 img 让小型预览保持其真实比例。 */}
-                <img src={work.cover} alt={work.alt} loading="lazy" />
-                <span>
-                  {work.title}
-                  <span aria-hidden="true">↗</span>
-                </span>
-              </button>
-            ) : null;
-          })}
-        </div>
-        <div className="skill-practice">
-          <p className="skill-evidence-label">相关实践 / Experience</p>
-          {skill.experiences.map((id) => {
-            const period = experience.find((item) => item.id === id);
-            return period ? (
-              <article key={id}>
-                <span>{period.years}</span>
-                <h4>{period.title}</h4>
-                <p>{period.role}</p>
-                <p>{period.description}</p>
-              </article>
-            ) : null;
-          })}
-        </div>
-      </div>
-    </dialog>
-  );
-}
 
 export default function Skills({
   presentation,
@@ -97,7 +16,7 @@ export default function Skills({
   const root = useRef<HTMLElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
   const [active, setActive] = useState<Skill | null>(null);
-  const [work, setWork] = useState<Work | null>(null);
+  const { detail, error: detailError, open, clear } = useWorkDetail();
   const [staticMode, setStaticMode] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -169,10 +88,12 @@ export default function Skills({
     };
   }, [presentation]);
 
+  useEffect(() => { if (!enabled) { clear(); setActive(null); } }, [enabled, clear]);
+
   function close() {
     const id = active?.id;
     setActive(null);
-    setWork(null);
+    clear();
     if (id)
       root.current
         ?.querySelector<HTMLButtonElement>(
@@ -236,17 +157,16 @@ export default function Skills({
           </div>
         )}
       </div>
-      {active && !work && (
+      {active && !detail && (
         <SkillDetail
           key={active.id}
           skill={active}
           onClose={close}
-          onWork={setWork}
+          onWork={work => { void open(work.id); }}
         />
       )}
-      {work && (
-        <WorkDetail key={work.id} work={work} onClose={() => setWork(null)} />
-      )}
+      {detailError && <p className="skills-loading" role="alert">{detailError}</p>}
+      {detail && <detail.Component key={detail.work.id} work={detail.work} onClose={clear} />}
     </section>
   );
 }

@@ -1,32 +1,6 @@
-/* 04 用于标题，01 用于正文。拉丁字体排在前面，中文自动选用对应汉字字体。 */
-@font-face {
-  font-family: "Astra Cinzel";
-  src: url("/fonts/astra-cinzel.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Astra KingHwa";
-  src: url("/fonts/astra-kinghwa.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Astra Cormorant";
-  src: url("/fonts/astra-cormorant.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Astra Zhuque";
-  src: url("/fonts/astra-zhuque.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
+@import "./font-faces.generated.css";
+
+/* 04 标题、01 正文；字体家族及字重沿用定版。 */
 :root {
   --font-heading: "Astra Cinzel", "Astra KingHwa", "Songti SC", "SimSun", serif;
   --font-body: "Astra Cormorant", "Astra Zhuque", "FangSong", serif;

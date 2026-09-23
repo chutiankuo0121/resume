@@ -44,6 +44,8 @@ Cloudflare 安装锁文件中的依赖，构建成功后才部署。其他分支
 | `src/content/experience.ts` | 工作经历、配图与项目关联 |
 | `src/content/works/<id>/index.ts` | 每件作品的内容、媒体与来源 |
 | `src/content/works/index.ts` | 作品注册表 |
+| `src/content/works/media.json` | 封面的真实尺寸与摘要；素材更新时检查 |
+| `src/content/works/gallery.generated.json` | 自动生成的墙面清单和固定拼图坐标，勿手工编辑 |
 | `src/content/skills.ts` | 技能与关联作品 |
 | `src/components` | 页面、章节导航和媒体播放器 |
 | `src/lib` | 场景、相机、布局、交互与 Shader |
@@ -53,10 +55,13 @@ Cloudflare 安装锁文件中的依赖，构建成功后才部署。其他分支
 | `public` | 游戏入口、运行代码和资源许可 |
 | `games` | 小车漫游、Ooqo 的源码及构建工具 |
 | `scripts/build-fonts.py` | 中文字体子集构建 |
+| `scripts/build-portfolio.mjs` | 开发与构建前生成布局，校验完整覆盖和分区不重叠 |
 
-新增作品按唯一 ID 建目录并注册；媒体上传到 R2 的 `portfolio/<id>/`，内容记录仍填写 `/portfolio/<id>/文件名`、真实宽高及来源，注册表统一转换为 R2 地址。图片用 WebP，视频和音频用 WebM。网格按比例自动分格并按 ID 稳定混排；三个游戏优先靠近中心。每件作品的媒体详情按需加载。
+新增作品按唯一 ID 建目录并注册；媒体上传到 R2 的 `portfolio/<id>/`，内容记录仍填写 `/portfolio/<id>/文件名`、真实宽高及来源，注册表统一转换为 R2 地址。图片用 WebP，视频和音频用 WebM。上传或更换封面后运行 `npm run assets:inspect`（Python 需要 Pillow），再运行 `node scripts/build-portfolio.mjs`，提交内容、尺寸与生成清单。普通 `npm run dev` / `npm run build` 会自动生成布局，不下载整库素材。
 
-标题字体为京华老宋与 Cinzel，正文字体为朱雀仿宋与 Cormorant Garamond。新增中文文案后执行 `python scripts/build-fonts.py`（需要 `fonttools`、`brotli`），将生成的 WOFF2 子集上传覆盖 R2 的 `fonts/` 对应对象。
+拼图在构建期使用原算法计算，运行时不会因图片成功或失败改变格子。三个游戏仍靠近中心。作品墙按视野与邻域加载封面，最多 6 个下载/解码任务、每帧最多 2 次纹理上传；128 MiB 是封面纹理的软预算，可见及预取中的图片不会被回收。详情内容、影音和游戏继续按需加载，返回保留相机位置。
+
+标题字体为京华老宋与 Cinzel，正文字体为朱雀仿宋与 Cormorant Garamond。新增中文文案后执行 `python scripts/build-fonts.py`（需要 `fonttools`、`brotli`）。脚本从可见文字和字符串提取字形，排除代码注释；版本化 WOFF2 输出到系统临时目录 `astra-font-build`，同时生成 `src/content/fonts.generated.json` 与 `src/app/font-faces.generated.css`。先把清单中的新文件上传 R2 `fonts/`，设置 `public, max-age=31536000, immutable`，再发布代码。不要覆盖旧字体对象，以便回滚。
 
 ## R2 素材
 

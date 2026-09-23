@@ -1,77 +1,111 @@
-import type { Work } from "@/content/works";
+import type { PortfolioMedia } from "@/content/works/gallery";
 
-export type PortfolioMedia = {
-  key: string;
-  work: Work;
-  src: string;
-  main: boolean;
-  kind: Work["kind"];
-  width: number;
-  height: number;
-  image: HTMLImageElement | null;
-};
+type State = "idle" | "loading" | "decoded" | "ready" | "failed";
+type Job = { src: string; state: State; priority: number; attempts: number; retryAt: number };
 
-/** 网格只加载视觉封面；音频用文字流，音乐与专辑图都在详情中按需加载。 */
-export async function loadPortfolioMedia(
-  works: Work[],
-  signal: AbortSignal,
-): Promise<PortfolioMedia[]> {
-  const images = new Map<string, Promise<HTMLImageElement | null>>();
-  function image(src: string) {
-    if (!images.has(src)) {
-      images.set(src, new Promise((resolve) => {
-        if (signal.aborted) {
-          resolve(null);
-          return;
-        }
-        const poster = new Image();
-        const finish = (ok: boolean) => {
-          clearTimeout(timer);
-          poster.removeEventListener("load", success);
-          poster.removeEventListener("error", failure);
-          signal.removeEventListener("abort", failure);
-          if (!ok) poster.removeAttribute("src");
-          resolve(ok ? poster : null);
-        };
-        const success = () => finish(true), failure = () => finish(false);
-        const timer = window.setTimeout(failure, 30_000);
-        poster.addEventListener("load", success, { once: true });
-        poster.addEventListener("error", failure, { once: true });
-        signal.addEventListener("abort", failure, { once: true });
-        poster.crossOrigin = "anonymous";
-        poster.src = src;
-      }));
-    }
-    return images.get(src)!;
+/** 有界队列只处理当前视野和邻域；解码结果上传后才让出槽位，避免堆积整库图片。 */
+export function createPortfolioMediaLoader(
+  media: PortfolioMedia[],
+  receive: (src: string, image: HTMLImageElement) => void,
+) {
+  const jobs = new Map<string, Job>();
+  const byKey = new Map<string, Job>();
+  const cancellations = new Set<() => void>();
+  for (const item of media) {
+    if (item.kind === "audio") continue;
+    const job: Job = jobs.get(item.src) ?? { src: item.src, state: "idle", priority: Infinity, attempts: 0, retryAt: 0 };
+    jobs.set(item.src, job);
+    byKey.set(item.key, job);
   }
-  async function loadGroup(work: Work): Promise<PortfolioMedia[]> {
-    // 项目只占一个封面格，实机截图在详情翻阅；图片图集的附图可独立进入作品墙。
-    // 高清首图不重复成格，也不提前占用贴图内存。
-    const sources = [...new Set([
-      work.cover,
-      ...(work.kind === "image" ? work.images.slice(1).map((item) => item.src) : []),
-    ])];
-    const posters = work.kind === "audio" ? [null] : await Promise.all(sources.map(image));
-    return sources.map((src, index): PortfolioMedia => ({
-      key: `${work.id}:${index}`,
-      work,
-      src,
-      main: index === 0,
-      kind: work.kind,
-      image: posters[index],
-      width: work.kind === "audio" ? 4.2 : work.kind === "video" ? work.width : posters[index]?.naturalWidth ?? 1,
-      height: work.kind === "audio" ? 1 : work.kind === "video" ? work.height : posters[index]?.naturalHeight ?? 1,
-    }));
-  }
-  // 云端封面限制并发，避免整面墙同时请求时排队超时；按原索引保存，摆放顺序不变。
-  const groups: PortfolioMedia[][] = new Array(works.length);
-  let next = 0;
-  await Promise.all(Array.from({ length: Math.min(8, works.length) }, async () => {
-    while (!signal.aborted && next < works.length) {
-      const index = next++;
-      groups[index] = await loadGroup(works[index]);
+  let disposed = false, active = 0, retryTimer = 0;
+
+  function pump() {
+    clearTimeout(retryTimer);
+    if (disposed) return;
+    const now = performance.now();
+    const pending = [...jobs.values()].filter(job => Number.isFinite(job.priority) &&
+      (job.state === "idle" || job.state === "failed" && job.attempts < 3));
+    pending.sort((a, b) => a.priority - b.priority);
+    for (const job of pending) {
+      if (active >= 6) break;
+      if (job.retryAt > now) continue;
+      load(job);
     }
-  }));
-  signal.throwIfAborted();
-  return groups.flat();
+    const retryAt = Math.min(...pending.filter(job => job.retryAt > now).map(job => job.retryAt));
+    if (Number.isFinite(retryAt)) retryTimer = window.setTimeout(pump, Math.max(1, retryAt - now));
+  }
+
+  function load(job: Job) {
+    active++;
+    job.state = "loading";
+    job.attempts++;
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.decoding = "async";
+    let finished = false;
+    const timer = window.setTimeout(() => finish(false), 12_000);
+    const cancel = () => finish(false);
+    function finish(ok: boolean) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      image.onload = image.onerror = null;
+      cancellations.delete(cancel);
+      if (ok && !disposed) {
+        job.state = "decoded";
+        receive(job.src, image);
+      } else {
+        image.removeAttribute("src");
+        job.state = "failed";
+        job.retryAt = performance.now() + 700 * 3 ** (job.attempts - 1);
+        active--;
+        pump();
+      }
+    }
+    cancellations.add(cancel);
+    image.onload = () => { void image.decode().then(() => finish(true), () => finish(false)); };
+    image.onerror = () => finish(false);
+    image.src = job.src;
+  }
+
+  function online() {
+    for (const job of jobs.values()) if (job.state === "failed") job.attempts = job.retryAt = 0;
+    pump();
+  }
+  window.addEventListener("online", online);
+  return {
+    prioritize(keys: string[]) {
+      const previous = new Set([...jobs.values()].filter(job => Number.isFinite(job.priority)));
+      for (const job of jobs.values()) job.priority = Infinity;
+      keys.forEach((key, priority) => {
+        const job = byKey.get(key);
+        if (!job) return;
+        job.priority = Math.min(job.priority, priority);
+        if (!previous.has(job) && job.state === "failed") job.attempts = job.retryAt = 0;
+      });
+      pump();
+    },
+    uploaded(src: string) {
+      const job = jobs.get(src)!;
+      if (job.state !== "decoded") return;
+      job.state = "ready";
+      active--;
+      pump();
+    },
+    release(src: string) {
+      const job = jobs.get(src)!;
+      if (job.state !== "ready" && job.state !== "decoded") return;
+      if (job.state === "decoded") active--;
+      job.state = "idle";
+      job.attempts = job.retryAt = 0;
+    },
+    ready(key: string) { return byKey.get(key)?.state === "ready"; },
+    dispose() {
+      disposed = true;
+      clearTimeout(retryTimer);
+      window.removeEventListener("online", online);
+      for (const cancel of cancellations) cancel();
+      cancellations.clear();
+    },
+  };
 }

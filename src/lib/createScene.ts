@@ -189,6 +189,7 @@ export function createScene({
     dpr = 1,
     time = 0;
   let lastTimestamp = 0;
+  let whiteCleared = false;
   let shaderError = false;
   renderer.debug.onShaderError = (gl, program) => {
     shaderError = true;
@@ -197,6 +198,7 @@ export function createScene({
   };
 
   function resize() {
+    whiteCleared = false;
     width = canvas.clientWidth;
     height = canvas.clientHeight;
     if (!width || !height) return;
@@ -312,11 +314,15 @@ export function createScene({
   function draw() {
     // 章节完全退场后只保留白色页面，停止模型、多层模糊和粒子绘制。
     if (transition.whiteout === 1) {
-      renderer.setRenderTarget(null);
-      renderer.setClearColor(0xffffff, 1);
-      renderer.clear();
+      if (!whiteCleared) {
+        renderer.setRenderTarget(null);
+        renderer.setClearColor(0xffffff, 1);
+        renderer.clear();
+        whiteCleared = true;
+      }
       return;
     }
+    whiteCleared = false;
     const mobile = width < 700;
     const entry = transition.crystalEntry;
     const framingDepth = cameraRig.update(

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { profile } from "@/content/profile";
-import { assetUrl } from "@/lib/assetUrl";
+import { assetUrl, ASSET_ORIGIN } from "@/lib/assetUrl";
+import fonts from "@/content/fonts.generated.json";
 import "./globals.css";
 import "./opening.css";
 import "./loading.css";
@@ -22,8 +23,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <head>
-        {["cinzel", "kinghwa", "cormorant", "zhuque"].map((family) => (
-          <link key={family} rel="preload" href={`/fonts/astra-${family}.woff2`}
+        <link rel="preconnect" href={ASSET_ORIGIN} crossOrigin="anonymous" />
+        {[fonts.cinzel, fonts.kinghwa, fonts.cormorant, fonts.zhuque].map((href) => (
+          <link key={href} rel="preload" href={href}
             as="font" type="font/woff2" crossOrigin="anonymous" />
         ))}
       </head>

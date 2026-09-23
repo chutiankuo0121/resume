@@ -11,6 +11,8 @@ from tempfile import gettempdir
 from urllib.parse import quote
 from urllib.request import urlopen
 from zipfile import ZipFile
+import json
+import subprocess
 
 from fontTools import subset
 from fontTools.ttLib import TTFont
@@ -18,7 +20,7 @@ from fontTools.varLib.instancer import instantiateVariableFont
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = Path(gettempdir()) / "astra-type-sources"
-OUTPUT = ROOT / "public/fonts"
+OUTPUT = Path(gettempdir()) / "astra-font-build"
 # 固定校验值，防止上游文件更新后无意间改变已选定的字形。
 SOURCES = [
     ("kinghwa", "kinghwa.ttf", "Astra KingHwa",
@@ -38,9 +40,10 @@ SOURCES = [
 
 def build():
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    text = "".join(path.read_text(encoding="utf-8") for path in (ROOT / "src").rglob("*")
-                   if path.suffix in {".ts", ".tsx", ".css", ".json"})
+    text = subprocess.check_output(["node", str(ROOT / "scripts/font-text.mjs")], cwd=ROOT).decode("utf-8")
     characters = set(map(ord, text)) | set(range(32, 256))
+    manifest = {}
+    faces = []
     for slug, filename, family, url, checksum in SOURCES:
         path = CACHE / filename
         if not path.exists():
@@ -71,7 +74,21 @@ def build():
         font.flavor = "woff2"
         target = OUTPUT / f"astra-{slug}.woff2"
         font.save(target)
-        print(f"{target.name}: {target.stat().st_size:,} bytes, {len(font.getBestCmap())} glyphs")
+        version = sha256(target.read_bytes()).hexdigest()[:12]
+        versioned = OUTPUT / f"astra-{slug}.{version}.woff2"
+        target.replace(versioned)
+        manifest[slug] = f"/fonts/{versioned.name}"
+        faces.append(f'''@font-face {{
+  font-family: "{family}";
+  src: url("{manifest[slug]}") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}}''')
+        print(f"{versioned.name}: {versioned.stat().st_size:,} bytes, {len(font.getBestCmap())} glyphs")
+    (ROOT / "src/content/fonts.generated.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (ROOT / "src/app/font-faces.generated.css").write_text("/* 由 scripts/build-fonts.py 生成；上传版本化字体后再发布代码。 */\n" + "\n".join(faces) + "\n", encoding="utf-8")
+    print(f"字体输出：{OUTPUT}；请上传到 R2 fonts/，使用 immutable 长缓存。")
 
 
 if __name__ == "__main__":

@@ -1,12 +1,11 @@
 import * as THREE from "three";
-import type { Work } from "@/content/works";
+import { portfolioLayout, type PortfolioMedia, type WorkSummary } from "@/content/works/gallery";
 import { createPortfolioCamera } from "./camera";
 import { createPortfolioTiles } from "./tiles";
 import { createPortfolioField, type WorkTarget } from "./field";
 import { lensFragment, screenVertex } from "./shaders";
 import { createPortfolioSurface } from "./surface";
-import { createPortfolioLayout } from "./layout";
-import type { PortfolioMedia } from "./media";
+import { createPortfolioMediaLoader } from "./media";
 
 import type { PortalPresentation } from "../hub/presentation";
 import { createBoundaryUniforms } from "../hub/boundaryField";
@@ -16,7 +15,8 @@ type Options = {
   canvas: HTMLCanvasElement;
   root: HTMLElement;
   media: PortfolioMedia[];
-  onSelect: (work: Work) => void;
+  onSelect: (work: WorkSummary) => void;
+  onIntent: () => void;
   onReady: () => void;
 };
 
@@ -26,6 +26,7 @@ export function createPortfolioScene({
   root,
   media,
   onSelect,
+  onIntent,
   onReady,
 }: Options) {
   const renderer = new THREE.WebGLRenderer({
@@ -63,13 +64,22 @@ export function createPortfolioScene({
     lastTime = 0;
   let width = 1,
     height = 1,
-    hover: Work | null = null,
+    hover: WorkSummary | null = null,
     selected: WorkTarget | null = null,
     waiting = false;
   const surface = createPortfolioSurface(scene, wake);
-  const layout = createPortfolioLayout(media);
+  const layout = portfolioLayout;
   const builder = createPortfolioTiles(layout, media);
   const field = createPortfolioField(scene, layout, builder);
+  const loader = createPortfolioMediaLoader(media, (src, image) => {
+    builder.enqueue(src, image);
+    wake();
+  });
+  let ready = false, complete = false, viewAt = -Infinity;
+  let mediaView: { wanted: string[]; visible: string[] } = { wanted: [], visible: [] };
+  const viewPosition = new THREE.Vector3(Infinity, Infinity, Infinity);
+  let viewExpansion = -1;
+  let hoverPoint: { clientX: number; clientY: number } | null = null;
   const touches = new Map<number, THREE.Vector2>();
   let pinch = 0;
   let tickerTime = 0;
@@ -82,6 +92,26 @@ export function createPortfolioScene({
     time: number;
     moved: boolean;
   } | null = null;
+
+  function frameCamera() {
+    const framing = 1 - presentation.expansion;
+    rig.camera.position.z += 7.5 * framing;
+    if (viewExpansion !== presentation.expansion) {
+      rig.camera.setViewOffset(width, height, width * 0.15 * framing, height * 0.15 * framing, width, height);
+      viewExpansion = presentation.expansion;
+    }
+    rig.camera.updateMatrixWorld();
+  }
+
+  function prioritize(force = false) {
+    const now = performance.now();
+    if (!force && (now - viewAt < 80 || viewPosition.distanceToSquared(rig.camera.position) < 0.001)) return;
+    viewAt = now;
+    viewPosition.copy(rig.camera.position);
+    mediaView = field.mediaView(rig.camera);
+    if (selected && !mediaView.wanted.includes(selected.key)) mediaView.wanted.unshift(selected.key);
+    loader.prioritize(mediaView.wanted);
+  }
 
   function wake() {
     if (
@@ -110,17 +140,7 @@ export function createPortfolioScene({
     const reduced = motion.matches;
     rig.update(dt, reduced);
     // 预览向左上取景；展开时沿同一相机回到全幅，浏览坐标不变。
-    const framing = 1 - presentation.expansion;
-    rig.camera.position.z += 7.5 * framing;
-    rig.camera.setViewOffset(
-      width,
-      height,
-      width * 0.15 * framing,
-      height * 0.15 * framing,
-      width,
-      height,
-    );
-    rig.camera.updateMatrixWorld();
+    frameCamera();
     const { x, y } = rig.camera.position;
     const dx =
       Math.abs(x) > field.period.x * 32
@@ -140,6 +160,17 @@ export function createPortfolioScene({
       rig.camera.updateMatrixWorld();
     }
     const audioVisible = field.update(rig.camera);
+    prioritize();
+    if (builder.pending) {
+      for (const src of builder.upload(renderer, mediaView.wanted, loader.release)) loader.uploaded(src);
+    }
+    if (hoverPoint && !selected && !drag) {
+      const next = hit(hoverPoint)?.work ?? null;
+      if (next && next.id !== hover?.id) onIntent();
+      hover = next;
+      hoverPoint = null;
+      canvas.style.cursor = next ? "pointer" : "grab";
+    }
     surface.update(rig.camera);
     if (!reduced && !selected) tickerTime += dt;
     builder.update(hover, tickerTime);
@@ -150,6 +181,15 @@ export function createPortfolioScene({
     renderer.render(scene, rig.camera);
     renderer.setRenderTarget(null);
     renderer.render(post, postCamera);
+    if (!ready && (mediaView.visible.length === 0 || mediaView.visible.some(loader.ready))) {
+      ready = true;
+      performance.mark("portfolio:first-preview");
+      onReady();
+    }
+    if (!complete && ready && mediaView.visible.every(loader.ready)) {
+      complete = true;
+      performance.mark("portfolio:visible-ready");
+    }
     if (waiting && rig.arrived) {
       waiting = false;
       if (selected) onSelect(selected.work);
@@ -157,6 +197,7 @@ export function createPortfolioScene({
     if (
       !rig.settled ||
       waiting ||
+      builder.pending ||
       (audioVisible && !reduced && !selected && presentation.interactive) ||
       (!motion.matches && presentation.boundary.expansion < 0.999)
     )
@@ -177,6 +218,7 @@ export function createPortfolioScene({
     renderer.setSize(width, height, false);
     target.setSize(Math.round(width * dpr), Math.round(height * dpr));
     rig.resize(width, height);
+    viewExpansion = -1;
     const previous = field.period.clone();
     field.resize(width < 800);
     const sx = field.period.x / previous.x,
@@ -188,6 +230,9 @@ export function createPortfolioScene({
       selected = field.nearest(selected.key, selected.position)!;
       rig.focus(selected.position, selected.width, selected.height);
     }
+    rig.update(0, motion.matches);
+    frameCamera();
+    prioritize(true);
     wake();
   }
 
@@ -200,6 +245,7 @@ export function createPortfolioScene({
       drag = null;
       pinch = 0;
       hover = null;
+      hoverPoint = null;
       rig.release();
     }
     wake();
@@ -224,13 +270,16 @@ export function createPortfolioScene({
   function select(destination: WorkTarget) {
     if (selected || !presentation.interactive) return;
     selected = destination;
+    onIntent();
     waiting = true;
     hover = null;
     rig.focus(destination.position, destination.width, destination.height);
+    prioritize(true);
     wake();
   }
 
   function restore() {
+    if (!selected) return;
     selected = null;
     waiting = false;
     hover = null;
@@ -309,9 +358,7 @@ export function createPortfolioScene({
       wake();
       return;
     }
-    const next = hit(event)?.work ?? null;
-    hover = next;
-    canvas.style.cursor = next ? "pointer" : "grab";
+    hoverPoint = { clientX: event.clientX, clientY: event.clientY };
     wake();
   }
 
@@ -335,6 +382,7 @@ export function createPortfolioScene({
     if (drag) return;
     rig.pointer(0, 0);
     hover = null;
+    hoverPoint = null;
     wake();
   }
   function keyboard(event: KeyboardEvent) {
@@ -416,7 +464,6 @@ export function createPortfolioScene({
   motion.addEventListener("change", refresh);
   resize();
   updatePresentation();
-  onReady();
 
   function reset() {
     rig.reset(field.origin(rig.camera.position));
@@ -428,6 +475,7 @@ export function createPortfolioScene({
     dispose() {
       disposed = true;
       cancelAnimationFrame(frame);
+      loader.dispose();
       root.removeEventListener("portal-update", updatePresentation);
       canvas.removeEventListener("wheel", wheel);
       observer.disconnect();

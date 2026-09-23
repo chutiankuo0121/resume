@@ -1,12 +1,12 @@
 import { CanvasTexture, SRGBColorSpace } from "three";
-import type { AudioWork } from "@/content/works";
+import type { WorkSummary } from "@/content/works/gallery";
 import { canvasFont } from "../typography";
 
 /** SBS 的音频入口是横向文字流；单份文字贴图循环采样，不逐帧重绘 Canvas。 */
-export function createAudioTile(work: AudioWork) {
+export function createAudioTile(work: WorkSummary) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
-  const text = `${work.title}   ·   ${work.source?.author ?? "Sound"}   /   `;
+  const text = `${work.title}   ·   ${work.author ?? "Sound"}   /   `;
   const font = canvasFont("heading", 54);
   ctx.font = font;
   canvas.width = Math.ceil(ctx.measureText(text).width + 60);

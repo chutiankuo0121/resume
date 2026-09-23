@@ -1,5 +1,5 @@
-import type { Rect } from "./layout";
-import { mediaSeed } from "./order";
+import type { Rect } from "../src/lib/portfolio/layout";
+import { mediaSeed } from "../src/lib/portfolio/order";
 
 export type MosaicCard = {
   key: string; width: number; height: number; nearCenter?: boolean;
