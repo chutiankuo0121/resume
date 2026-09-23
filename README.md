@@ -51,7 +51,7 @@ Cloudflare 安装锁文件中的依赖，构建成功后才部署。其他分支
 | `src/content/skills.ts` | 技能与关联作品 |
 | `src/components` | 页面、章节导航和媒体播放器 |
 | `src/lib` | 场景、相机、布局、交互与 Shader |
-| `src/lib/loading/config.ts` | 小黑洞加载尺寸、计数器与揭幕节奏 |
+| `src/lib/loading/config.ts` | 圆角进度条、C 字形变与放大揭幕节奏 |
 | `src/app` | 页面入口、字体与分章节样式 |
 | `src/lib/assetUrl.ts` | R2 公开地址与统一素材 URL |
 | `public` | 游戏入口、运行代码和资源许可 |

@@ -1,5 +1,6 @@
 import type { FrameClock } from "../transition";
-import { LOADING_HOLE } from "./config";
+import { LOADING_PRELUDE } from "./config";
+import { createPreludeDrawing } from "./drawPrelude";
 
 export type LoadingTask = "model" | "particles" | "lighting" | "fonts" | "scene";
 export type LoadingState = { progress: number; reveal: number; failed: boolean };
@@ -15,12 +16,16 @@ export function createLoadingProgress(
   onComplete: () => void,
 ) {
   const state: LoadingState = { progress: 0, reveal: 0, failed: false };
+  const drawing = createPreludeDrawing(root.querySelector<HTMLCanvasElement>(".prelude-canvas")!);
+  root.style.backgroundColor = "transparent";
   const finished = new Set<LoadingTask>();
   const digits = [...root.querySelectorAll<HTMLElement>(".prelude-digit-strip")]
     .map((element) => ({ element, place: Number(element.dataset.place) }));
   const media = matchMedia("(prefers-reduced-motion: reduce)");
-  let target = 0, last = 0, hold = 0, exitTime = 0, previousNumber = -1;
+  let target = 0, last = 0, exitTime = 0, previousNumber = -1;
   let completed = false;
+  const { completeHold, morphDuration, letterHold, zoomDuration } = LOADING_PRELUDE;
+  const clamp = (value: number) => Math.max(0, Math.min(1, value));
   const unsubscribe = clock.subscribe((timestamp) => {
     // 后台不消耗揭幕时间，回到标签页仍能看到完整交接。
     const dt = last ? Math.min((timestamp - last) / 1000, 0.05) : 0;
@@ -45,17 +50,19 @@ export function createLoadingProgress(
       const fraction = media.matches ? 0 : carry * carry * (3 - 2 * carry);
       element.style.transform = `translateY(${-(whole + fraction) * 100 / 11}%)`;
     }
-    if (state.progress < 1) return;
-    hold += dt;
-    if (hold < (media.matches ? 0.1 : LOADING_HOLE.completeHold)) return;
-    exitTime += dt;
-    const t = Math.min(1, exitTime / (media.matches ? 0.15 : LOADING_HOLE.expansionDuration));
-    // 三次缓入缓出：中段快速膨胀，首尾速度归零，停在原首页尺寸。
-    state.reveal = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    root.style.setProperty("--loading-copy-opacity", String(1 - Math.min(1, t / 0.45)));
-    if (t === 1) {
+    if (state.progress === 1) exitTime += dt;
+    const bend = clamp((exitTime - completeHold) / morphDuration);
+    // 形变首尾都静止，让 C 有一次完整的定格，再启动镜头推进。
+    const morph = bend < 0.5 ? 4 * bend ** 3 : 1 - (-2 * bend + 2) ** 3 / 2;
+    state.reveal = media.matches
+      ? clamp((exitTime - 0.1) / 0.2)
+      : clamp((exitTime - completeHold - morphDuration - letterHold) / zoomDuration);
+    drawing.render(state.progress, media.matches ? 0 : morph, state.reveal, media.matches);
+    root.style.setProperty("--loading-copy-opacity", String(1 - clamp(state.reveal / 0.3)));
+    if (state.reveal === 1) {
       completed = true;
       unsubscribe();
+      drawing.dispose();
       onComplete();
     }
   });
@@ -67,6 +74,6 @@ export function createLoadingProgress(
       target = [...finished].reduce((sum, key) => sum + WEIGHTS[key], 0) / 100;
     },
     fail() { state.failed = true; },
-    dispose: unsubscribe,
+    dispose() { unsubscribe(); drawing.dispose(); },
   };
 }

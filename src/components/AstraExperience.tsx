@@ -85,7 +85,7 @@ export default function AstraExperience() {
     // 开场与字体一起就绪，避免首屏先闪现系统字体再突然换字形。
     void loadTypography([
       opening.name, opening.englishName, opening.focus,
-      "0123456789% 凝聚星尘",
+      "0123456789%",
       ...opening.statements.map(({ text, english }) => `${text} ${english}`),
     ].join(" ")).then(() => {
       if (!disposed) loading.complete("fonts");

@@ -1,13 +1,10 @@
-/** 相对于首页黑洞的倍率；只改变尺寸，不改雾场、光晕与粒子算法。 */
-export const LOADING_HOLE = {
-  initialScale: 0.14,
-  loadedScale: 0.32,
-  completeHold: 0.2,
-  expansionDuration: 0.72,
+/** 圆角进度条 → C → 穿过笔画揭幕；长度为设计像素，时间为秒。 */
+export const LOADING_PRELUDE = {
+  barLength: 240,
+  strokeWidth: 30,
+  arcSweep: Math.PI * 1.5,
+  completeHold: 0.12,
+  morphDuration: 0.86,
+  letterHold: 0.18,
+  zoomDuration: 1.05,
 } as const;
-
-export function loadingHoleScale(progress: number, expansion: number) {
-  const small = LOADING_HOLE.initialScale
-    + (LOADING_HOLE.loadedScale - LOADING_HOLE.initialScale) * progress;
-  return small + (1 - small) * expansion;
-}

@@ -7,9 +7,10 @@ export default function LoadingPrelude({ ref, error, onRetry }: {
 }) {
   return (
     <section ref={ref} className="loading-prelude" role={error ? "group" : "progressbar"}
-      aria-label="正在凝聚星尘" aria-valuemin={error ? undefined : 0}
+      aria-label="正在加载" aria-valuemin={error ? undefined : 0}
       aria-valuemax={error ? undefined : 100} aria-valuenow={error ? undefined : 0}
       data-failed={Boolean(error)}>
+      <canvas className="prelude-canvas" aria-hidden="true" />
       <div className="prelude-copy" aria-hidden="true">
         <div className="prelude-counter">
           {[100, 10, 1].map((place) => (

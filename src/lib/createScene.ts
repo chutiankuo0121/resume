@@ -13,7 +13,6 @@ import { createPointerMotion, holeFollowScale } from "./pointer";
 import { createCrystal } from "./createCrystal";
 import { paperFragment } from "./shaders/elimarExit";
 import type { LoadingState, LoadingTask } from "./loading/progress";
-import { loadingHoleScale } from "./loading/config";
 
 type Options = {
   canvas: HTMLCanvasElement;
@@ -295,13 +294,12 @@ export function createScene({
   void load();
 
   function drawLoading() {
-    // 先保持小黑洞随进度长大，100% 后才迅速扩张到首页原尺寸。
-    // 始终使用正式黑洞的 Shader、粒子层和时钟，结尾没有叠化或换图。
+    // 首页始终保持正式尺寸；加载遮罩通过 C 字窗口揭开，不再缩放黑洞。
     holeCenter.set(0.5, 0.505);
     hole.render(time, pointer.hole, 1, 1, holeCenter);
     const uniforms = transitionMaterial.uniforms;
     uniforms.uTime.value = time;
-    uniforms.uHoleScale.value = loadingHoleScale(loading.progress, loading.reveal);
+    uniforms.uHoleScale.value = 1;
     uniforms.uHoleApproach.value = 0;
     uniforms.uCrystalReveal.value = 0;
     quad.material = transitionMaterial;
@@ -413,8 +411,10 @@ export function createScene({
     if (!reduced) time += elapsed;
     pointMaterial.uniforms.uTime.value = time;
     if (!shaderError) {
-      if (loading.reveal < 1) drawLoading();
-      else if (ready) draw();
+      // 完全被黑幕遮住时只做一次首帧预热，揭幕开始后再连续绘制。
+      if (loading.reveal < 1) {
+        if (loading.reveal > 0) drawLoading();
+      } else if (ready) draw();
     }
   }
   const unsubscribe = clock.subscribe(animate);
