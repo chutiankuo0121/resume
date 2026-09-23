@@ -33,7 +33,7 @@ export function createTransitionTimeline(
   careerRoot: HTMLElement,
   exploreRoot: HTMLElement,
   contactRoot: HTMLElement,
-  mistCanvas: HTMLCanvasElement,
+  chapterMasks: SVGSVGElement,
   onChapterChange: (chapter: Chapter) => void,
 ) {
   gsap.registerPlugin(ScrollTrigger);
@@ -149,7 +149,7 @@ export function createTransitionTimeline(
     }
   }
   const career = createCareerTimeline(careerRoot);
-  const handoffs = createChapterHandoffs(careerRoot, exploreRoot, contactRoot, mistCanvas);
+  const handoffs = createChapterHandoffs(careerRoot, exploreRoot, contactRoot, chapterMasks);
   ScrollTrigger.addEventListener("refresh", handoffs.refresh);
   function configure() {
     trigger?.kill();
@@ -213,10 +213,11 @@ export function createTransitionTimeline(
       // 拖动与键盘定位直接同步 Lenis，终止尚未结束的惯性，避免滑块回弹。
       lenis.scrollTo(position, { immediate: true });
     },
-    seek(chapter: Chapter) {
+    seek(chapter: Chapter, immediate = false) {
+      if (immediate) handoffs.refresh();
       if (chapter === "contact" || chapter === "explore") {
         const start = handoffs.positions[chapter];
-        lenis.scrollTo(start, { duration: media.matches ? 0 : 2.4, lerp: 0 });
+        lenis.scrollTo(start, { duration: media.matches ? 0 : 2.4, lerp: 0, immediate });
         return;
       }
       if (chapter === "career") {
@@ -227,7 +228,7 @@ export function createTransitionTimeline(
             (media.matches || window.innerWidth < 800
               ? 0
               : window.innerHeight * 0.75),
-          { duration: 2.4, lerp: 0 },
+          { duration: 2.4, lerp: 0, immediate },
         );
         return;
       }
@@ -244,6 +245,7 @@ export function createTransitionTimeline(
         {
           duration: end ? 2.4 : 2,
           lerp: 0,
+          immediate,
         },
       );
     },

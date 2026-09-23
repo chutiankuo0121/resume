@@ -14,6 +14,7 @@ import { opening } from "@/content/opening";
 import { loadTypography } from "@/lib/typography";
 import LoadingPrelude from "./LoadingPrelude";
 import { createLoadingProgress } from "@/lib/loading/progress";
+import ChapterMasks from "./ChapterMasks";
 
 export default function AstraExperience() {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -24,7 +25,7 @@ export default function AstraExperience() {
   const stage = useRef<HTMLDivElement>(null);
   const axis = useRef<HTMLElement>(null);
   const prelude = useRef<HTMLElement>(null);
-  const mist = useRef<HTMLCanvasElement>(null);
+  const masks = useRef<SVGSVGElement>(null);
   const readyRef = useRef(false);
   const exploringRef = useRef(false);
   const timeline = useRef<ReturnType<typeof createTransitionTimeline> | null>(
@@ -46,7 +47,7 @@ export default function AstraExperience() {
       !explore.current ||
       !contact.current ||
       !prelude.current ||
-      !mist.current
+      !masks.current
     )
       return;
     const scroll = createTransitionTimeline(
@@ -56,7 +57,7 @@ export default function AstraExperience() {
       career.current,
       explore.current,
       contact.current,
-      mist.current,
+      masks.current,
       setChapter,
     );
     timeline.current = scroll;
@@ -68,6 +69,10 @@ export default function AstraExperience() {
       readyRef.current = true;
       setReady(true);
       scroll.setPaused(exploringRef.current);
+      // 初次定位发生在增强布局之前；加载结束后对齐真实锚点，避免停在不可点击的转场中。
+      const anchor = location.hash.slice(1);
+      if (!exploringRef.current && (anchor === "explore" || anchor === "contact"))
+        scroll.seek(anchor, true);
     });
     const fail = (message: string) => {
       if (disposed) return;
@@ -152,7 +157,7 @@ export default function AstraExperience() {
       </div>
       <div className="chapter-gap chapter-gap--exit" aria-hidden="true" />
       <Contact ref={contact} inactive={exploring || !ready} />
-      <canvas ref={mist} className="chapter-mist" aria-hidden="true" />
+      <ChapterMasks ref={masks} />
       <ChapterAxis
         ref={axis}
         current={chapter}

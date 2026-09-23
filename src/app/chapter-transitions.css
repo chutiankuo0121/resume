@@ -1,27 +1,37 @@
 /* 留给入场、停留、退场各自独立的滚动距离；展开作品后继续由原浏览器接管输入。 */
-.chapter-gap { height: 0; background: #000; }
+.chapter-gap { height: 0; background: #eeeee9; }
 .chapter-gap--entry { background: #fff; }
-[data-chapter-handoffs] .chapter-gap--entry { height: 35svh; }
-[data-chapter-handoffs] .chapter-gap--exit { height: 55svh; }
+[data-chapter-handoffs] .chapter-gap--entry,
+[data-chapter-handoffs] .chapter-gap--exit { height: 15svh; }
 [data-chapter-handoffs] .explore-hub { height: 250svh; }
-.explore-hub:has(.chapter-held) { z-index: 2; }
-.contact.chapter-held { z-index: 3; }
-.chapter-mist {
+/* 固定纸底遮住文档流中移动的区块底色，避免磨砂边缘出现横向色带。 */
+.astra[data-chapter-transition]::after {
+  content: "";
   position: fixed;
   inset: 0;
-  z-index: 8;
-  width: 100%;
-  height: 100dvh;
-  visibility: hidden;
+  z-index: 0;
+  background: #eeeee9;
+  pointer-events: none;
+}
+.astra[data-chapter-transition="entry"]::after { background: #fff; }
+.explore-hub:has(.chapter-held) { z-index: 2; background: transparent; }
+.contact.chapter-held { z-index: 2; }
+.chapter-masks {
+  position: absolute;
+  width: 0;
+  height: 0;
   pointer-events: none;
 }
 .chapter-held:not(.is-open) {
   transform: translate3d(0, var(--chapter-y, 0px), 0) scale(var(--chapter-scale, 1));
   transform-origin: center center;
-  will-change: transform;
+  opacity: var(--chapter-opacity, 1);
+  filter: blur(var(--chapter-blur, 0px));
+  will-change: transform, filter;
 }
 .career-stage.chapter-held { background: #fff; }
-.chapter-covered:not(.is-open) { visibility: hidden; }
+.chapter-reveal-entry:not(.is-open) { mask-image: url(#chapter-entry-mask); }
+.chapter-reveal-exit { mask-image: url(#chapter-exit-mask); }
 .chapter-contact-reveal .contact-kicker,
 .chapter-contact-reveal h2 {
   opacity: var(--contact-title, 1);
@@ -41,5 +51,5 @@
   [data-chapter-handoffs] .explore-hub { height: 220svh; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .chapter-mist, .chapter-gap { display: none; }
+  .chapter-gap { display: none; }
 }
