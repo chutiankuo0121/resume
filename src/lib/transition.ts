@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCareerTimeline } from "./createCareerTimeline";
 import { addOpeningTitles, OPENING } from "./openingTitles";
+import { createChapterHandoffs } from "./chapters/createHandoffs";
 
 export type Chapter = "intro" | "crystal" | "career" | "explore" | "contact";
 
@@ -32,6 +33,7 @@ export function createTransitionTimeline(
   careerRoot: HTMLElement,
   exploreRoot: HTMLElement,
   contactRoot: HTMLElement,
+  mistCanvas: HTMLCanvasElement,
   onChapterChange: (chapter: Chapter) => void,
 ) {
   gsap.registerPlugin(ScrollTrigger);
@@ -81,6 +83,7 @@ export function createTransitionTimeline(
   let chapter: Chapter | undefined;
   let trigger: ScrollTrigger | undefined;
   function publish() {
+    handoffs.update();
     state.whiteout = elimarPaperReveal(state.exit);
     // 白页与场景最后一屏重叠；只在白场完成时显露内容，避免白色方块提前上推。
     careerRoot.style.setProperty(
@@ -100,11 +103,7 @@ export function createTransitionTimeline(
       "--scroll-hint-opacity",
       String(hintVisibility * (1 - state.focus)),
     );
-    const careerStart = careerRoot.getBoundingClientRect().top + window.scrollY;
-    const exploreStart =
-      exploreRoot.getBoundingClientRect().top + window.scrollY;
-    const contactStart =
-      contactRoot.getBoundingClientRect().top + window.scrollY;
+    const { career: careerStart, explore: exploreStart, contact: contactStart } = handoffs.positions;
     const inContact = window.scrollY >= contactStart - 1;
     const inExplore = window.scrollY >= exploreStart - 1;
     const inCareer = window.scrollY >= careerStart - 1;
@@ -150,6 +149,8 @@ export function createTransitionTimeline(
     }
   }
   const career = createCareerTimeline(careerRoot);
+  const handoffs = createChapterHandoffs(careerRoot, exploreRoot, contactRoot, mistCanvas);
+  ScrollTrigger.addEventListener("refresh", handoffs.refresh);
   function configure() {
     trigger?.kill();
     root.classList.toggle("reduced-journey", media.matches);
@@ -202,6 +203,7 @@ export function createTransitionTimeline(
   return {
     state,
     clock,
+    setExploring: handoffs.suspend,
     // 查看作品时暂停页面惯性；弹窗内部使用原生滚动和媒体控件。
     setPaused(paused: boolean) {
       if (paused) lenis.stop();
@@ -213,8 +215,7 @@ export function createTransitionTimeline(
     },
     seek(chapter: Chapter) {
       if (chapter === "contact" || chapter === "explore") {
-        const target = chapter === "contact" ? contactRoot : exploreRoot;
-        const start = target.getBoundingClientRect().top + window.scrollY;
+        const start = handoffs.positions[chapter];
         lenis.scrollTo(start, { duration: media.matches ? 0 : 2.4, lerp: 0 });
         return;
       }
@@ -254,6 +255,8 @@ export function createTransitionTimeline(
       disposeTitles();
       timeline.kill();
       career.dispose();
+      ScrollTrigger.removeEventListener("refresh", handoffs.refresh);
+      handoffs.dispose();
       lenis.destroy();
     },
   };

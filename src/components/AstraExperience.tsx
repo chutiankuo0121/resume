@@ -24,6 +24,7 @@ export default function AstraExperience() {
   const stage = useRef<HTMLDivElement>(null);
   const axis = useRef<HTMLElement>(null);
   const prelude = useRef<HTMLElement>(null);
+  const mist = useRef<HTMLCanvasElement>(null);
   const readyRef = useRef(false);
   const exploringRef = useRef(false);
   const timeline = useRef<ReturnType<typeof createTransitionTimeline> | null>(
@@ -44,7 +45,8 @@ export default function AstraExperience() {
       !career.current ||
       !explore.current ||
       !contact.current ||
-      !prelude.current
+      !prelude.current ||
+      !mist.current
     )
       return;
     const scroll = createTransitionTimeline(
@@ -54,6 +56,7 @@ export default function AstraExperience() {
       career.current,
       explore.current,
       contact.current,
+      mist.current,
       setChapter,
     );
     timeline.current = scroll;
@@ -103,6 +106,7 @@ export default function AstraExperience() {
   const setExplorationOpen = useCallback((open: boolean) => {
     exploringRef.current = open;
     setExploring(open);
+    timeline.current?.setExploring(open);
     timeline.current?.setPaused(open || !readyRef.current);
   }, []);
   const navigateContact = useCallback(
@@ -138,6 +142,7 @@ export default function AstraExperience() {
       <div inert={exploring || !ready}>
         <ResumeTimeline ref={career} />
       </div>
+      <div className="chapter-gap chapter-gap--entry" aria-hidden="true" />
       <div inert={!ready}>
         <ExploreHub
           ref={explore}
@@ -145,7 +150,9 @@ export default function AstraExperience() {
           onContact={navigateContact}
         />
       </div>
+      <div className="chapter-gap chapter-gap--exit" aria-hidden="true" />
       <Contact ref={contact} inactive={exploring || !ready} />
+      <canvas ref={mist} className="chapter-mist" aria-hidden="true" />
       <ChapterAxis
         ref={axis}
         current={chapter}

@@ -95,7 +95,7 @@ export function createPortfolioScene({
 
   function frameCamera() {
     const framing = 1 - presentation.expansion;
-    rig.camera.position.z += 7.5 * framing;
+    rig.camera.position.z += 3 * framing;
     if (viewExpansion !== presentation.expansion) {
       rig.camera.setViewOffset(width, height, width * 0.15 * framing, height * 0.15 * framing, width, height);
       viewExpansion = presentation.expansion;

@@ -1,8 +1,8 @@
 import { MathUtils, PerspectiveCamera } from "three";
 
-// 相机沿作品平面漫游：浏览距离 5.5、快速拖动 10、聚焦至少 2.2。
+// 远景浏览保留完整构图；拖动仅后撤 0.8，点击作品后才进入近景。
 // 距离是世界单位；镜头畸变与指针偏移共同形成空间感。
-const VIEW = { browse: 5.5, drag: 10, focus: 2.2 };
+const VIEW = { browse: 9, mobile: 6.8, dragRetreat: 0.8, focus: 2.2 };
 type Spring = { value: number; target: number; velocity: number };
 const spring = (value: number): Spring => ({
   value,
@@ -68,8 +68,8 @@ export function createPortfolioCamera() {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       const nextMobile = width < 800;
-      if (nextMobile !== mobile && !focused && baseZ < 7) {
-        baseZ = nextMobile ? 6.1 : VIEW.browse;
+      if (nextMobile !== mobile && !focused && baseZ === (mobile ? VIEW.mobile : VIEW.browse)) {
+        baseZ = nextMobile ? VIEW.mobile : VIEW.browse;
         z.target = baseZ;
       }
       mobile = nextMobile;
@@ -86,7 +86,7 @@ export function createPortfolioCamera() {
       y.target += dy * 15;
       z.target = MathUtils.lerp(
         baseZ,
-        Math.max(baseZ, VIEW.drag),
+        baseZ + VIEW.dragRetreat,
         MathUtils.clamp(speed / 3, 0, 1),
       );
     },
@@ -100,7 +100,7 @@ export function createPortfolioCamera() {
     },
     reset(origin: { x: number; y: number }) {
       focused = false;
-      baseZ = mobile ? 6.1 : VIEW.browse;
+      baseZ = mobile ? VIEW.mobile : VIEW.browse;
       x.target = origin.x;
       y.target = origin.y;
       z.target = baseZ;

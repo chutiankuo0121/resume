@@ -1,0 +1,45 @@
+/* 留给入场、停留、退场各自独立的滚动距离；展开作品后继续由原浏览器接管输入。 */
+.chapter-gap { height: 0; background: #000; }
+.chapter-gap--entry { background: #fff; }
+[data-chapter-handoffs] .chapter-gap--entry { height: 35svh; }
+[data-chapter-handoffs] .chapter-gap--exit { height: 55svh; }
+[data-chapter-handoffs] .explore-hub { height: 250svh; }
+.explore-hub:has(.chapter-held) { z-index: 2; }
+.contact.chapter-held { z-index: 3; }
+.chapter-mist {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100dvh;
+  visibility: hidden;
+  pointer-events: none;
+}
+.chapter-held:not(.is-open) {
+  transform: translate3d(0, var(--chapter-y, 0px), 0) scale(var(--chapter-scale, 1));
+  transform-origin: center center;
+  will-change: transform;
+}
+.career-stage.chapter-held { background: #fff; }
+.chapter-covered:not(.is-open) { visibility: hidden; }
+.chapter-contact-reveal .contact-kicker,
+.chapter-contact-reveal h2 {
+  opacity: var(--contact-title, 1);
+  transform: translateY(calc((1 - var(--contact-title, 1)) * 12px));
+}
+.chapter-contact-reveal .contact-name,
+.chapter-contact-reveal .contact-focus,
+.chapter-contact-reveal .contact-introduction,
+.chapter-contact-reveal .contact-education,
+.chapter-contact-reveal .contact-email,
+.chapter-contact-reveal .contact-wechat,
+.chapter-contact-reveal .contact-footer {
+  opacity: var(--contact-body, 1);
+  transform: translateY(calc((1 - var(--contact-body, 1)) * 10px));
+}
+@media (max-width: 799px) {
+  [data-chapter-handoffs] .explore-hub { height: 220svh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chapter-mist, .chapter-gap { display: none; }
+}

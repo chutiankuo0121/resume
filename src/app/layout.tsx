@@ -10,6 +10,7 @@ import "./portfolio.css";
 import "@/components/works/works.css";
 import "./skills.css";
 import "./explore.css";
+import "./chapter-transitions.css";
 
 export const metadata: Metadata = {
   title: `${profile.name} · ${profile.englishName} | AI 应用开发与作品集`,
