@@ -29,7 +29,7 @@ export function createChapterHandoffs(
   const inert = new Map<HTMLElement, boolean>();
   let suspended = false, active = "";
   const positions = { career: 0, entryStart: 0, explore: 0, exitStart: 0, contact: 0 };
-  // 沿上一版分镜的斜向曲线揭幕；这条曲线只控制磨砂遮罩，不牵动星链。
+  // 斜向曲线只控制磨砂遮罩，星链在探索目录中独立流动。
   const edge = Array.from({ length: 65 }, (_, i) => {
     const x = i / 64;
     return { x, y: .91 - .78 * x - .042 * Math.sin(x * Math.PI * 2) + .027 * Math.sin(x * 13.2) };
@@ -53,8 +53,6 @@ export function createChapterHandoffs(
     if (!active) return;
     active = "";
     delete main.dataset.chapterTransition;
-    delete masks.dataset.phase;
-    delete masks.dataset.progress;
     for (const element of elements) {
       element.classList.remove("chapter-held", "chapter-reveal-entry", "chapter-reveal-exit", "chapter-contact-reveal");
       for (const property of ["--chapter-y", "--chapter-scale", "--chapter-opacity", "--chapter-blur", "--contact-title", "--contact-body"])
@@ -105,8 +103,6 @@ export function createChapterHandoffs(
       contact.style.setProperty("--contact-body", String(smooth(.5, 1, p)));
       revealExit(p);
     }
-    masks.dataset.phase = phase;
-    masks.dataset.progress = p.toFixed(4);
   }
 
   function refresh() {

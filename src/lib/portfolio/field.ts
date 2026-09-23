@@ -52,7 +52,6 @@ export function createPortfolioField(
       mesh.position.copy(original.position);
       mesh.scale.copy(original.scale);
       mesh.renderOrder = original.renderOrder;
-      mesh.userData.tile = original.userData.tile;
       root.add(mesh);
     }
     root.scale.setScalar(scale);

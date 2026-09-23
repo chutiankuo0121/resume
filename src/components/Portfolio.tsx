@@ -24,7 +24,6 @@ export default function Portfolio({
     async function load() {
       if (started || abort.signal.aborted) return;
       started = true;
-      performance.mark("portfolio:prepare");
       try {
         const [{ createPortfolioScene }, { portfolioMedia, works }] = await Promise.all([
           import("@/lib/portfolio/createScene"), import("@/content/works/gallery"),

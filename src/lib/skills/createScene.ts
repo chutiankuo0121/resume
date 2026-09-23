@@ -137,7 +137,7 @@ export async function createSkillsScene({
   let width = 1,
     height = 1,
     compact = false;
-  let inViewport = false, viewExpansion = -1, shownCycle = "";
+  let inViewport = false, viewExpansion = -1;
   let progress = 0,
     lastTime = 0,
     disposed = false,
@@ -286,11 +286,6 @@ export async function createSkillsScene({
       Math.abs(scrollNudge) < 0.0001
     )
       progress = targetProgress;
-    const cycle = String(modulo(progress, skills.length) / skills.length);
-    if (cycle !== shownCycle) {
-      root.dataset.cycleProgress = cycle;
-      shownCycle = cycle;
-    }
     time.value += dt;
     palette.update(progress);
     follow.lerp(pointer, 1 - Math.exp(-dt * 1.2));
@@ -397,7 +392,7 @@ export async function createSkillsScene({
   function scrollToSkill(target: number) {
     navigation?.kill();
     destination = target;
-    const current = currentProgress();
+    const current = targetProgress;
     // 反向时可见屏幕还落在旧目标之后。把驱动位置接回画面所在处，消除继续前冲的余量；
     // progress 本身不跳变，镜头倾斜和拉远仍沿原有阻尼自然收回。
     const reversing =
@@ -419,11 +414,10 @@ export async function createSkillsScene({
   }
   function navigate(direction: number) {
     scrollToSkill(
-      Math.round(navigation?.isActive() ? destination : currentProgress()) +
+      Math.round(navigation?.isActive() ? destination : targetProgress) +
         direction,
     );
   }
-  const currentProgress = () => targetProgress;
   const controls = bindSkillControls({
     stage,
     movePointer(x, y, active) {
@@ -444,7 +438,7 @@ export async function createSkillsScene({
       targetProgress += steps;
     },
     settle(velocity) {
-      const current = currentProgress();
+      const current = targetProgress;
       const target = Math.round(
         current + THREE.MathUtils.clamp(velocity * 0.14, -0.25, 0.25),
       );
@@ -545,7 +539,6 @@ export async function createSkillsScene({
       moteMaterial.dispose();
       scene.clear();
       renderer.dispose();
-      delete root.dataset.cycleProgress;
       stage.inert = false;
     },
   };

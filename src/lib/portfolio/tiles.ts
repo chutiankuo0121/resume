@@ -105,9 +105,7 @@ export function createPortfolioTiles(
       width: rect.width,
       height: rect.height,
     };
-    mesh.userData.tile = tile;
     tiles.push(tile);
-    return tile;
   }
 
   const title = textMap("title", 1440, 850, (ctx) => {

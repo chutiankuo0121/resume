@@ -88,7 +88,6 @@ class MeshGridMaterial extends NodeMaterial
         this.normals = false;
         this.lights = false;
         this.isMeshGridMaterial = true;
-        this.testNode = null;
 
         this.scaleNode = uniform(1)
 

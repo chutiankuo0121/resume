@@ -75,7 +75,7 @@ export function createPortfolioScene({
     builder.enqueue(src, image);
     wake();
   });
-  let ready = false, complete = false, viewAt = -Infinity;
+  let ready = false, viewAt = -Infinity;
   let mediaView: { wanted: string[]; visible: string[] } = { wanted: [], visible: [] };
   const viewPosition = new THREE.Vector3(Infinity, Infinity, Infinity);
   let viewExpansion = -1;
@@ -183,12 +183,7 @@ export function createPortfolioScene({
     renderer.render(post, postCamera);
     if (!ready && (mediaView.visible.length === 0 || mediaView.visible.some(loader.ready))) {
       ready = true;
-      performance.mark("portfolio:first-preview");
       onReady();
-    }
-    if (!complete && ready && mediaView.visible.every(loader.ready)) {
-      complete = true;
-      performance.mark("portfolio:visible-ready");
     }
     if (waiting && rig.arrived) {
       waiting = false;
