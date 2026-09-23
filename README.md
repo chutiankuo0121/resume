@@ -13,7 +13,25 @@ npm ci
 npm run dev
 ```
 
-访问 http://127.0.0.1:3000 。发布前执行 `npm run typecheck`、`npm run build`，再以 `npm start` 启动。三维场景需要 WebGL 2；小游戏点击后独立加载。
+访问 http://127.0.0.1:3000 。发布前执行 `npm run typecheck`、`npm run build`，再以 `npm start` 在本地预览 Workers 生产版本。三维场景需要 WebGL 2；小游戏点击后独立加载。
+
+## Cloudflare Workers 部署
+
+主站通过 Next.js 静态导出生成 `out/`，Cloudflare 优先直接提供页面与代码；`worker/index.ts` 将缺失的游戏素材和字体转发至 R2，保留同源 iframe。图片已经使用 WebP，直接显示 R2 原图，不再依赖 Next.js 图片优化服务器。`out/`、`.wrangler/` 与媒体文件均不提交 Git。
+
+手动发布：`npm run typecheck && npm run build && npm run deploy`。Worker 名称是 `resume`，配置集中在 `wrangler.jsonc`；Node 版本由 `.node-version` 固定。
+
+要让推送自动发布，在 Cloudflare 的 `resume` → **Settings → Builds → Connect** 中连接以下配置：
+
+| 设置 | 值 |
+| --- | --- |
+| GitHub 仓库 | `chutiankuo0121/resume` |
+| 生产分支 | `main` |
+| 根目录 | `/` |
+| 构建命令 | `npm run typecheck && npm run build` |
+| 部署命令 | `npm run deploy` |
+
+Cloudflare 安装锁文件中的依赖，构建成功后才部署。其他分支不配置生产部署。首次绑定需要 Cloudflare 的 GitHub 应用有权访问本仓库；Wrangler 的普通 OAuth 登录只能发布 Worker，不能代替 Workers Builds 的仓库授权。连接后用一次正常代码推送验证：构建记录里的提交 SHA、成功部署的版本应与 GitHub `main` 一致。R2 素材独立于代码部署，不必随每次推送重复上传。
 
 ## 内容与结构
 
@@ -40,7 +58,7 @@ npm run dev
 
 ## R2 素材
 
-公开地址集中在 `src/lib/assetUrl.ts`，不需要在前端配置 Cloudflare 密钥。作品媒体直接从 R2 下载；字体与游戏素材由 Next.js 保持原路径转发，游戏入口和脚本继续同源运行。`r2.dev` 是限流的开发地址，正式发布应绑定自定义域名并修改这一处配置。
+公开地址集中在 `src/lib/assetUrl.ts`，不需要在前端配置 Cloudflare 密钥。作品媒体直接从 R2 下载；字体与游戏素材在本地由 Next.js、线上由 Worker 保持原路径转发，游戏入口和脚本继续同源运行。`r2.dev` 是限流的开发地址，正式发布应绑定自定义域名并修改这一处配置。
 
 桶的 CORS 允许公开 `GET`、`HEAD`，允许 `Range` 请求头，并公开 `ETag`、`Content-Length`、`Content-Range`、`Accept-Ranges`。保留该配置，避免 WebGL 贴图跨域失败。上传时填写正确的媒体类型；视频是 `video/webm`，音频是 `audio/webm`。
 

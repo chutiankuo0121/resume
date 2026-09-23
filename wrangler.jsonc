@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "resume",
+  "account_id": "7b32cf6be3c76a1d036f35c44cd49e66",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-27",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  }
+}
