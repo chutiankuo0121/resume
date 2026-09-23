@@ -17,6 +17,8 @@ npm run dev
 
 ## Cloudflare Workers 部署
 
+线上地址：[resume.806307287.workers.dev](https://resume.806307287.workers.dev/)。
+
 主站通过 Next.js 静态导出生成 `out/`，Cloudflare 优先直接提供页面与代码；`worker/index.ts` 将缺失的游戏素材和字体转发至 R2，保留同源 iframe。图片已经使用 WebP，直接显示 R2 原图，不再依赖 Next.js 图片优化服务器。`out/`、`.wrangler/` 与媒体文件均不提交 Git。
 
 手动发布：`npm run typecheck && npm run build && npm run deploy`。Worker 名称是 `resume`，配置集中在 `wrangler.jsonc`；Node 版本由 `.node-version` 固定。
