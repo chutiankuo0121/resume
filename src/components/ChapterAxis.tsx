@@ -1,10 +1,12 @@
 import type { Ref } from "react";
 import type { Chapter } from "@/lib/transition";
+import SoundToggle from "./sound/SoundToggle";
 
 type Props = {
   ref: Ref<HTMLElement>;
   current: Chapter;
   onNavigate: (chapter: Chapter) => void;
+  soundHidden?: boolean;
 };
 
 const chapters = [
@@ -15,11 +17,12 @@ const chapters = [
   { id: "contact", number: "05/", label: "Contact" },
 ] as const;
 
-export default function ChapterAxis({ ref, current, onNavigate }: Props) {
+export default function ChapterAxis({ ref, current, onNavigate, soundHidden }: Props) {
   return (
     <nav ref={ref} className="chapter-axis" aria-label="Chapters">
       <div className="axis-bar">
         <span className="axis-title">Index</span>
+        {!soundHidden && <SoundToggle />}
         <ol className="axis-items">
           {chapters.map(({ id, number, label }) => (
             <li className="axis-item" key={id}>

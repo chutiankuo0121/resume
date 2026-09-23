@@ -5,12 +5,15 @@ import fonts from "@/content/fonts.generated.json";
 import "./globals.css";
 import "./opening.css";
 import "./loading.css";
+import "@/components/cards/cards.css";
 import "./timeline.css";
 import "./portfolio.css";
 import "@/components/works/works.css";
+import "@/components/works/media-viewer.css";
 import "./skills.css";
 import "./explore.css";
 import "./chapter-transitions.css";
+import "@/components/sound/sound.css";
 
 export const metadata: Metadata = {
   title: `${profile.name} · ${profile.englishName} | AI 应用开发与作品集`,

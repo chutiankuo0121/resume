@@ -7,17 +7,7 @@ export default {
   "title": "零压枕头口播种草",
   "cover": "/portfolio/jimeng-7681567529294155032/cover.webp",
   "alt": "零压枕头口播种草影片画面",
-  "description": "即梦「社媒营销」精选影片收录。",
-  "tools": [
-    "即梦",
-    "社媒营销"
-  ],
   "src": "/portfolio/jimeng-7681567529294155032/film.webm",
   "width": 720,
   "height": 1280,
-  "source": {
-    "label": "即梦",
-    "author": "即梦AI",
-    "url": "https://jimeng.jianying.com/ai-tool/work-detail/7681567529294155032?workDetailType=AiVideo&itemType=53"
-  }
 } satisfies Work;

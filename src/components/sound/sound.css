@@ -1,0 +1,58 @@
+.sound-toggle {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+.sound-bars { display: flex; align-items: center; gap: 3px; height: 22px; }
+.sound-bars i { display: block; height: 4px; width: 1px; background: currentColor; }
+.sound-toggle[data-playing="true"] .sound-bars i {
+  animation: sound-breathe 1.7s ease-in-out infinite;
+  animation-delay: calc(var(--bar) * -.23s);
+}
+@keyframes sound-breathe { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(3.5); } 65% { transform: scaleY(2); } }
+.sound-toggle--floating {
+  position: absolute;
+  z-index: 5;
+  bottom: 24px;
+  left: 24px;
+  color: white;
+  mix-blend-mode: difference;
+}
+.hub-stage:not(.is-open) .sound-toggle--floating { display: none; }
+.sound-prompt {
+  position: fixed;
+  z-index: 30;
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  padding: 20px;
+  border: 1px solid #ffffff80;
+  border-radius: 18px;
+  background: #f1f1eaeF;
+  color: #242421;
+  box-shadow: 0 8px 32px #0002;
+  backdrop-filter: blur(18px);
+  font: 13px/1.6 var(--font-body);
+  animation: sound-prompt-in .4s ease-out both;
+}
+.sound-prompt p { margin: 0 0 14px; }
+.sound-prompt .sound-prompt-title { margin-bottom: 6px; font: 20px/1.4 var(--font-heading); }
+.sound-prompt-actions { display: flex; gap: 8px; }
+.sound-prompt-actions button { flex: 1; padding: 9px 8px; border: 0; border-radius: 9px; font-size: 13px; background: #deded6; color: #242421; }
+.sound-prompt-actions button:last-child { color: #fff; background: #292927; }
+.sound-credit { display: block; margin-top: 12px; font-size: 10px; opacity: .7; }
+.sound-credit a { color: inherit; text-underline-offset: 3px; }
+@keyframes sound-prompt-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (min-width: 800px) { .axis-bar .sound-bars { transform: rotate(-90deg); } }
+@media (max-width: 799px) {
+  .axis-bar .sound-toggle { margin-left: auto; order: 1; }
+  .axis-bar:has(.sound-toggle) .axis-link, .axis-bar:has(.sound-toggle) .axis-fill { padding: 0 9px; }
+  .axis-bar:has(.sound-toggle) .axis-link { max-width: 40px; }
+  .axis-bar:has(.sound-toggle) .axis-link[aria-current], .axis-bar:has(.sound-toggle) .axis-link:focus-visible { max-width: 150px; }
+  .sound-toggle--floating { left: 12px; bottom: 18px; }
+}

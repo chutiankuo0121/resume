@@ -15,6 +15,7 @@ import { loadTypography } from "@/lib/typography";
 import LoadingPrelude from "./LoadingPrelude";
 import { createLoadingProgress } from "@/lib/loading/progress";
 import ChapterMasks from "./ChapterMasks";
+import Soundscape from "./sound/Soundscape";
 
 export default function AstraExperience() {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -127,6 +128,7 @@ export default function AstraExperience() {
   }
 
   return (
+    <Soundscape ready={ready && !error}>
     <main
       id="journey"
       className={`astra ${ready ? "is-ready" : ""}`}
@@ -161,6 +163,7 @@ export default function AstraExperience() {
       <ChapterAxis
         ref={axis}
         current={chapter}
+        soundHidden={exploring}
         onNavigate={(target) => timeline.current?.seek(target)}
       />
       {ready && !error && (
@@ -172,5 +175,6 @@ export default function AstraExperience() {
         <LoadingPrelude key={retry} ref={prelude} error={error} onRetry={reload} />
       )}
     </main>
+    </Soundscape>
   );
 }

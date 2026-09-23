@@ -10,7 +10,7 @@ import { WorkPlaybackContext } from "./WorkPlaybackContext";
 
 /**
  * 一个 iframe 对应一次试玩。关闭时同步通知子页面清理，再销毁整个运行环境。
- * 原生 modal 留在作品组件内：返回作品保留详情；浏览器后退则随宿主一并卸载。
+ * 点击作品墙直接进入游戏，返回时回到原浏览位置；浏览器后退随宿主一并卸载。
  */
 export default function GamePlayer({
   work,
@@ -150,10 +150,9 @@ export default function GamePlayer({
           className="game-loading"
           role={status === "error" ? "alert" : "status"}
         >
-          <span className="work-eyebrow">互动游戏 / {work.title}</span>
           <p>
             {status === "loading"
-              ? `正在加载 ${work.title}…${progress > 0 ? ` ${Math.round(progress * 100)}%` : ""}`
+              ? `正在加载…${progress > 0 ? ` ${Math.round(progress * 100)}%` : ""}`
               : "游戏加载失败。"}
           </p>
           {status === "error" && <button onClick={retry}>重新加载 ↗</button>}

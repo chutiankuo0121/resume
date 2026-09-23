@@ -6,17 +6,6 @@ const work = {
   "title": "光影",
   "cover": "/portfolio/minimax-light-and-shadow/cover.webp",
   "alt": "光影 — 音乐封面",
-  "description": "MiniMax 官方音乐示例，风格标签：流行、心动。作为 AI 音乐策展收录。",
-  "tools": [
-    "MiniMax Music",
-    "流行",
-    "心动"
-  ],
-  "source": {
-    "label": "MiniMax · 原作",
-    "author": "MiniMax",
-    "url": "https://www.minimaxi.com/audio/"
-  },
   "src": "/portfolio/minimax-light-and-shadow/track.webm",
   "duration": 184.908,
   "waveform": [

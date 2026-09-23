@@ -1,88 +1,47 @@
-import { useEffect, useRef } from "react";
 import type { Skill } from "@/content/skills";
 import { experience } from "@/content/experience";
 import { workById, type WorkSummary } from "@/content/works/gallery";
+import { cardOrigin, type CardOrigin } from "@/lib/cardMotion";
 import { preloadWorkDetail } from "./works/useWorkDetail";
 import { SkillArtwork } from "./SkillArtwork";
+import DetailDialog from "./cards/DetailDialog";
+import CardArtwork from "./cards/CardArtwork";
 
-export default function SkillDetail({
-  skill,
-  onClose,
-  onWork,
-}: {
+export default function SkillDetail({ skill, origin, onClose, onWork }: {
   skill: Skill;
+  origin?: CardOrigin;
   onClose: () => void;
-  onWork: (work: WorkSummary) => void;
+  onWork: (work: WorkSummary, origin: CardOrigin) => void;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const element = dialog.current!;
-    element.showModal();
-    return () => element.close();
-  }, []);
+  const related = skill.works.map(id => workById.get(id)).filter(work => work !== undefined);
+  const practice = skill.experiences.map(id => experience.find(period => period.id === id)).filter(period => period !== undefined);
   return (
-    <dialog
-      ref={dialog}
-      className="skill-dialog"
-      aria-labelledby="skill-detail-title"
-      data-lenis-prevent
-      onClose={(event) => {
-        if (!event.currentTarget.open) onClose();
-      }}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) dialog.current?.close();
-      }}
-    >
+    <DetailDialog className="skill-dialog" labelledBy="skill-detail-title" label="能力 / Skills" origin={origin} onClose={onClose}>
       <div className="skill-detail">
-        <header>
-          <span>{skill.family}</span>
-          <button
-            onClick={() => dialog.current?.close()}
-            autoFocus
-            aria-label="Close skill"
-          >
-            Close ×
-          </button>
-        </header>
-        <SkillArtwork className="skill-detail-art" skill={skill} />
-        <h3 id="skill-detail-title">{skill.title}</h3>
-        <p>{skill.description}</p>
-        <ul className="skill-tools">
-          {skill.tools.map((tool) => (
-            <li key={tool}>{tool}</li>
-          ))}
-        </ul>
-        {skill.works.length > 0 && <p className="skill-evidence-label">关联作品 / Selected work</p>}
-        <div className="skill-evidence">
-          {skill.works.map((id) => {
-            const work = workById.get(id);
-            return work ? (
-              <button key={id} onPointerEnter={preloadWorkDetail} onFocus={preloadWorkDetail} onClick={() => onWork(work)}>
-                {/* 复用作品封面，原生 img 让小型预览保持其真实比例。 */}
-                <img src={work.cover} alt={work.alt} loading="lazy" />
-                <span>
-                  {work.title}
-                  <span aria-hidden="true">↗</span>
-                </span>
-              </button>
-            ) : null;
-          })}
+        <div className="skill-detail-hero">
+          <div><span className="card-chip">{skill.family}</span><h3 id="skill-detail-title">{skill.title}</h3></div>
+          <CardArtwork><SkillArtwork className="skill-detail-art" skill={skill} /></CardArtwork>
         </div>
-        <div className="skill-practice">
-          <p className="skill-evidence-label">相关实践 / Experience</p>
-          {skill.experiences.map((id) => {
-            const period = experience.find((item) => item.id === id);
-            return period ? (
-              <article key={id}>
-                <span>{period.years}</span>
-                <h4>{period.title}</h4>
-                <p>{period.role}</p>
-                <p>{period.description}</p>
-              </article>
-            ) : null;
-          })}
-        </div>
+        <p className="skill-description">{skill.description}</p>
+        <ul className="card-tags" aria-label="使用的工具">{skill.tools.map(tool => <li key={tool}>{tool}</li>)}</ul>
+        {related.length > 0 && <section className="skill-related" aria-label="关联作品">
+          <p className="card-eyebrow">关联作品 / Selected work</p>
+          <div className="skill-evidence">{related.map(work => (
+            <button key={work.id} type="button" onPointerEnter={preloadWorkDetail} onFocus={preloadWorkDetail}
+              onClick={event => onWork(work, cardOrigin(event.currentTarget))}>
+              <img src={work.cover} alt={work.alt} loading="lazy" />
+              <span>{work.title}<span aria-hidden="true">↗</span></span>
+            </button>
+          ))}</div>
+        </section>}
+        {practice.length > 0 && <section className="skill-practice" aria-label="相关实践">{practice.map(period => (
+          <article className="card-practice" key={period.id}>
+            <div className="card-practice-meta"><span>相关实践</span><span>{period.years}</span></div>
+            <h4>{period.title}</h4><p>{period.role}</p>
+            <details><summary>工作内容</summary><p>{period.description}</p></details>
+          </article>
+        ))}</section>}
       </div>
-    </dialog>
+    </DetailDialog>
   );
 }

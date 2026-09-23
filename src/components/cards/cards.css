@@ -1,0 +1,72 @@
+/* 全站卡片只维护这一组材质与尺寸：外壳、媒体、子区域由大到小递进。 */
+:root {
+  --card-paper: #faf9f6;
+  --card-fill: #eeeee7;
+  --card-ink: #292d29;
+  --card-muted: #62695f;
+  --card-accent: #334737;
+  --card-radius: 32px;
+  --card-inner-radius: 20px;
+  --card-shadow: 0 18px 64px #16201816;
+}
+.detail-dialog {
+  border: 0;
+  padding: 0;
+  width: min(1080px, calc(100vw - 48px));
+  max-width: none;
+  max-height: calc(100svh - 48px);
+  border-radius: var(--card-radius);
+  background: var(--card-paper);
+  color: var(--card-ink);
+  box-shadow: var(--card-shadow);
+  color-scheme: light;
+  font-family: var(--font-body);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #abb0a2 transparent;
+}
+.detail-dialog::backdrop {
+  background: #171d2161;
+  backdrop-filter: blur(12px);
+  animation: detail-backdrop-in 440ms ease both;
+}
+.detail-dialog[data-closing]::backdrop { animation: detail-backdrop-out 260ms ease both; }
+@keyframes detail-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes detail-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+.detail-shell { padding: 18px; }
+.detail-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 6px 16px 14px; }
+.card-eyebrow { margin: 0; font: 12px/1.6 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--card-muted); }
+.card-close { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--card-fill); color: var(--card-ink); }
+.card-button { display: inline-flex; justify-content: center; align-items: center; gap: 10px; width: fit-content; min-height: 44px; padding: 12px 22px; border: 0; border-radius: 999px; background: var(--card-accent); color: #fff; text-decoration: none; font: 15px/1.5 var(--font-body); }
+.card-button:disabled { background: var(--card-fill); color: var(--card-muted); cursor: default; }
+.card-button, .card-close { transition: transform .22s ease, background .22s ease; }
+.card-button:not(:disabled):active, .card-close:active { transform: scale(.96); }
+.card-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 22px 0; list-style: none; }
+.card-tags li, .card-chip { display: inline-block; padding: 7px 13px; border-radius: 999px; background: #e9ede4; color: #465843; font: 13px/1.5 var(--font-body); }
+.card-artwork { min-width: 0; transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform .3s ease-out; }
+.card-practice { background: var(--card-fill); padding: 24px; border-radius: 24px; }
+.card-practice + .card-practice { margin-top: 12px; }
+.card-practice-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--card-muted); font: 12px/1.7 var(--font-body); }
+.card-practice h4 { margin: 14px 0 8px; font: 400 21px/1.5 var(--font-heading); }
+.card-practice p { color: var(--card-muted); font: 16px/1.85 var(--font-body); margin: 0; }
+.card-practice details { margin-top: 12px; }
+.card-practice summary { min-height: 44px; padding: 12px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; cursor: pointer; font: 15px/1.5 var(--font-body); }
+.card-practice summary::-webkit-details-marker { display: none; }
+.card-practice summary::after { content: "↓"; transition: transform .2s ease; }
+.card-practice details[open] summary::after { transform: rotate(180deg); }
+.detail-dialog :is(a, button, summary):focus-visible { outline: 2px solid var(--card-accent); outline-offset: 3px; }
+@media (hover: hover) {
+  .card-button:not(:disabled):hover { background: #49604b; transform: translateY(-2px); }
+  .card-close:hover { background: #e0e4d8; transform: rotate(8deg); }
+}
+@media (max-width: 799px) {
+  .detail-dialog { width: calc(100vw - 24px); max-height: calc(100svh - 24px); border-radius: 26px; }
+  .detail-shell { padding: 12px; }
+  .detail-header { padding: 0 0 12px 8px; }
+  .card-practice { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail-dialog::backdrop { animation: none; }
+  .card-artwork, .card-button, .card-close { transition: none; transform: none; }
+}

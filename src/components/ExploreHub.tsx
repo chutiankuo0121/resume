@@ -8,6 +8,7 @@ import {
 import { gsap } from "gsap";
 import Portfolio from "./Portfolio";
 import Skills from "./Skills";
+import SoundToggle from "./sound/SoundToggle";
 import { WorkPlaybackContext } from "./works/WorkPlaybackContext";
 import { createPresentation } from "@/lib/hub/presentation";
 import {
@@ -331,6 +332,7 @@ export default function ExploreHub({
           >
             ← <span>Explore</span>
           </button>
+          {opened && <SoundToggle floating />}
         </div>
       </section>
     </WorkPlaybackContext>

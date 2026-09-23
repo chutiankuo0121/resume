@@ -6,16 +6,6 @@ const work = {
   "title": "Porch Light On",
   "cover": "/portfolio/suno-538ab4ae-3ace-4abf-95f9-be0bed53b65d/cover.webp",
   "alt": "Porch Light On — 音乐封面",
-  "description": "Suno 首页精选音乐，由 kealix 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "kealix",
-    "url": "https://suno.com/song/538ab4ae-3ace-4abf-95f9-be0bed53b65d"
-  },
   "src": "/portfolio/suno-538ab4ae-3ace-4abf-95f9-be0bed53b65d/track.webm",
   "duration": 213.968,
   "waveform": [

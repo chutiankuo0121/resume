@@ -6,17 +6,6 @@ const work = {
   "title": "Youth Uprising",
   "cover": "/portfolio/minimax-youth-uprising/cover.webp",
   "alt": "Youth Uprising — 音乐封面",
-  "description": "MiniMax 官方音乐示例，风格标签：Electronic、Aggressive。作为 AI 音乐策展收录。",
-  "tools": [
-    "MiniMax Music",
-    "Electronic",
-    "Aggressive"
-  ],
-  "source": {
-    "label": "MiniMax · 原作",
-    "author": "MiniMax",
-    "url": "https://www.minimax.io/audio/"
-  },
   "src": "/portfolio/minimax-youth-uprising/track.webm",
   "duration": 174.076,
   "waveform": [

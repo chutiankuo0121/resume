@@ -1,6 +1,7 @@
 import Image from "next/image";
-import type { Ref } from "react";
+import type { Ref, CSSProperties } from "react";
 import { experience } from "@/content/experience";
+import CardArtwork from "./cards/CardArtwork";
 
 export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
   return (
@@ -29,7 +30,7 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                 <p className="career-years">{period.years}</p>
                 <div className="career-intro">
                   <h2 id={`${period.id}-title`}>{period.title}</h2>
-                  <p className="career-role">{period.role}</p>
+                  <p className="career-role"><span className="card-chip">{period.role}</span></p>
                   <p className="career-description">{period.introduction}</p>
                 </div>
                 <div className="career-story">
@@ -42,21 +43,23 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                   {"projects" in period && (
                     <div className="career-projects">
                       {period.projects.map((project) => (
-                        <a className="career-project" key={project.href} href={project.href} target="_blank" rel="noopener noreferrer">
+                        <a className="card-button career-project" key={project.href} href={project.href} target="_blank" rel="noopener noreferrer">
                           {project.label}
                         </a>
                       ))}
                     </div>
                   )}
                 </div>
-                <figure className="career-visual">
-                  <Image
-                    src={period.image}
-                    alt={period.imageAlt}
-                    width={period.width}
-                    height={period.height}
-                    sizes="(max-width: 799px) 85vw, (max-width: 1599px) 40vw, 640px"
-                  />
+                <figure className="career-visual" style={{ "--career-aspect": period.width / period.height } as CSSProperties}>
+                  <CardArtwork>
+                    <Image
+                      src={period.image}
+                      alt={period.imageAlt}
+                      width={period.width}
+                      height={period.height}
+                      sizes="(max-width: 799px) 85vw, (max-width: 1599px) 40vw, 640px"
+                    />
+                  </CardArtwork>
                   <figcaption>{period.caption}</figcaption>
                 </figure>
               </div>

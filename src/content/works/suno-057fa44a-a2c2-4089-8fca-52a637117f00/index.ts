@@ -6,16 +6,6 @@ const work = {
   "title": "This Is My World ( V6 Edition )",
   "cover": "/portfolio/suno-057fa44a-a2c2-4089-8fca-52a637117f00/cover.webp",
   "alt": "This Is My World ( V6 Edition ) — 音乐封面",
-  "description": "Suno 首页精选音乐，由 Zombie Robby 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "Zombie Robby",
-    "url": "https://suno.com/song/057fa44a-a2c2-4089-8fca-52a637117f00"
-  },
   "src": "/portfolio/suno-057fa44a-a2c2-4089-8fca-52a637117f00/track.webm",
   "duration": 224.968,
   "waveform": [

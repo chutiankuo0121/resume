@@ -6,16 +6,6 @@ const work = {
   "title": "Together in Respect",
   "cover": "/portfolio/suno-c1a16429-f3fe-4d99-bdcf-61ee13ed6f00/cover.webp",
   "alt": "Together in Respect — 音乐封面",
-  "description": "Suno 首页精选音乐，由 evalena 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "evalena",
-    "url": "https://suno.com/song/c1a16429-f3fe-4d99-bdcf-61ee13ed6f00"
-  },
   "src": "/portfolio/suno-c1a16429-f3fe-4d99-bdcf-61ee13ed6f00/track.webm",
   "duration": 210.008,
   "waveform": [

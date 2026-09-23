@@ -6,17 +6,6 @@ const work = {
   "title": "Will The Night Be Kind",
   "cover": "/portfolio/minimax-will-the-night-be-kind/cover.webp",
   "alt": "Will The Night Be Kind — 音乐封面",
-  "description": "MiniMax 官方音乐示例，风格标签：Blues、Lonely bar。作为 AI 音乐策展收录。",
-  "tools": [
-    "MiniMax Music",
-    "Blues",
-    "Lonely bar"
-  ],
-  "source": {
-    "label": "MiniMax · 原作",
-    "author": "MiniMax",
-    "url": "https://www.minimax.io/audio/"
-  },
   "src": "/portfolio/minimax-will-the-night-be-kind/track.webm",
   "duration": 167.11,
   "waveform": [

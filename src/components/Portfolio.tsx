@@ -29,7 +29,7 @@ export default function Portfolio({
           import("@/lib/portfolio/createScene"), import("@/content/works/gallery"),
         ]);
         const audioTitles = works.filter(work => work.kind === "audio")
-          .map(work => `${work.title} ${work.author}`).join(" ");
+          .map(work => work.title).join(" ");
         await loadTypography(`Selected works. AI / TOOLS / VISUAL EXPLORATIONS ${audioTitles}`);
         if (abort.signal.aborted) return;
         const control = createPortfolioScene({
@@ -38,7 +38,7 @@ export default function Portfolio({
           root: root.current!,
           media: portfolioMedia,
           onReady: () => setReady(true),
-          onSelect: work => { void open(work.id); },
+          onSelect: (work, origin) => { void open(work.id, origin); },
           onIntent: preloadWorkDetail,
         });
         scene.current = control;
@@ -115,7 +115,7 @@ export default function Portfolio({
             {error || detailError}
           </p>
         )}
-        {detail && <detail.Component key={detail.work.id} work={detail.work} onClose={close} />}
+        {detail && <detail.Component key={detail.work.id} work={detail.work} origin={detail.origin} onClose={close} />}
       </div>
     </section>
   );

@@ -6,7 +6,7 @@ import { canvasFont } from "../typography";
 export function createAudioTile(work: WorkSummary) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
-  const text = `${work.title}   ·   ${work.author ?? "Sound"}   /   `;
+  const text = `${work.title}   /   `;
   const font = canvasFont("heading", 54);
   ctx.font = font;
   canvas.width = Math.ceil(ctx.measureText(text).width + 60);

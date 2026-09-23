@@ -6,16 +6,6 @@ const work = {
   "title": "Stay or Leave",
   "cover": "/portfolio/suno-f0f00357-0cd7-4fd5-96e5-d9314439f4e5/cover.webp",
   "alt": "Stay or Leave — 音乐封面",
-  "description": "Suno 首页精选音乐，由 M.F[T.O] Beats 🌃 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "M.F[T.O] Beats 🌃",
-    "url": "https://suno.com/song/f0f00357-0cd7-4fd5-96e5-d9314439f4e5"
-  },
   "src": "/portfolio/suno-f0f00357-0cd7-4fd5-96e5-d9314439f4e5/track.webm",
   "duration": 240.408,
   "waveform": [

@@ -6,17 +6,6 @@ const work = {
   "title": "Velvet Tones",
   "cover": "/portfolio/minimax-velvet-tones/cover.webp",
   "alt": "Velvet Tones — 音乐封面",
-  "description": "MiniMax 官方音乐示例，风格标签：Jazz、Lonely bar。作为 AI 音乐策展收录。",
-  "tools": [
-    "MiniMax Music",
-    "Jazz",
-    "Lonely bar"
-  ],
-  "source": {
-    "label": "MiniMax · 原作",
-    "author": "MiniMax",
-    "url": "https://www.minimax.io/audio/"
-  },
   "src": "/portfolio/minimax-velvet-tones/track.webm",
   "duration": 169.827,
   "waveform": [

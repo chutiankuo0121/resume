@@ -15,7 +15,7 @@ export type PortfolioLayout = {
   items: { key: string; media: Rect }[];
 };
 
-export const GRID = { radius: 0.12, seam: 0.012, inset: 0.018 };
+export const GRID = { radius: 0.22, seam: 0.012, inset: 0.018 };
 
 /** 中央文字等比排入标题格；作品封面由 shader 按 cover 规则铺满。 */
 export function contain(rect: Rect, aspect: number): Rect {

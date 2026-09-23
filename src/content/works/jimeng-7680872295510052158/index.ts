@@ -7,17 +7,7 @@ export default {
   "title": "《临时关系》一场阴差阳错的邂逅",
   "cover": "/portfolio/jimeng-7680872295510052158/cover.webp",
   "alt": "《临时关系》一场阴差阳错的邂逅影片画面",
-  "description": "《临时关系》",
-  "tools": [
-    "即梦",
-    "剧集"
-  ],
   "src": "/portfolio/jimeng-7680872295510052158/film.webm",
   "width": 1280,
   "height": 720,
-  "source": {
-    "label": "即梦",
-    "author": "阿锐的AI",
-    "url": "https://jimeng.jianying.com/ai-tool/work-detail/7680872295510052158?workDetailType=ShowcaseVideo&itemType=210"
-  }
 } satisfies Work;

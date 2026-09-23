@@ -9,13 +9,14 @@ import { createPortfolioMediaLoader } from "./media";
 
 import type { PortalPresentation } from "../hub/presentation";
 import { createBoundaryUniforms } from "../hub/boundaryField";
+import type { CardOrigin } from "../cardMotion";
 
 type Options = {
   presentation: PortalPresentation;
   canvas: HTMLCanvasElement;
   root: HTMLElement;
   media: PortfolioMedia[];
-  onSelect: (work: WorkSummary) => void;
+  onSelect: (work: WorkSummary, origin: CardOrigin) => void;
   onIntent: () => void;
   onReady: () => void;
 };
@@ -65,8 +66,7 @@ export function createPortfolioScene({
   let width = 1,
     height = 1,
     hover: WorkSummary | null = null,
-    selected: WorkTarget | null = null,
-    waiting = false;
+    selected: WorkTarget | null = null;
   const surface = createPortfolioSurface(scene, wake);
   const layout = portfolioLayout;
   const builder = createPortfolioTiles(layout, media);
@@ -185,13 +185,8 @@ export function createPortfolioScene({
       ready = true;
       onReady();
     }
-    if (waiting && rig.arrived) {
-      waiting = false;
-      if (selected) onSelect(selected.work);
-    }
     if (
       !rig.settled ||
-      waiting ||
       builder.pending ||
       (audioVisible && !reduced && !selected && presentation.interactive) ||
       (!motion.matches && presentation.boundary.expansion < 0.999)
@@ -223,7 +218,6 @@ export function createPortfolioScene({
       selected.position.x *= sx;
       selected.position.y *= sy;
       selected = field.nearest(selected.key, selected.position)!;
-      rig.focus(selected.position, selected.width, selected.height);
     }
     rig.update(0, motion.matches);
     frameCamera();
@@ -266,9 +260,19 @@ export function createPortfolioScene({
     if (selected || !presentation.interactive) return;
     selected = destination;
     onIntent();
-    waiting = true;
     hover = null;
-    rig.focus(destination.position, destination.width, destination.height);
+    rig.release();
+    // 点击立即打开，保留原浏览机位；不再等待一次推进镜头才能查看作品。
+    const { position, width: tileWidth, height: tileHeight } = destination;
+    const tl = position.clone().add(new THREE.Vector3(-tileWidth / 2, tileHeight / 2, 0)).project(rig.camera);
+    const br = position.clone().add(new THREE.Vector3(tileWidth / 2, -tileHeight / 2, 0)).project(rig.camera);
+    const box = canvas.getBoundingClientRect();
+    onSelect(destination.work, {
+      left: box.left + (tl.x + 1) * box.width / 2,
+      top: box.top + (1 - tl.y) * box.height / 2,
+      width: (br.x - tl.x) * box.width / 2,
+      height: (tl.y - br.y) * box.height / 2,
+    });
     prioritize(true);
     wake();
   }
@@ -276,9 +280,8 @@ export function createPortfolioScene({
   function restore() {
     if (!selected) return;
     selected = null;
-    waiting = false;
     hover = null;
-    rig.restore();
+    rig.release();
     wake();
   }
 

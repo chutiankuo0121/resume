@@ -7,10 +7,10 @@ const { createPortfolioLayout } = await import("./portfolio-layout.ts");
 
 const dimensions = JSON.parse(await readFile(new URL("../src/content/works/media.json", import.meta.url), "utf8"));
 const ids = new Set();
-const summaries = works.map(({ id, kind, title, cover, alt, source }) => {
+const summaries = works.map(({ id, kind, title, cover, alt }) => {
   if (ids.has(id)) throw new Error(`作品 ID 重复：${id}`);
   ids.add(id);
-  return { id, kind, title, cover, alt, ...(kind === "audio" ? { author: source?.author ?? "Sound" } : {}) };
+  return { id, kind, title, cover, alt };
 });
 const media = works.flatMap(work => [...new Set([
   work.cover,

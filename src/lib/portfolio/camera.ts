@@ -1,8 +1,8 @@
 import { MathUtils, PerspectiveCamera } from "three";
 
-// 远景浏览保留完整构图；拖动仅后撤 0.8，点击作品后才进入近景。
+// 远景浏览保留完整构图；拖动仅后撤 0.8，预览作品不改变浏览机位。
 // 距离是世界单位；镜头畸变与指针偏移共同形成空间感。
-const VIEW = { browse: 9, mobile: 6.8, dragRetreat: 0.8, focus: 2.2 };
+const VIEW = { browse: 9, mobile: 6.8, dragRetreat: 0.8 };
 type Spring = { value: number; target: number; velocity: number };
 const spring = (value: number): Spring => ({
   value,
@@ -40,10 +40,8 @@ export function createPortfolioCamera() {
   const px = spring(0),
     py = spring(0),
     lens = spring(1);
-  let focused = false,
-    baseZ = VIEW.browse,
+  let baseZ = VIEW.browse,
     mobile = false;
-  let saved = { x: 0, y: 0, z: VIEW.browse };
 
   return {
     camera,
@@ -56,31 +54,22 @@ export function createPortfolioCamera() {
           Math.abs(s.target - s.value) < 0.002 && Math.abs(s.velocity) < 0.003,
       );
     },
-    get arrived() {
-      return (
-        Math.abs(x.target - x.value) +
-          Math.abs(y.target - y.value) +
-          Math.abs(z.target - z.value) <
-        0.08
-      );
-    },
     resize(width: number, height: number) {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       const nextMobile = width < 800;
-      if (nextMobile !== mobile && !focused && baseZ === (mobile ? VIEW.mobile : VIEW.browse)) {
+      if (nextMobile !== mobile && baseZ === (mobile ? VIEW.mobile : VIEW.browse)) {
         baseZ = nextMobile ? VIEW.mobile : VIEW.browse;
         z.target = baseZ;
       }
       mobile = nextMobile;
-      lens.target = focused ? 0 : mobile ? 0.4 : 1;
+      lens.target = mobile ? 0.4 : 1;
     },
     pointer(nx: number, ny: number) {
       px.target = nx * 0.5;
       py.target = -ny * 0.5;
     },
     pan(dx: number, dy: number, speed = 0) {
-      if (focused) return;
       // 循环作品场保留连续坐标，不对弹簧目标直接取模，避免跨界反跳。
       x.target -= dx * 15;
       y.target += dy * 15;
@@ -91,49 +80,25 @@ export function createPortfolioCamera() {
       );
     },
     release() {
-      if (!focused) z.target = baseZ;
+      z.target = baseZ;
     },
     zoom(delta: number) {
-      if (focused) return;
       baseZ = MathUtils.clamp(baseZ + delta, 4, 22);
       z.target = baseZ;
     },
     reset(origin: { x: number; y: number }) {
-      focused = false;
       baseZ = mobile ? VIEW.mobile : VIEW.browse;
       x.target = origin.x;
       y.target = origin.y;
       z.target = baseZ;
       lens.target = mobile ? 0.4 : 1;
     },
-    focus(position: { x: number; y: number }, width: number, height: number) {
-      if (!focused) saved = { x: x.target, y: y.target, z: baseZ };
-      focused = true;
-      x.target = position.x;
-      y.target = position.y;
-      // 2.2 是原站 2×2 主图的距离；非方形及手机按完整画幅约束，避免裁掉作品。
-      const fit =
-        Math.max(height, width / camera.aspect) /
-        (2 * Math.tan(MathUtils.degToRad(camera.fov / 2)) * 0.74);
-      z.target = Math.max(VIEW.focus, fit);
-      lens.target = 0;
-    },
-    restore() {
-      focused = false;
-      baseZ = saved.z;
-      x.target = saved.x;
-      y.target = saved.y;
-      z.target = baseZ;
-      lens.target = mobile ? 0.4 : 1;
-    },
     shift(dx: number, dy: number) {
-      // 浮动原点：当前位置、目标、详情返回点一起平移，保留速度与相对距离。
+      // 浮动原点：当前位置与目标一起平移，保留速度与相对距离。
       x.value -= dx;
       x.target -= dx;
-      saved.x -= dx;
       y.value -= dy;
       y.target -= dy;
-      saved.y -= dy;
       camera.position.x -= dx;
       camera.position.y -= dy;
     },
@@ -141,22 +106,20 @@ export function createPortfolioCamera() {
       x.value *= sx;
       x.target *= sx;
       x.velocity *= sx;
-      saved.x *= sx;
       y.value *= sy;
       y.target *= sy;
       y.velocity *= sy;
-      saved.y *= sy;
       camera.position.x *= sx;
       camera.position.y *= sy;
     },
     update(dt: number, reduced: boolean) {
-      advance(x, dt, focused ? 100 : 200, 40, reduced);
-      advance(y, dt, focused ? 100 : 200, 40, reduced);
-      advance(z, dt, focused ? 40 : 300, focused ? 30 : 120, reduced);
+      advance(x, dt, 200, 40, reduced);
+      advance(y, dt, 200, 40, reduced);
+      advance(z, dt, 300, 120, reduced);
       advance(px, dt, 400, 50, reduced);
       advance(py, dt, 400, 50, reduced);
       advance(lens, dt, 40, 30, reduced);
-      const weight = reduced ? 0 : focused ? 0.15 : 1;
+      const weight = reduced ? 0 : 1;
       // 浏览机位由弹簧决定，中转页的展开取景在场景层叠加。
       camera.position.set(
         x.value + px.value * weight,

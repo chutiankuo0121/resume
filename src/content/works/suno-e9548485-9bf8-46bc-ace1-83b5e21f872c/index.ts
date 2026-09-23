@@ -6,16 +6,6 @@ const work = {
   "title": "Dancing With My Eyes Closed",
   "cover": "/portfolio/suno-e9548485-9bf8-46bc-ace1-83b5e21f872c/cover.webp",
   "alt": "Dancing With My Eyes Closed — 音乐封面",
-  "description": "Suno 首页精选音乐，由 Raymond 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "Raymond",
-    "url": "https://suno.com/song/e9548485-9bf8-46bc-ace1-83b5e21f872c"
-  },
   "src": "/portfolio/suno-e9548485-9bf8-46bc-ace1-83b5e21f872c/track.webm",
   "duration": 186.408,
   "waveform": [

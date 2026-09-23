@@ -6,16 +6,6 @@ const work = {
   "title": "pick [n]one",
   "cover": "/portfolio/suno-9bca6f37-af92-436c-a4c6-aa22c908b7d1/cover.webp",
   "alt": "pick [n]one — 音乐封面",
-  "description": "Suno 首页精选音乐，由 MC Escher 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "MC Escher",
-    "url": "https://suno.com/song/9bca6f37-af92-436c-a4c6-aa22c908b7d1"
-  },
   "src": "/portfolio/suno-9bca6f37-af92-436c-a4c6-aa22c908b7d1/track.webm",
   "duration": 196.04,
   "waveform": [

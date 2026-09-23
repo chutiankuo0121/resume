@@ -6,16 +6,6 @@ const work = {
   "title": "deadstar",
   "cover": "/portfolio/suno-4eed94d1-9d36-4a8b-aa74-71250bbb8b0f/cover.webp",
   "alt": "deadstar — 音乐封面",
-  "description": "Suno 首页精选音乐，由 madebyanubis 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "madebyanubis",
-    "url": "https://suno.com/song/4eed94d1-9d36-4a8b-aa74-71250bbb8b0f"
-  },
   "src": "/portfolio/suno-4eed94d1-9d36-4a8b-aa74-71250bbb8b0f/track.webm",
   "duration": 179.608,
   "waveform": [

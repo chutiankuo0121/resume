@@ -3,6 +3,7 @@ import { skills, type Skill } from "@/content/skills";
 import dynamic from "next/dynamic";
 import { useWorkDetail } from "./works/useWorkDetail";
 import { SkillArtwork } from "./SkillArtwork";
+import { cardOrigin, type CardOrigin } from "@/lib/cardMotion";
 const SkillDetail = dynamic(() => import("./SkillDetail"));
 import type { PortalPresentation } from "@/lib/hub/presentation";
 
@@ -17,6 +18,7 @@ export default function Skills({
   const root = useRef<HTMLElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
   const [active, setActive] = useState<Skill | null>(null);
+  const detailOrigin = useRef<CardOrigin | undefined>(undefined);
   const { detail, error: detailError, open, clear } = useWorkDetail();
   const [staticMode, setStaticMode] = useState(false);
   const [ready, setReady] = useState(false);
@@ -139,7 +141,10 @@ export default function Skills({
             const skill = skills.find(
               (item) => item.id === event.currentTarget.dataset.skill,
             );
-            if (skill) setActive(skill);
+            if (skill) {
+              detailOrigin.current = cardOrigin(event.currentTarget);
+              setActive(skill);
+            }
           }}
         />
         {staticMode && (
@@ -149,7 +154,10 @@ export default function Skills({
                 className="skill-static-card"
                 data-skill={skill.id}
                 key={skill.id}
-                onClick={() => setActive(skill)}
+                onClick={event => {
+                  detailOrigin.current = cardOrigin(event.currentTarget);
+                  setActive(skill);
+                }}
                 aria-label={`Explore ${skill.title}`}
               >
                 <SkillArtwork skill={skill} loading="lazy" />
@@ -162,12 +170,13 @@ export default function Skills({
         <SkillDetail
           key={active.id}
           skill={active}
+          origin={detailOrigin.current}
           onClose={close}
-          onWork={work => { void open(work.id); }}
+          onWork={(work, origin) => { void open(work.id, origin); }}
         />
       )}
       {detailError && <p className="skills-loading" role="alert">{detailError}</p>}
-      {detail && <detail.Component key={detail.work.id} work={detail.work} onClose={clear} />}
+      {detail && <detail.Component key={detail.work.id} work={detail.work} origin={detail.origin} onClose={clear} />}
     </section>
   );
 }

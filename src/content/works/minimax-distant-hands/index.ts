@@ -6,17 +6,6 @@ const work = {
   "title": "时针远别",
   "cover": "/portfolio/minimax-distant-hands/cover.webp",
   "alt": "时针远别 — 音乐封面",
-  "description": "MiniMax 官方音乐示例，风格标签：R&B、浪漫。作为 AI 音乐策展收录。",
-  "tools": [
-    "MiniMax Music",
-    "R&B",
-    "浪漫"
-  ],
-  "source": {
-    "label": "MiniMax · 原作",
-    "author": "MiniMax",
-    "url": "https://www.minimaxi.com/audio/"
-  },
   "src": "/portfolio/minimax-distant-hands/track.webm",
   "duration": 112.439,
   "waveform": [

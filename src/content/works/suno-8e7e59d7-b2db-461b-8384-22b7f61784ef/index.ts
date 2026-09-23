@@ -6,16 +6,6 @@ const work = {
   "title": "No More...",
   "cover": "/portfolio/suno-8e7e59d7-b2db-461b-8384-22b7f61784ef/cover.webp",
   "alt": "No More... — 音乐封面",
-  "description": "Suno 首页精选音乐，由 Aldo NX 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "Aldo NX",
-    "url": "https://suno.com/song/8e7e59d7-b2db-461b-8384-22b7f61784ef"
-  },
   "src": "/portfolio/suno-8e7e59d7-b2db-461b-8384-22b7f61784ef/track.webm",
   "duration": 217.608,
   "waveform": [

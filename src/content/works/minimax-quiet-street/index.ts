@@ -6,17 +6,6 @@ const work = {
   "title": "长街静",
   "cover": "/portfolio/minimax-quiet-street/cover.webp",
   "alt": "长街静 — 音乐封面",
-  "description": "MiniMax 官方音乐示例，风格标签：民谣、咖啡馆。作为 AI 音乐策展收录。",
-  "tools": [
-    "MiniMax Music",
-    "民谣",
-    "咖啡馆"
-  ],
-  "source": {
-    "label": "MiniMax · 原作",
-    "author": "MiniMax",
-    "url": "https://www.minimaxi.com/audio/"
-  },
   "src": "/portfolio/minimax-quiet-street/track.webm",
   "duration": 185.906,
   "waveform": [

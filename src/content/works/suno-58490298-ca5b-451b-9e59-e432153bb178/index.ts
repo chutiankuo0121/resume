@@ -6,16 +6,6 @@ const work = {
   "title": "A new world",
   "cover": "/portfolio/suno-58490298-ca5b-451b-9e59-e432153bb178/cover.webp",
   "alt": "A new world — 音乐封面",
-  "description": "Suno 首页精选音乐，由 EpicGarage 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "EpicGarage",
-    "url": "https://suno.com/song/58490298-ca5b-451b-9e59-e432153bb178"
-  },
   "src": "/portfolio/suno-58490298-ca5b-451b-9e59-e432153bb178/track.webm",
   "duration": 268.408,
   "waveform": [

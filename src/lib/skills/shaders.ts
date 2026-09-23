@@ -69,7 +69,10 @@ void main(){
   vec3 color=uShadow*.7+uTone*(.035+fill*.12)+photo*(.22+diffuse*1.65);
   // 原站鼠标所在区域提高透明层的覆盖率，同时压暗；不是刷一层白色。
   color*=1.-mouse*.35;
-  float boundary=smoothstep(0.,.06,min(min(vGridUv.x,1.-vGridUv.x),min(vGridUv.y,1.-vGridUv.y)));
+  // 以真实画幅计算圆角，透明方块仍可随鼠标起伏，边缘与详情卡保持同一形态。
+  vec2 edge=abs((vGridUv-.5)*vec2(7.,4.6))-vec2(3.5,2.3)+.42;
+  float distance=length(max(edge,0.))+min(max(edge.x,edge.y),0.)-.42;
+  float boundary=1.-smoothstep(-.24,0.,distance);
   float alpha=clamp(vAlpha+mouse*.5,0.,.92)*boundary*uOpacity*vGrowth;
   if(alpha<.003)discard;
   gl_FragColor=vec4(color,alpha);

@@ -9,7 +9,6 @@ export type WorkSummary = {
   title: string;
   cover: string;
   alt: string;
-  author?: string;
 };
 
 export const works = data.works as WorkSummary[];

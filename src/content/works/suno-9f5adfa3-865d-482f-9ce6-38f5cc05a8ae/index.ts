@@ -6,16 +6,6 @@ const work = {
   "title": "1nes and zer0s",
   "cover": "/portfolio/suno-9f5adfa3-865d-482f-9ce6-38f5cc05a8ae/cover.webp",
   "alt": "1nes and zer0s — 音乐封面",
-  "description": "Suno 首页精选音乐，由 INJURY 创作。作为 AI 音乐策展收录，保留原作标题与作者。",
-  "tools": [
-    "Suno",
-    "AI Music"
-  ],
-  "source": {
-    "label": "Suno · 原作",
-    "author": "INJURY",
-    "url": "https://suno.com/song/9f5adfa3-865d-482f-9ce6-38f5cc05a8ae"
-  },
   "src": "/portfolio/suno-9f5adfa3-865d-482f-9ce6-38f5cc05a8ae/track.webm",
   "duration": 189.208,
   "waveform": [
