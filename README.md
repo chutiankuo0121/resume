@@ -2,9 +2,11 @@
 
 版本 1.0.0。Next.js / React / Three.js / GSAP / Lenis 交互简历。主线为黑洞加载、粒子晶石、工作经历、探索目录、联系方式；探索目录可进入作品墙与技能画廊。
 
-当前 Git 仓库只收录代码、内容数据、构建配置和许可证，不包含图片、视频、音频、字体、三维模型及游戏二进制资源。本机素材仍在原路径；新克隆项目后，需要从单独保管的素材副本补回对应文件，才能完整展示页面和运行游戏。资源路径保持不变，不能直接将纯代码仓库当作完整发布包。
+Git 只收录代码、内容数据、构建配置和许可证。图片、视频、音频、字体、模型及游戏二进制资源由 Cloudflare R2 的 `resume-assets` 桶提供，新克隆项目无需补回整套素材。
 
 ## 运行
+
+使用 Node.js 22.18 或更新版本。
 
 ```sh
 npm ci
@@ -27,13 +29,27 @@ npm run dev
 | `src/lib` | 场景、相机、布局、交互与 Shader |
 | `src/lib/loading/config.ts` | 小黑洞加载尺寸、计数器与揭幕节奏 |
 | `src/app` | 页面入口、字体与分章节样式 |
-| `public` | 运行所需的模型、字体、图片、音视频和游戏 |
+| `src/lib/assetUrl.ts` | R2 公开地址与统一素材 URL |
+| `public` | 游戏入口、运行代码和资源许可 |
 | `games` | 小车漫游、Ooqo 的源码及构建工具 |
 | `scripts/build-fonts.py` | 中文字体子集构建 |
 
-新增作品按唯一 ID 建目录并注册；媒体放入 `public/portfolio/<id>/`，填写真实宽高及来源。图片用 WebP，视频和音频用 WebM。网格按比例自动分格并按 ID 稳定混排；三个游戏优先靠近中心。每件作品的媒体详情按需加载。
+新增作品按唯一 ID 建目录并注册；媒体上传到 R2 的 `portfolio/<id>/`，内容记录仍填写 `/portfolio/<id>/文件名`、真实宽高及来源，注册表统一转换为 R2 地址。图片用 WebP，视频和音频用 WebM。网格按比例自动分格并按 ID 稳定混排；三个游戏优先靠近中心。每件作品的媒体详情按需加载。
 
-标题字体为京华老宋与 Cinzel，正文字体为朱雀仿宋与 Cormorant Garamond。新增中文文案后执行 `python scripts/build-fonts.py`（需要 `fonttools`、`brotli`），更新本地 WOFF2 子集。
+标题字体为京华老宋与 Cinzel，正文字体为朱雀仿宋与 Cormorant Garamond。新增中文文案后执行 `python scripts/build-fonts.py`（需要 `fonttools`、`brotli`），将生成的 WOFF2 子集上传覆盖 R2 的 `fonts/` 对应对象。
+
+## R2 素材
+
+公开地址集中在 `src/lib/assetUrl.ts`，不需要在前端配置 Cloudflare 密钥。作品媒体直接从 R2 下载；字体与游戏素材由 Next.js 保持原路径转发，游戏入口和脚本继续同源运行。`r2.dev` 是限流的开发地址，正式发布应绑定自定义域名并修改这一处配置。
+
+桶的 CORS 允许公开 `GET`、`HEAD`，允许 `Range` 请求头，并公开 `ETag`、`Content-Length`、`Content-Range`、`Accept-Ranges`。保留该配置，避免 WebGL 贴图跨域失败。上传时填写正确的媒体类型；视频是 `video/webm`，音频是 `audio/webm`。
+
+```sh
+wrangler login
+wrangler r2 object put resume-assets/portfolio/example/cover.webp --remote --file ./cover.webp --content-type image/webp --cache-control "public, max-age=3600"
+```
+
+对象键区分大小写。尽量为更新素材使用新文件名；覆盖同名素材时已有缓存最长保留一小时。仓库的 `.gitignore` 排除所有媒体与二进制素材。
 
 ## 独立游戏
 
@@ -43,6 +59,6 @@ npm run dev
 - 小车漫游：编辑 `games/bruno/sources/`，运行 `npm ci --prefix games/bruno`、`npm run build --prefix games/bruno`。`assets.json` 固定素材提交与摘要；`prepare-world.mjs` 生成当前场景。输出位于 `public/games/bruno/`。
 - Ooqo：编辑 `games/ooqo/project/`，执行 `python games/ooqo/build.py --godot "C:/path/to/Godot_v4.5.1-stable_win64_console.exe"`，需要 Godot 4.5.1 与 Python `fonttools`。输出位于 `public/games/ooqo/`。
 
-游戏构建下载的原素材只写入系统临时缓存。主站构建不会生成游戏资源；首次克隆需补回游戏运行包，以及独立构建所需的本地字体、贴图等素材。游戏入口 HTML、字体许可和依赖版权声明保留在仓库中。
+游戏构建下载的原素材只写入系统临时缓存。重新构建游戏之前运行 `npm run assets:restore-game`，按 `games/build-assets.json` 从 R2 的 `_source/` 取回本站修改过的贴图与字体，并校验 SHA-256。主站无需执行这一步。游戏构建产生的新二进制素材需上传到 R2 的 `games/<id>/`，代码变更仍由 Git 管理。游戏入口 HTML、字体许可和依赖版权声明保留在仓库中。
 
 第三方来源、修改范围与完整许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 及资源目录内的许可文件。依赖、构建产物、环境凭据和下载审片目录不进入 Git。

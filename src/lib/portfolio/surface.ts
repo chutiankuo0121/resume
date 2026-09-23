@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { assetUrl } from "../assetUrl";
 
 /** 仅负责远处纸纹；前景格线和媒体统一由 layout / tiles 构建。 */
 export function createPortfolioSurface(
@@ -8,7 +9,7 @@ export function createPortfolioSurface(
   let disposed = false;
   const texturePhase = new THREE.Vector2();
   const texture = new THREE.TextureLoader().load(
-    "/portfolio/paper-grain.webp",
+    assetUrl("/portfolio/paper-grain.webp"),
     (loaded) => {
       if (disposed) loaded.dispose();
       else {

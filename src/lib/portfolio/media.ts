@@ -34,7 +34,7 @@ export async function loadPortfolioMedia(
           resolve(ok ? poster : null);
         };
         const success = () => finish(true), failure = () => finish(false);
-        const timer = window.setTimeout(failure, 8000);
+        const timer = window.setTimeout(failure, 30_000);
         poster.addEventListener("load", success, { once: true });
         poster.addEventListener("error", failure, { once: true });
         signal.addEventListener("abort", failure, { once: true });
@@ -44,7 +44,7 @@ export async function loadPortfolioMedia(
     }
     return images.get(src)!;
   }
-  const groups = await Promise.all(works.map(async (work) => {
+  async function loadGroup(work: Work): Promise<PortfolioMedia[]> {
     // 项目只占一个封面格，实机截图在详情翻阅；图片图集的附图可独立进入作品墙。
     // 高清首图不重复成格，也不提前占用贴图内存。
     const sources = [...new Set([
@@ -62,6 +62,15 @@ export async function loadPortfolioMedia(
       width: work.kind === "audio" ? 4.2 : work.kind === "video" ? work.width : posters[index]?.naturalWidth ?? 1,
       height: work.kind === "audio" ? 1 : work.kind === "video" ? work.height : posters[index]?.naturalHeight ?? 1,
     }));
+  }
+  // 云端封面限制并发，避免整面墙同时请求时排队超时；按原索引保存，摆放顺序不变。
+  const groups: PortfolioMedia[][] = new Array(works.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(8, works.length) }, async () => {
+    while (!signal.aborted && next < works.length) {
+      const index = next++;
+      groups[index] = await loadGroup(works[index]);
+    }
   }));
   signal.throwIfAborted();
   return groups.flat();

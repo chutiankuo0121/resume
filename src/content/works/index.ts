@@ -1,5 +1,6 @@
 /** 仅注册内容；实际摆放统一随机混排，游戏由布局算法安排在中央附近。 */
 import type { Work } from "./types";
+import { assetUrl } from "@/lib/assetUrl";
 export { workKinds } from "./types";
 export type { Work, WorkKind, GameWork, AudioWork, ProjectWork } from "./types";
 import astra from "./astra";
@@ -175,7 +176,7 @@ import minimaxWillTheNightBeKind from "./minimax-will-the-night-be-kind";
 import minimaxYouthUprising from "./minimax-youth-uprising";
 import minimaxVelvetTones from "./minimax-velvet-tones";
 
-export const works: Work[] = [
+const records: Work[] = [
   multiAssetPortfolio,
   trendml,
   sunoDancingWithMyEyesClosed,
@@ -346,3 +347,13 @@ export const works: Work[] = [
   jimeng7572459982755548454,
   jimeng7641815080039959846,
 ];
+
+// 内容记录只维护素材路径；对外统一生成 R2 地址，游戏入口仍使用本站路径。
+export const works: Work[] = records.map((work) => ({
+  ...work,
+  cover: assetUrl(work.cover),
+  ...("src" in work ? { src: assetUrl(work.src) } : {}),
+  ...("images" in work ? {
+    images: work.images.map((image) => ({ ...image, src: assetUrl(image.src) })),
+  } : {}),
+}));

@@ -1,0 +1,78 @@
+[
+  {
+    "path": "games/bruno/artwork/cookie-sign.png",
+    "sha256": "116fcb016daa2c043a5f777d90409b7f2d868463c2c9f979bc8b542ad44c96c3"
+  },
+  {
+    "path": "games/bruno/artwork/kiosk-map.png",
+    "sha256": "14f5a6f2e1c987b475c2f2b9bc4f73f31077ecebdd0a3de6a7914c12c65d668b"
+  },
+  {
+    "path": "games/bruno/artwork/track-arrow.png",
+    "sha256": "f6965c0f6e995ed68714d849348124664b3929916bf151cc5058fc3c775a7d98"
+  },
+  {
+    "path": "games/bruno/artwork/track-banner.png",
+    "sha256": "e3b5946097d60f02871b3e40652e93e39b111d25ea5af4a13f8618563bba8ac0"
+  },
+  {
+    "path": "games/bruno/artwork/track-checkers.png",
+    "sha256": "35bc90870140aa11a92d4231f89d04292ce9f67591b1c109d12958c1186f9ec5"
+  },
+  {
+    "path": "games/bruno/artwork/track-chevrons.png",
+    "sha256": "ff12e95b30e0f04b55d34be08b420395d574150bdab66c286f5e0b63c0954358"
+  },
+  {
+    "path": "games/bruno/artwork/woven-rug.png",
+    "sha256": "b054ad3aff722723e2f8020165c4e8b74c0077c1233f037707edf2eff822a0ea"
+  },
+  {
+    "path": "games/bruno/sources/fonts/AmaticSC.woff2",
+    "sha256": "2800c5892946a6fbffb7b956e55b391281059ba00e042734a926f291e6d0728d"
+  },
+  {
+    "path": "games/bruno/sources/fonts/BrunoHan.woff2",
+    "sha256": "561177024277ba96ca0e48440a24c69632c71cd1e9aa8e5892c295c3e82bbc0e"
+  },
+  {
+    "path": "games/bruno/sources/fonts/Nunito.woff2",
+    "sha256": "070964f3acca0d076f97b449bdd53f75015b2f126944acad14e5f1656bb2f0d2"
+  },
+  {
+    "path": "games/bruno/sources/fonts/Pally-Bold.woff2",
+    "sha256": "5cb151f2648a353e88636490902375b344dfd7a365562c155cad04f811d806a7"
+  },
+  {
+    "path": "games/bruno/sources/fonts/Pally-Medium.woff2",
+    "sha256": "0f2b76845e651502d463fea1e8b00d4d6a20bc19ed19a0483964f4cf43bcf898"
+  },
+  {
+    "path": "games/bruno/sources/fonts/Pally-Regular.woff2",
+    "sha256": "ad03e3ee080bdca5dda628f7ce25cf73f7e2cce502e91a28d4cde10626cb4af3"
+  },
+  {
+    "path": "games/bruno/static/cover.webp",
+    "sha256": "02e3eb176565cf85893163ed89b01807b883f17a419eadf4b27b8bc66f0a1fcf"
+  },
+  {
+    "path": "games/bruno/static/icon.svg",
+    "sha256": "93a812b566a32a602b7f46b3d8994ab0d0215acc57a7efc54b6f3215248dbb23"
+  },
+  {
+    "path": "games/bruno/static/ui/map/map-day.webp",
+    "sha256": "7ea76da132fcc421f0401da365e2616e591817d84ce002e59f07534cbfca0e50"
+  },
+  {
+    "path": "games/bruno/static/ui/map/map-night.webp",
+    "sha256": "90b73cebe787c76363a2043a72cb6892d4f7c187404444b88806b85852237e61"
+  },
+  {
+    "path": "games/bruno/static/ui/previews/circuit.webp",
+    "sha256": "0c9cd2d9f3b7d2987d6f223fab6a0bcdfe9fe21eb4d6a974598255ee96c81aa7"
+  },
+  {
+    "path": "games/ooqo/project/icon.svg",
+    "sha256": "769530fcd9705e34484f3273c06336e0b77cfb4f9afa8f03397d9f7a0b20cb62"
+  }
+]

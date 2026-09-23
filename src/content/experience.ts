@@ -1,8 +1,9 @@
 import multiAssetPortfolio from "./works/multi-asset-portfolio";
 import trendml from "./works/trendml";
+import { assetUrl } from "@/lib/assetUrl";
 
 /** 按实际时间排列；任职与创业内容来自本人补充及项目介绍，配图逐项标明用途。 */
-export const experience = [
+const records = [
   {
     id: "investment-research",
     years: "2021.10—2022.04",
@@ -104,3 +105,9 @@ export const experience = [
     compact: false
   }
 ] as const;
+
+export const experience = records.map((entry) => ({
+  ...entry,
+  image: assetUrl(entry.image),
+  background: assetUrl(entry.background),
+}));

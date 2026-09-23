@@ -9,7 +9,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# 当前仓库只提交代码；素材仍保留在本机，后续单独管理。
+# 只提交代码；素材由 Cloudflare R2 管理，临时构建输出也不进入 Git。
 *.png
 *.jpg
 *.jpeg

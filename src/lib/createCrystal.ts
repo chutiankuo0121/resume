@@ -3,6 +3,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { lightVertex, lightFragment } from "./shaders/crystal";
 import { loadBuffer, createParticleGeometry } from "./assets";
 import type { LoadingTask } from "./loading/progress";
+import { assetUrl } from "./assetUrl";
 
 type Options = {
   lightScene: THREE.Scene;
@@ -38,7 +39,7 @@ export function createCrystal({
   // 明暗贴图是数值，不做 sRGB 解码。GLB 的 UV 使用左下角为原点。
   let lightMap: THREE.Texture | undefined;
   async function loadLighting() {
-    const map = await new THREE.TextureLoader().loadAsync("/crystal/light.png");
+    const map = await new THREE.TextureLoader().loadAsync(assetUrl("/crystal/light.png"));
     map.colorSpace = THREE.NoColorSpace;
     map.flipY = false;
     if (disposed) map.dispose();
@@ -51,8 +52,8 @@ export function createCrystal({
 
   const ready = (async () => {
     const [meshData, pointData, map] = await Promise.all([
-      loadBuffer("/crystal/crystal.glb"),
-      loadBuffer("/crystal/particles.bin"),
+      loadBuffer(assetUrl("/crystal/crystal.glb")),
+      loadBuffer(assetUrl("/crystal/particles.bin")),
       loadLighting(),
     ]);
     if (disposed) return;

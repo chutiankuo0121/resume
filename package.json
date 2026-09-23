@@ -1,12 +1,14 @@
 {
   "name": "astra",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "assets:restore-game": "node scripts/restore-game-assets.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.0",
