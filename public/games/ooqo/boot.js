@@ -113,20 +113,28 @@
         "runtime/index.wasm": 36145869,
       },
       onProgress(current, total) {
-        const percent = total > 0 ? Math.floor((current / total) * 100) : 0;
+        if (disposed) return;
+        const progress = total > 0 ? Math.min(current / total, 1) : 0;
+        const percent = Math.floor(progress * 100);
         label.textContent = percent
           ? `正在加载 Ooqo… ${percent}%`
           : "正在加载 Ooqo…";
-        send("progress", { progress: percent / 100 });
+        // 向宿主报告真实字节进度，慢网下不足 1% 的增长也能延续等待。
+        send("progress", { progress });
       },
       onExit() {
         if (!disposed) fail(new Error("The game has stopped"));
       },
     });
-    await Promise.all([
-      engine.preloadFile("portfolio.gd", "portfolio.gd"),
-      engine.preloadFile("portfolio.tscn", "portfolio.tscn"),
-    ]);
+    // 两个本地启动脚本先读入内存；未知大小的预加载请求会使 Godot 的总进度恒为 0。
+    await Promise.all(
+      ["portfolio.gd", "portfolio.tscn"].map(async (path) => {
+        const response = await fetch(path);
+        if (!response.ok) throw new Error(`启动脚本加载失败：${path}`);
+        const buffer = await response.arrayBuffer();
+        if (!disposed) await engine.preloadFile(buffer, path);
+      }),
+    );
     if (!disposed) await engine.startGame({ args: ["res://portfolio.tscn"] });
   }
   start().catch(fail);
