@@ -7,6 +7,7 @@ import { createEnvironment } from "./environment";
 import { bindSkillControls } from "./controls";
 import { createPointerField } from "./pointerField";
 import { createPointerLight } from "./pointerLight";
+import { createEnvironmentPalette, createPaletteUniforms } from "./palette";
 
 import type { PortalPresentation } from "../hub/presentation";
 
@@ -71,16 +72,18 @@ export async function createSkillsScene({
   const time = { value: 0 };
   const pointer = new THREE.Vector2(),
     follow = new THREE.Vector2();
-  const environment = createEnvironment(renderer, scene, time);
+  const palette = createEnvironmentPalette(skills.map(skill => skill.palette));
+  const environment = createEnvironment(renderer, scene, time, palette.uniforms);
   const pointerLight = createPointerLight(
     renderer,
     surfaceField.texture,
     time,
     presentation.boundary,
+    palette.uniforms,
   );
 
   const shared = createScreenGeometry();
-  const screens = textures.map((texture) =>
+  const screens = textures.map((texture, index) =>
     createScreen(
       texture,
       shared,
@@ -90,6 +93,7 @@ export async function createSkillsScene({
       surfaceField.texture,
       resolution,
       light,
+      createPaletteUniforms(skills[index].palette),
     ),
   );
   screens.forEach((screen) => scene.add(screen.group));
@@ -288,6 +292,7 @@ export async function createSkillsScene({
       shownCycle = cycle;
     }
     time.value += dt;
+    palette.update(progress);
     follow.lerp(pointer, 1 - Math.exp(-dt * 1.2));
     // 环形排列负责技能切换；预览到全屏的取景由中转页统一控制。
     const distance = compact ? 7.6 / Math.max(0.4, camera.aspect) : 9.3;
@@ -347,7 +352,7 @@ export async function createSkillsScene({
       projector.projectionMatrix,
       projector.matrixWorldInverse,
     );
-    // 保持参考站约 30° 的换屏弧度。五项内容在视野外复用，避免因数量少而每次猛转 72°。
+    // 保持参考站约 30° 的换屏弧度，在视野外复用卡片，避免内容数量影响转动幅度。
     const spacing = Math.PI / 6;
     const radius = 7.7 / (2 * Math.tan(spacing / 2));
     const active = modulo(Math.round(progress), skills.length);

@@ -1,5 +1,8 @@
 import { assetUrl } from "@/lib/assetUrl";
 
+/** 暗部、主色、高光共同决定卡片与空间的色调。 */
+export type SkillPalette = { shadow: string; tone: string; light: string };
+
 /** 技能按应用能力组织；作品 ID 关联案例，经历 ID 补充尚无公开媒体的实践。 */
 export type Skill = {
   id: string;
@@ -8,6 +11,7 @@ export type Skill = {
   description: string;
   image: string;
   alt: string;
+  palette: SkillPalette;
   tools: string[];
   works: string[];
   experiences: string[];
@@ -20,7 +24,8 @@ export const skills: Skill[] = [
     title: "图像与视频",
     description: "使用 ComfyUI 与生成式 AI 工具进行图像、视频创作，组合提示词、模型与处理节点，搭建适合内容生产的工作流。将生成环节与素材管理、视频处理连接起来。",
     image: assetUrl("/skills/comfyui.webp"),
-    alt: "黑白质感的 ComfyUI 图形",
+    alt: "冰蓝色厚涂质感的 ComfyUI 图形",
+    palette: { shadow: "#070e29", tone: "#3977ce", light: "#c5eaff" },
     tools: [
       "ComfyUI",
       "Stable Diffusion",
@@ -39,7 +44,8 @@ export const skills: Skill[] = [
     title: "语音应用",
     description: "应用 Whisper 等语音识别模型，搭建 TTS 推理服务。将模型与 Web API、任务队列和对象存储连接，处理语音任务的提交、调度与音频交付。",
     image: assetUrl("/skills/voice.webp"),
-    alt: "乐谱与音符构成的黑白语音概念图",
+    alt: "紫色光雾中的乐谱与音符",
+    palette: { shadow: "#160b2d", tone: "#9063ca", light: "#ebd6ff" },
     tools: [
       "ASR / TTS",
       "Whisper",
@@ -59,7 +65,8 @@ export const skills: Skill[] = [
     title: "智能体与自动化",
     description: "通过模型 API、Dify、扣子和 n8n 组织任务流程，配合 Python 与浏览器自动化，连接内容生成、数据采集和业务操作。将重复步骤沉淀为可复用的工作流。",
     image: assetUrl("/skills/n8n.webp"),
-    alt: "黑白质感的 n8n 节点图形",
+    alt: "珊瑚色厚涂质感的 n8n 节点图形",
+    palette: { shadow: "#290d18", tone: "#dc6866", light: "#ffe0c5" },
     tools: [
       "Dify",
       "扣子",
@@ -80,7 +87,8 @@ export const skills: Skill[] = [
     title: "Python 工程",
     description: "使用 Python 开发 API、数据管线和量化交易服务。在多资产组合中完成策略计算与历史回放，在 TrendML 中实现异步交易链路、SQLite 事务账本、增量状态与异常恢复。",
     image: assetUrl("/skills/python.webp"),
-    alt: "白色 Python 图形悬浮于薄雾中",
+    alt: "蓝金色 Python 图形悬浮于薄雾中",
+    palette: { shadow: "#0a1b32", tone: "#438eac", light: "#ffe3a2" },
     tools: [
       "FastAPI",
       "Pandas",
@@ -103,7 +111,8 @@ export const skills: Skill[] = [
     title: "产品与应用",
     description: "从需求梳理与原型设计开始，使用 React、Next.js 和 TypeScript 完成界面与服务联调。通过 ECharts 展示投资净值、绩效归因与风险，结合 WebSocket 提供实时持仓，让策略与交易结果可查询、可解释。",
     image: assetUrl("/skills/figma.webp"),
-    alt: "磨砂白色 Figma 图形",
+    alt: "青绿色磨砂质感的 Figma 图形",
+    palette: { shadow: "#071e1c", tone: "#319e88", light: "#cef4d8" },
     tools: [
       "PRD",
       "Figma",
@@ -129,7 +138,8 @@ export const skills: Skill[] = [
     title: "部署与交付",
     description: "使用 Cloudflare Workers 交付前端与同源 API 网关，以 Vercel、Supabase 和 Turso 承接云端数据链路。为 TrendML 建立 Linux / systemd 七服务部署、分层健康检查、数据校验与回滚流程。",
     image: assetUrl("/skills/cloudflare.webp"),
-    alt: "由白色光雾构成的 Cloudflare 图形",
+    alt: "由琥珀色光雾构成的 Cloudflare 图形",
+    palette: { shadow: "#281207", tone: "#d67c32", light: "#ffe8b9" },
     tools: [
       "Docker",
       "Linux / systemd",

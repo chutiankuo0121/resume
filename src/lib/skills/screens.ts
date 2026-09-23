@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { screenFragment, screenVertex } from "./shaders";
 import { createPointerField } from "./pointerField";
+import type { PaletteUniforms } from "./palette";
 
 const COLS = 35,
   ROWS = 23,
@@ -61,6 +62,7 @@ export function createScreen(
   surfaceField: THREE.IUniform<THREE.Texture>,
   resolution: THREE.IUniform<THREE.Vector2>,
   light: THREE.IUniform<THREE.Vector3>,
+  palette: PaletteUniforms,
 ) {
   const group = new THREE.Group();
   const pointerField = createPointerField(renderer);
@@ -68,6 +70,7 @@ export function createScreen(
     vertexShader: screenVertex,
     fragmentShader: screenFragment,
     uniforms: {
+      ...palette,
       uImage: { value: image },
       uTime: time,
       uOpacity: { value: 0 },

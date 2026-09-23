@@ -56,7 +56,7 @@
   outline: 1px solid #ffffff80;
   outline-offset: 12px;
 }
-/* 对齐参考站的 24 列布局；在同一画布上反色，随雾场明暗自然变化。 */
+/* 沿用参考站的 24 列位置；暖白字配柔和暗影，避免反色后与彩色云雾混在一起。 */
 .skills-index {
   position: absolute;
   z-index: 2;
@@ -66,8 +66,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
-  color: #fff;
-  mix-blend-mode: difference;
+  color: #f8f3ea;
+  text-shadow: 0 1px 12px #0008;
 }
 .skills-index button {
   display: block;

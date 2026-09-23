@@ -1,4 +1,5 @@
 import { simplex } from "../shaders/noise";
+import { paletteGLSL } from "./palette";
 
 export const textureVertex = /* glsl */ `
 varying vec2 vUv;
@@ -47,6 +48,7 @@ void main(){
 
 // 主视角与镜面视角都按世界方向读取雾层，反射中不会出现固定在屏幕上的贴纸。
 export const skyFragment = /* glsl */ `
+${paletteGLSL}
 uniform sampler2D uClouds;
 varying vec3 vWorld;
 void main(){
@@ -55,13 +57,14 @@ void main(){
   float cloud=texture2D(uClouds,uv*vec2(2.,1.4)+vec2(.17,.11)).r;
   float veil=texture2D(uClouds,uv*vec2(1.5,1.)+vec2(.48,.07)).r;
   float split=smoothstep(-.55,.5,ray.x+(veil-.5)*.055);
-  float base=mix(.76,.014,split);
+  // 侧向光保留暗部留白，云层有深浅起伏，避免整屏被同一种颜色铺平。
+  float base=mix(.003,.8,pow(split,1.65));
   float overhead=smoothstep(-.03,.32,ray.y);
   float folds=pow(smoothstep(.15,.68,1.-cloud*.85-veil*.15),1.4);
-  float cloudLight=mix(base*.15,base*.8+.18,folds);
-  float light=mix(base,cloudLight,overhead*.85);
+  float cloudLight=mix(base*.045,base*.85+.13,folds);
+  float light=mix(base,cloudLight,overhead*.95);
   light+=exp(-pow((ray.y+.06)*5.,2.))*.026;
-  gl_FragColor=vec4(vec3(max(.008,light)),1.);
+  gl_FragColor=vec4(paletteColor(light),1.);
   #include <colorspace_fragment>
 }
 `;
@@ -80,6 +83,7 @@ void main(){
 /** 真实镜面渲染 → 法线扰动 → 小范围模糊 → Fresnel → 远处雾化。
  * 波纹使用世界坐标，镜头移动时水面不会跟着屏幕滑动。 */
 export const waterFragment = /* glsl */ `
+${paletteGLSL}
 uniform sampler2D tDiffuse;
 uniform vec2 uTexel;
 uniform float uTime;
@@ -113,7 +117,7 @@ void main(){
   vec3 toEye=normalize(cameraPosition-vWorld);
   float fresnel=.97+.03*pow(1.-max(0.,dot(toEye,normal)),5.);
   float ripples=smoothstep(.05,.85,dot(normal,normalize(vec3(-.6,1.,.4))));
-  vec3 color=reflection*fresnel*.86+vec3(.009+ripples*.014);
+  vec3 color=reflection*fresnel*.86+uShadow*.3+uTone*(.012+ripples*.025);
   // 柔化地平线和几何边缘，保留近景清晰的水纹与图像倒影。
   float fog=1.-smoothstep(9.,35.,distanceToEye);
   gl_FragColor=vec4(color,fog*.92);

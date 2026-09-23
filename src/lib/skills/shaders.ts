@@ -1,5 +1,6 @@
 import { simplex } from "../shaders/noise";
 import { particleFragment } from "../shaders/particleKernel";
+import { paletteGLSL } from "./palette";
 
 export const screenVertex = /* glsl */ `
 attribute vec3 aCell;
@@ -43,6 +44,7 @@ void main(){
 `;
 
 export const screenFragment = /* glsl */ `
+${paletteGLSL}
 uniform sampler2D uImage;
 uniform sampler2D uSurfaceField;
 uniform vec2 uResolution;
@@ -58,12 +60,13 @@ void main(){
   // 图片由独立投影光映到方块上，移动方块会穿过图像，而不是把图像一起撑大。
   vec2 uv=vProjected.xy/vProjected.w*.5+.5;
   float inBeam=step(0.,uv.x)*step(uv.x,1.)*step(0.,uv.y)*step(uv.y,1.)*step(0.,vProjected.w);
-  vec3 photo=texture2D(uImage,clamp(uv,0.,1.)).rgb*inBeam;
+  vec3 source=texture2D(uImage,clamp(uv,0.,1.)).rgb;
+  vec3 photo=paletteColor(dot(source,vec3(.2126,.7152,.0722)))*inBeam;
   float mouse=texture2D(uSurfaceField,gl_FragCoord.xy/uResolution).r;
   vec3 n=normalize(vNormal),l=normalize(uLight-vWorld);
   float diffuse=max(0.,dot(n,l));
   float fill=max(0.,dot(n,normalize(vec3(-.6,.8,1.))));
-  vec3 color=vec3(.018+fill*.08)+photo*(.22+diffuse*1.65);
+  vec3 color=uShadow*.7+uTone*(.035+fill*.12)+photo*(.22+diffuse*1.65);
   // 原站鼠标所在区域提高透明层的覆盖率，同时压暗；不是刷一层白色。
   color*=1.-mouse*.35;
   float boundary=smoothstep(0.,.06,min(min(vGridUv.x,1.-vGridUv.x),min(vGridUv.y,1.-vGridUv.y)));

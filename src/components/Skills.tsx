@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { skills, type Skill } from "@/content/skills";
 import dynamic from "next/dynamic";
 import { useWorkDetail } from "./works/useWorkDetail";
+import { SkillArtwork } from "./SkillArtwork";
 const SkillDetail = dynamic(() => import("./SkillDetail"));
 import type { PortalPresentation } from "@/lib/hub/presentation";
 
@@ -151,7 +152,7 @@ export default function Skills({
                 onClick={() => setActive(skill)}
                 aria-label={`Explore ${skill.title}`}
               >
-                <img src={skill.image} alt={skill.alt} loading="lazy" />
+                <SkillArtwork skill={skill} loading="lazy" />
               </button>
             ))}
           </div>

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { simplex } from "../shaders/noise";
+import type { PaletteUniforms } from "./palette";
 import {
   boundaryGLSL,
   createBoundaryUniforms,
@@ -16,6 +17,7 @@ uniform sampler2D uPointerField;
 uniform float uTime;
 uniform float uStrength;
 uniform float uAspect;
+uniform vec3 uHighlight;
 varying vec2 vUv;
 ${simplex}
 ${boundaryGLSL}
@@ -28,7 +30,7 @@ void main(){
   vec2 uv=vUv+vec2(flow*.004/uAspect,flow*.004);
   float brush=texture2D(uPointerField,uv).r;
   // 在最终线性画面上叠加反馈场亮度，卡片、天空和水面共享同一束柔光。
-  color.rgb+=vec3(brush*uStrength);
+  color.rgb+=uHighlight*(brush*uStrength);
   color.rgb=mix(color.rgb,vec3(.26),boundary.y*.08);
   gl_FragColor=vec4(boundaryGrain(color.rgb,vUv,boundary.y),boundary.x);
   #include <colorspace_fragment>
@@ -42,6 +44,7 @@ export function createPointerLight(
   field: THREE.IUniform<THREE.Texture>,
   time: THREE.IUniform<number>,
   boundaryState: BoundaryState,
+  palette: PaletteUniforms,
 ) {
   let frame = new THREE.FramebufferTexture(1, 1);
   const boundary = createBoundaryUniforms(boundaryState);
@@ -51,6 +54,7 @@ export function createPointerLight(
     fragmentShader,
     premultipliedAlpha: true,
     uniforms: {
+      uHighlight: palette.uHighlight,
       ...boundary.uniforms,
       uFrame: { value: frame },
       uPointerField: field,

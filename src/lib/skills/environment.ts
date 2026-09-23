@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Reflector } from "three/addons/objects/Reflector.js";
+import type { PaletteUniforms } from "./palette";
 import {
   cloudFragment,
   skyFragment,
@@ -14,6 +15,7 @@ export function createEnvironment(
   renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
   time: THREE.IUniform<number>,
+  palette: PaletteUniforms,
 ) {
   const clouds = new THREE.WebGLRenderTarget(512, 512, {
     depthBuffer: false,
@@ -41,7 +43,7 @@ export function createEnvironment(
     name: "SkillsSky",
     vertexShader: skyVertex,
     fragmentShader: skyFragment,
-    uniforms: { uClouds: { value: clouds.texture } },
+    uniforms: { uClouds: { value: clouds.texture }, ...palette },
     side: THREE.BackSide,
     depthTest: false,
     depthWrite: false,
@@ -72,6 +74,7 @@ export function createEnvironment(
   });
   const waterMaterial = water.material as THREE.ShaderMaterial;
   waterMaterial.uniforms.uTime = time;
+  Object.assign(waterMaterial.uniforms, palette);
   waterMaterial.transparent = true;
   waterMaterial.depthWrite = false;
   water.name = "skills-water";

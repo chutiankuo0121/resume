@@ -3,6 +3,7 @@ import type { Skill } from "@/content/skills";
 import { experience } from "@/content/experience";
 import { workById, type WorkSummary } from "@/content/works/gallery";
 import { preloadWorkDetail } from "./works/useWorkDetail";
+import { SkillArtwork } from "./SkillArtwork";
 
 export default function SkillDetail({
   skill,
@@ -43,7 +44,7 @@ export default function SkillDetail({
             Close ×
           </button>
         </header>
-        <img className="skill-detail-art" src={skill.image} alt={skill.alt} />
+        <SkillArtwork className="skill-detail-art" skill={skill} />
         <h3 id="skill-detail-title">{skill.title}</h3>
         <p>{skill.description}</p>
         <ul className="skill-tools">
