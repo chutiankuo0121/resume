@@ -228,15 +228,21 @@ export function createPortfolioScene({
   function updatePresentation() {
     root.dataset.interactive = String(presentation.interactive);
     if (!presentation.interactive || presentation.suspended) {
-      for (const id of touches.keys())
-        if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
-      touches.clear();
-      drag = null;
-      pinch = 0;
-      hover = null;
-      hoverPoint = null;
-      rig.release();
+      cancelDrag();
     }
+    wake();
+  }
+
+  function cancelDrag() {
+    for (const id of touches.keys())
+      if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+    touches.clear();
+    drag = null;
+    pinch = 0;
+    hover = null;
+    hoverPoint = null;
+    canvas.style.cursor = "grab";
+    rig.release();
     wake();
   }
 
@@ -293,10 +299,13 @@ export function createPortfolioScene({
       new THREE.Vector2(event.clientX, event.clientY),
     );
     canvas.setPointerCapture(event.pointerId);
+    canvas.style.cursor = "grabbing";
     if (touches.size === 2) {
       const p = [...touches.values()];
       pinch = p[0].distanceTo(p[1]);
       drag = null;
+      rig.release();
+      wake();
     } else {
       drag = {
         id: event.pointerId,
@@ -432,6 +441,7 @@ export function createPortfolioScene({
   visibility.observe(canvas);
   const refresh = () => {
     lastTime = 0;
+    if (document.hidden) cancelDrag();
     updatePresentation();
     wake();
   };
@@ -456,6 +466,9 @@ export function createPortfolioScene({
   canvas.addEventListener("pointermove", move);
   canvas.addEventListener("pointerup", up);
   canvas.addEventListener("pointercancel", up);
+  // 指针捕获丢失、切换窗口时也放下作品墙，避免停在抓起机位。
+  canvas.addEventListener("lostpointercapture", up);
+  window.addEventListener("blur", cancelDrag);
   canvas.addEventListener("pointerleave", leave);
   canvas.addEventListener("keydown", keyboard);
   document.addEventListener("visibilitychange", refresh);
@@ -484,6 +497,8 @@ export function createPortfolioScene({
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointercancel", up);
+      canvas.removeEventListener("lostpointercapture", up);
+      window.removeEventListener("blur", cancelDrag);
       canvas.removeEventListener("pointerleave", leave);
       canvas.removeEventListener("keydown", keyboard);
       field.dispose();

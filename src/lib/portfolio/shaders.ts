@@ -53,7 +53,7 @@ varying vec2 vUv;
 ${boundaryGLSL}
 void main() {
   // Brown–Conrady 径向畸变。Storyline 参数 -0.02 × 5.5 = -0.11。
-  // 浏览时弯曲整个视野，选中作品时归零；不是逐个旋转 CSS 卡片。
+  // 浏览与拖拽共用整屏曲面，预览媒体不改变底下的浏览构图。
   vec2 p = vUv * 2.0 - 1.0;
   vec2 sampleUv = p * (1.0 - .11 * uStrength * dot(p, p)) * .5 + .5;
   vec3 boundary=boundaryField(vUv);
