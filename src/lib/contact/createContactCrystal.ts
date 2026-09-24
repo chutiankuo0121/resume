@@ -26,12 +26,25 @@ export function createContactCrystal(renderer: THREE.WebGLRenderer) {
   });
   const crystal = createCrystal({ lightScene, pointScene, pointMaterial: points, onProgress() {} });
   const center = new THREE.Vector3(), size = new THREE.Vector3();
+  const offset = new THREE.Vector3(), placement = new THREE.Matrix4();
+  const anchor = new THREE.Vector2();
+  let framingDistance = 1, pixelWorldSize = 1;
   let disposed = false, ready = false, width = 1, height = 1;
   const loaded = crystal.ready.then(() => {
     if (disposed) return;
+    // 联系页是深色底：空间点以银白色为主，模型表面仍保留原来的明暗层次。
+    // 克隆亮度列，避免改动与开场共享的粒子文件缓存。
+    const grains = pointScene.getObjectByProperty("isPoints", true) as THREE.Points;
+    const ambient = grains.geometry.getAttribute("aAmbient");
+    const light = (grains.geometry.getAttribute("aLight") as THREE.BufferAttribute).clone();
+    for (let i = 0; i < light.count; i++) {
+      if (ambient.getX(i) > .5) light.setX(i, .4 + .2*light.getX(i));
+    }
+    grains.geometry.setAttribute("aLight", light);
     const box = new THREE.Box3().setFromObject(lightScene);
     box.getCenter(center); box.getSize(size);
     ready = true;
+    frameCamera();
   });
   const blur = new THREE.ShaderMaterial({
     vertexShader: fullscreenVertex, fragmentShader: blurFragment,
@@ -67,6 +80,25 @@ export function createContactCrystal(renderer: THREE.WebGLRenderer) {
   const clear = new THREE.Color();
   const neutral = new THREE.Color().setRGB(.09084171, .09084171, .09084171);
   const orbit = new THREE.Vector3();
+  function distanceFor(crystalHeight: number) {
+    return size.y / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)))
+      * height / crystalHeight + Math.max(size.x, size.z)*.4;
+  }
+  function frameCamera() {
+    if (!ready) return;
+    // 固定粒子空间的取景；滚动和鼠标只改变模型的 placement。
+    const mobile = width < 800;
+    anchor.set(width*(mobile ? .64 : .73), height*(mobile ? .68 : .47));
+    framingDistance = distanceFor(mobile ? height*.52 : Math.min(height*.8, width*.64));
+    camera.position.copy(center).add(orbit.set(Math.sin(1.16)*framingDistance, .15, Math.cos(1.16)*framingDistance));
+    camera.lookAt(center);
+    camera.aspect = width / height;
+    camera.setViewOffset(width, height, width/2-anchor.x, height/2-anchor.y, width, height);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    pixelWorldSize = 2*camera.position.distanceTo(center)*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))/height;
+    points.uniforms.uMotionDepthOffset.value = framingDistance;
+  }
   return {
     mesh, ready: loaded,
     resize(w: number, h: number) {
@@ -78,22 +110,22 @@ export function createContactCrystal(renderer: THREE.WebGLRenderer) {
       points.uniforms.uPixelRatio.value = dpr;
       points.uniforms.uViewportScale.value = w < 800 ? .55 : .7;
       mesh.scale.set(w, h, 1);
+      frameCamera();
     },
     render(dt: number, time: number, x: number, y: number, crystalHeight: number,
       pointerX: number, pointerY: number, reduced: boolean) {
       if (!ready || disposed) return;
       crystal.setPointer(pointerX, pointerY);
       crystal.update(dt, 1, reduced, 0);
-      const distance = size.y / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)))
-        * height / crystalHeight + Math.max(size.x, size.z)*.4;
-      camera.position.copy(center).add(orbit.set(Math.sin(1.16)*distance, .15, Math.cos(1.16)*distance));
-      camera.lookAt(center);
-      camera.aspect = width / height;
-      camera.setViewOffset(width, height, width/2-x, height/2-y, width, height);
-      camera.updateProjectionMatrix();
-      camera.updateMatrixWorld();
+      const scale = framingDistance / distanceFor(crystalHeight);
+      offset.set(x-anchor.x, anchor.y-y, 0)
+        .multiplyScalar(pixelWorldSize).applyQuaternion(camera.quaternion);
+      // 绕模型中心缩放，再沿相机平面平移；空间粒子绕过这份矩阵。
+      placement.makeScale(scale, scale, scale);
+      offset.addScaledVector(center, 1-scale);
+      placement.setPosition(offset);
+      crystal.setPlacement(placement);
       points.uniforms.uTime.value = time;
-      points.uniforms.uMotionDepthOffset.value = distance;
       const previousTarget = renderer.getRenderTarget();
       const previousAlpha = renderer.getClearAlpha();
       const previousAutoClear = renderer.autoClear;

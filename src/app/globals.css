@@ -54,8 +54,8 @@ button:focus-visible {
 }
 .journey {
   position: relative;
-  /* 100 + 550 × 2.68：给延后的破洞留出距离，前面各镜头的滚动速度保持不变。 */
-  height: 1574svh;
+  /* 100 + 550 × 2.6：随破洞提前缩短末段，前面各镜头的滚动速度保持不变。 */
+  height: 1530svh;
 }
 .astra {
   isolation: isolate;
@@ -334,8 +334,8 @@ button:focus-visible {
 }
 @media (max-width: 699px) {
   .journey {
-    /* 100 + 460 × 2.68：沿用移动端原有的时间线与滚动距离比例。 */
-    height: 1332.8svh;
+    /* 100 + 460 × 2.6：沿用移动端原有的时间线与滚动距离比例。 */
+    height: 1296svh;
   }
 }
 .reduced-journey {

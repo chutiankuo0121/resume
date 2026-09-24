@@ -57,7 +57,6 @@ export function createCameraRig(camera: THREE.PerspectiveCamera) {
       mobile: boolean,
       pointer: THREE.Vector2,
       orbitProgress: number,
-      focus = 0,
       exitProgress = 0,
     ) {
       // 先获取最终镜头的场景平面，再将当前屏幕射线映射回该固定平面。
@@ -74,9 +73,9 @@ export function createCameraRig(camera: THREE.PerspectiveCamera) {
       orbitRotation.setFromAxisAngle(orbitAxis, orbitAngle);
       camera.position.sub(crystalCenter).applyQuaternion(orbitRotation).add(crystalCenter);
       camera.quaternion.premultiply(orbitRotation);
-      // 鼠标在滚动姿态上叠加小幅旋转，重算基础姿态可避免累积漂移。
-      camera.rotateX(-pointer.y * Math.PI * 0.005 * (1 - focus));
-      camera.rotateY(-pointer.x * Math.PI * 0.025 * (1 - focus));
+      // 出场承接当前鼠标视角；中途回正会与退出轨迹叠加，造成先反向再横移。
+      camera.rotateX(-pointer.y * Math.PI * 0.005);
+      camera.rotateY(-pointer.x * Math.PI * 0.025);
       exit.update(exitProgress);
       camera.updateMatrixWorld();
       // 雾光边界随空间投影移动；粒子已用当前相机渲染，不重复变换。

@@ -424,7 +424,6 @@ export function createScene({
       mobile,
       pointer.crystal,
       motionPreference.matches ? 0 : transition.cameraOrbit,
-      transition.focus,
       transition.exit,
     );
     pointMaterial.uniforms.uMotionDepthOffset.value = 11.125 / 2 + framingDepth;

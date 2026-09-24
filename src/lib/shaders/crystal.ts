@@ -2,6 +2,7 @@
 export const crystalTransform = /* glsl */ `
 uniform vec2 uLook;
 uniform float uBasisYaw;
+uniform mat4 uCrystalPlacement;
 vec3 rotateCrystal(vec3 p){
   vec3 pivot=vec3(-0.142648969772722,2.5886050000000003,-0.6168853168249138);
   vec3 q=p-pivot;
@@ -12,7 +13,7 @@ vec3 rotateCrystal(vec3 p){
   float pitch=uLook.y*.05236;
   q.yz=mat2(cos(pitch),sin(pitch),-sin(pitch),cos(pitch))*q.yz;
   q.xz=mat2(cos(yaw),-sin(yaw),sin(yaw),cos(yaw))*q.xz;
-  return q+pivot;
+  return (uCrystalPlacement*vec4(q+pivot,1.)).xyz;
 }
 `;
 

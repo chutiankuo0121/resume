@@ -30,9 +30,11 @@ export function createCrystal({
   // 晶石的局部前向角；作为 uniform 与鼠标角度共同计算，避免 GLSL
   // 常量折叠与运行时三角函数的舍入差让深度遮挡边缘产生偏移。
   const basisYaw = { value: (57.3 * Math.PI) / 180 };
+  const placement = { value: new THREE.Matrix4() };
   const shared = {
     uLook: look,
     uBasisYaw: basisYaw,
+    uCrystalPlacement: placement,
   };
   Object.assign(pointMaterial.uniforms, shared);
 
@@ -104,6 +106,9 @@ export function createCrystal({
   }
   return {
     ready,
+    setPlacement(matrix: THREE.Matrix4) {
+      placement.value.copy(matrix);
+    },
     setPointer(x: number, y: number) {
       target.set(
         THREE.MathUtils.clamp(x, -1, 1),
