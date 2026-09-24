@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createContactGhost } from "./createContactGhost";
+import { createContactCrystal } from "./createContactCrystal";
 
 const smooth = (a: number, b: number, value: number) => {
   const x = Math.max(0, Math.min(1, (value - a) / (b - a)));
@@ -12,27 +13,22 @@ const smooth = (a: number, b: number, value: number) => {
 // as moving it through the composition. UVs stay attached to the painted paper.
 const vertex = /* glsl */`
   varying vec2 vUv;
-  uniform float uTime, uBend, uKind;
+  uniform float uTime, uBend;
   uniform vec2 uPointer;
   void main() {
     vUv = uv;
     vec3 p = position;
-    if (uKind < .5 || uKind > 1.5) {
-      float fold = sin(uv.y * 4.7 + uTime * .22);
-      p.x += fold * uBend * (.25 + uv.y) + uPointer.x * sin(uv.y * 3.14159) * .012;
-      p.y += sin(uv.x * 5.2 + uTime * .18) * uBend * .38;
-      p.z += sin(uv.x * 3.14159) * uBend * .9;
-    }
+    float fold = sin(uv.y * 4.7 + uTime * .22);
+    p.x += fold * uBend * (.25 + uv.y) + uPointer.x * sin(uv.y * 3.14159) * .012;
+    p.y += sin(uv.x * 5.2 + uTime * .18) * uBend * .38;
+    p.z += sin(uv.x * 3.14159) * uBend * .9;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   }
 `;
 const fragment = /* glsl */`
   varying vec2 vUv;
   uniform sampler2D uMap;
-  uniform float uTime, uKind, uCut, uPart;
-  bool inBox(vec2 p, vec4 box) {
-    return p.x >= box.x && p.y >= box.y && p.x <= box.z && p.y <= box.w;
-  }
+  uniform float uTime, uKind, uCut;
   void main() {
     vec2 uv = vUv;
     if (uKind < .5) {
@@ -41,25 +37,9 @@ const fragment = /* glsl */`
       uv.y += sin(uv.x * 72.0 - uTime * .48) * .001 * water;
     }
     vec4 ink = texture2D(uMap, uv);
-    if (uKind > .5 && uKind < 1.5) {
-      // Transparent margins separate these five islands from the main crystal.
-      // Sample the original texture directly, preserving every painted facet.
-      vec2 pixel = vec2(vUv.x, 1.0 - vUv.y) * vec2(1672.0, 941.0);
-      float part = 0.0;
-      if (inBox(pixel, vec4(910.0, 232.0, 958.0, 278.0))) part = 1.0;
-      if (inBox(pixel, vec4(852.0, 398.0, 919.0, 477.0))) part = 2.0;
-      if (inBox(pixel, vec4(933.0, 483.0, 968.0, 513.0))) part = 3.0;
-      if (inBox(pixel, vec4(933.0, 514.0, 968.0, 551.0))) part = 4.0;
-      if (inBox(pixel, vec4(943.0, 629.0, 1005.0, 716.0))) part = 5.0;
-      if (abs(part - uPart) > .1) discard;
-    }
     if (uCut > .5 && uCut < 1.5) ink.a *= 1.0 - smoothstep(.49, .51, uv.x);
     if (uCut > 1.5) ink.a *= smoothstep(.49, .51, uv.x);
     if (ink.a < .005) discard;
-    if (uKind > .5 && uKind < 1.5) {
-      float facets = pow(max(0.0, sin(uv.x * 29.0 + uv.y * 12.0 - uTime * .55)), 18.0);
-      ink.rgb += vec3(.20, .16, .09) * facets * .06;
-    }
     gl_FragColor = ink;
     #include <colorspace_fragment>
   }
@@ -72,22 +52,20 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   const scroll = { p: 0 };
   let width = 1, height = 1, mobile = false, active = false, disposed = false;
-  let ready = false, lost = false, lastTime = 0, clock = 0, previousAct = -1;
+  let ready = false, lost = false, lastTime = 0, clock = 0;
   let previousCopyProgress = -1;
   let renderer: THREE.WebGLRenderer | undefined;
   let ghost: ReturnType<typeof createContactGhost> | undefined;
+  let crystal: ReturnType<typeof createContactCrystal> | undefined;
   const scene = new THREE.Scene();
   // The rotated planes are measured in screen pixels; allow enough depth for
   // their edges to tilt toward the camera without hitting its near plane.
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 5000);
   camera.position.z = 2000;
   const geometry = new THREE.PlaneGeometry(1, 1, 48, 28);
-  const crystalGeometry = geometry.clone();
-  crystalGeometry.translate(-.20, .04, 0);
   const textures: THREE.Texture[] = [];
   const materials: THREE.ShaderMaterial[] = [];
   const layers: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>[] = [];
-  const fragments: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>[] = [];
 
   try {
     renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: "low-power" });
@@ -96,24 +74,25 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.debug.onShaderError = () => { lost = true; delete stage.dataset.art; };
     ghost = createContactGhost(renderer, stage);
-  } catch { /* The complete painted fallback remains visible without WebGL. */ }
+    crystal = createContactCrystal(renderer);
+    scene.add(crystal.mesh);
+  } catch { /* The landscape remains visible without WebGL. */ }
 
-  function layer(texture: THREE.Texture, kind: number, cut: number, z: number, part = 0) {
+  function layer(texture: THREE.Texture, kind: number, cut: number, z: number) {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uMap: { value: texture }, uTime: { value: 0 }, uBend: { value: 0 },
         uKind: { value: kind }, uCut: { value: cut },
         uPointer: { value: new THREE.Vector2() },
-        uPart: { value: part },
       }, vertexShader: vertex, fragmentShader: fragment,
       transparent: true, depthTest: false, depthWrite: false, toneMapped: false,
     });
-    const mesh = new THREE.Mesh(kind === 1 ? crystalGeometry : geometry, material);
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.position.z = z;
     mesh.renderOrder = z;
     mesh.frustumCulled = false;
     materials.push(material);
-    (part > 0 ? fragments : layers).push(mesh);
+    layers.push(mesh);
     scene.add(mesh);
     return mesh;
   }
@@ -159,20 +138,19 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   const dust = new THREE.Points(dustGeometry, dustMaterial);
   dust.renderOrder = 5; dust.frustumCulled = false; scene.add(dust);
 
-  if (renderer) {
+  if (renderer && crystal) {
     const loader = new THREE.TextureLoader();
-    Promise.all(["landscape", "crystal", "foreground"].map(name =>
+    const landscapes = Promise.all(["landscape", "foreground"].map(name =>
       loader.loadAsync(`/contact-signal/${name}.webp`).then(texture => {
         if (disposed) { texture.dispose(); return texture; }
         texture.colorSpace = THREE.SRGBColorSpace;
         textures.push(texture);
         return texture;
       }),
-    )).then(([background, crystal, foreground]) => {
+    ));
+    Promise.all([landscapes, crystal.ready]).then(([[background, foreground]]) => {
       if (disposed) return;
       layer(background, 0, 0, 0);
-      layer(crystal, 1, 0, 2);
-      for (let part = 1; part <= 5; part++) layer(crystal, 1, 0, 2 + part * .01, part);
       layer(foreground, 2, 1, 3);
       layer(foreground, 2, 2, 4);
       ready = true;
@@ -185,8 +163,6 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     if (Math.abs(previousCopyProgress - p) < .00001) return;
     previousCopyProgress = p;
     const alpha = [1 - smooth(.18, .3, p), smooth(.28, .4, p) * (1 - smooth(.57, .7, p)), smooth(.68, .81, p)];
-    const act = p < .31 ? 0 : p < .70 ? 1 : 2;
-    if (act !== previousAct) { stage.dataset.act = String(act); previousAct = act; }
     stage.style.setProperty("--signal-p", p.toFixed(4));
     copies.forEach((copy, i) => {
       const opacity = reduced.matches ? (i === 2 ? 1 : 0) : alpha[i];
@@ -214,27 +190,19 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     const middle = approach * (1 - depart);
     const cx = mobile ? width * (.64 - middle * .14) : width * (.73 - .46 * middle + .015 * depart);
     const cy = mobile ? height * .68 : height * (.47 + .025 * middle);
-    stage.style.setProperty("--signal-x", `${cx + pointer.x * 18}px`);
     if (!ready || !renderer || lost) return;
     const t = reduced.matches ? 0 : clock;
-    const [background, crystal, left, right] = layers;
+    const [background, left, right] = layers;
     const coverHeight = Math.max(height, width / (1672 / 941));
     const coverWidth = coverHeight * (1672 / 941);
     const zoom = 1.08 + .12 * approach - .045 * depart;
     background.scale.set(coverWidth * zoom, coverHeight * zoom, 1);
     background.position.x = pointer.x * 7 - middle * width * .025;
     background.position.y = -height * .025 * approach + pointer.y * 5;
-    const crystalHeight = mobile ? height * (.54 + .035 * middle)
-      : Math.min(height * (.95 + .16 * middle - .04 * depart), width * .88);
-    crystal.scale.set(crystalHeight * (1672 / 941), crystalHeight, 1);
-    crystal.position.set(cx - width / 2 + pointer.x * 18, height / 2 - cy + pointer.y * 12, 2);
-    crystal.rotation.set(0, 0, 0);
-    for (const [i, fragment] of fragments.entries()) {
-      fragment.scale.copy(crystal.scale);
-      fragment.position.copy(crystal.position);
-      fragment.position.z = 2.01 + i * .01;
-      fragment.position.y += reduced.matches ? 0 : Math.sin(t * (.36 + i * .055) + i * 1.7) * (4 + i * 1.2);
-    }
+    const crystalHeight = mobile ? height * (.52 + .04 * middle)
+      : Math.min(height * (.8 + .1 * middle - .03 * depart), width * .64);
+    crystal?.render(dt, t, cx + pointer.x * 18, cy - pointer.y * 12, crystalHeight,
+      pointer.tx, -pointer.ty, reduced.matches);
     for (const [i, rock] of [left, right].entries()) {
       rock.scale.set(coverWidth * (1.1 + middle * .06), coverHeight * (1.08 + middle * .04), 1);
       rock.position.x = (i ? 1 : -1) * width * .16 * middle + pointer.x * (i ? 26 : 36);
@@ -244,7 +212,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     materials.forEach(material => {
       const kind = material.uniforms.uKind.value;
       material.uniforms.uTime.value = t;
-      material.uniforms.uBend.value = reduced.matches || kind === 1 ? 0
+      material.uniforms.uBend.value = reduced.matches ? 0
         : (kind === 0 ? .004 : .012 + middle * .026);
       material.uniforms.uPointer.value.set(pointer.x, pointer.y);
     });
@@ -260,6 +228,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     camera.top = height / 2; camera.bottom = -height / 2; camera.updateProjectionMatrix();
     renderer?.setSize(width, height, false);
     ghost?.resize();
+    crystal?.resize(width, height);
     dustMaterial.uniforms.uSize.value.set(width, height);
     dustMaterial.uniforms.uDpr.value = Math.min(devicePixelRatio, 1.5);
     render(0);
@@ -271,7 +240,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     render(dt);
   }
   function move(event: PointerEvent) {
-    if (reduced.matches || event.pointerType === "touch") return;
+    if (reduced.matches || event.pointerType === "touch") { leave(); return; }
     const rect = stage.getBoundingClientRect();
     pointer.tx = (event.clientX - rect.left) / width * 2 - 1;
     pointer.ty = 1 - (event.clientY - rect.top) / height * 2;
@@ -287,6 +256,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   observer.observe(root);
   const sizeObserver = new ResizeObserver(resize); sizeObserver.observe(stage);
   stage.addEventListener("pointermove", move); stage.addEventListener("pointerleave", leave);
+  window.addEventListener("blur", leave);
   canvas.addEventListener("webglcontextlost", contextLost); canvas.addEventListener("webglcontextrestored", contextRestored);
   reduced.addEventListener("change", resize);
   gsap.ticker.add(tick);
@@ -297,10 +267,11 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     tween.scrollTrigger?.kill(); tween.kill(); gsap.ticker.remove(tick);
     observer.disconnect(); sizeObserver.disconnect(); reduced.removeEventListener("change", resize);
     stage.removeEventListener("pointermove", move); stage.removeEventListener("pointerleave", leave);
+    window.removeEventListener("blur", leave);
     canvas.removeEventListener("webglcontextlost", contextLost); canvas.removeEventListener("webglcontextrestored", contextRestored);
     textures.forEach(texture => texture.dispose()); materials.forEach(material => material.dispose());
-    ghost?.dispose();
-    geometry.dispose(); crystalGeometry.dispose(); dustGeometry.dispose(); dustMaterial.dispose(); renderer?.dispose();
+    ghost?.dispose(); crystal?.dispose();
+    geometry.dispose(); dustGeometry.dispose(); dustMaterial.dispose(); renderer?.dispose();
     delete stage.dataset.art;
   };
 }

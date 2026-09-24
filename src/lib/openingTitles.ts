@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 // 破洞延后约三个滚轮刻度；同步延长 journey，保持运镜和破洞展开速度。
 export const OPENING = {
   crystalStart: 0.5,
+  orbitStart: 1.0,
   crystalReading: 1.02,
   exitStart: 2.1,
   portalStart: 2.44,

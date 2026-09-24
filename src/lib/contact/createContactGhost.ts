@@ -9,7 +9,7 @@ export function createContactGhost(renderer: THREE.WebGLRenderer, stage: HTMLEle
   const field = contactTransitionField(stage);
   const boundary = createBoundaryUniforms(field);
   const text = createTextDetailTexture(stage.querySelector<HTMLElement>(".signal-content"),
-    ".signal-header,.signal-copy,.signal-word,.signal-specimen,.signal-footer");
+    ".signal-copy,.signal-word");
   let frame = new THREE.FramebufferTexture(1, 1);
   const material = new THREE.ShaderMaterial({
     name: "ContactInteractiveDetails", vertexShader: fullscreenVertex,

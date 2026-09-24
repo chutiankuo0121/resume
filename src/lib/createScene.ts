@@ -423,6 +423,7 @@ export function createScene({
       transition.cameraTravel,
       mobile,
       pointer.crystal,
+      motionPreference.matches ? 0 : transition.cameraOrbit,
       transition.focus,
       transition.exit,
     );

@@ -90,10 +90,14 @@ uniform float uTime;
 varying vec4 vReflection;
 varying vec3 vWorld;
 ${simplex}
-float heightAt(vec2 p){
+float waveWeight(vec2 dx,vec2 dy,vec2 frequency){
+  float footprint=max(length(dx*frequency),length(dy*frequency));
+  return 1.-smoothstep(.25,.75,footprint);
+}
+float heightAt(vec2 p,vec2 weights){
   vec2 drift=vec2(uTime*.035,-uTime*.024);
-  return snoise(vec3(p*vec2(2.5,6.)+drift,0.))*.055
-    +snoise(vec3(p*vec2(8.,14.)-drift*1.7,4.))*.014;
+  return snoise(vec3(p*vec2(2.5,6.)+drift,0.))*.055*weights.x
+    +snoise(vec3(p*vec2(8.,14.)-drift*1.7,4.))*.014*weights.y;
 }
 vec3 reflected(vec2 uv,vec2 blur){
   vec3 c=texture2D(tDiffuse,clamp(uv,.002,.998)).rgb*.4;
@@ -106,9 +110,12 @@ vec3 reflected(vec2 uv,vec2 blur){
 void main(){
   float distanceToEye=length(vWorld.xz-cameraPosition.xz);
   vec2 p=vWorld.xz;
-  float h=heightAt(p),stepSize=.025;
-  vec2 slope=vec2(heightAt(p+vec2(stepSize,0.))-h,heightAt(p+vec2(0.,stepSize))-h)/stepSize;
-  // 在远处逐渐降低细节，避免密集法线在低分辨率下闪烁。
+  // 根据真实像素覆盖分别过滤两层波纹；只按距离减幅仍会留下亚像素闪点。
+  vec2 dx=dFdx(p),dy=dFdy(p);
+  vec2 weights=vec2(waveWeight(dx,dy,vec2(2.5,6.)),waveWeight(dx,dy,vec2(8.,14.)));
+  float h=heightAt(p,weights),stepSize=.025;
+  vec2 slope=vec2(heightAt(p+vec2(stepSize,0.),weights)-h,heightAt(p+vec2(0.,stepSize),weights)-h)/stepSize;
+  // 保留远处更平静的水面；所有法线采样使用同一组权重，避免过滤本身产生波纹。
   slope*=1.-smoothstep(8.,35.,distanceToEye)*.8;
   vec3 normal=normalize(vec3(-slope.x,1.,-slope.y));
   vec3 coord=vReflection.xyz/vReflection.w;

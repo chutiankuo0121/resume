@@ -15,6 +15,7 @@ export type TransitionState = {
   pointerWeight: number;
   crystalEntry: number;
   cameraTravel: number;
+  cameraOrbit: number;
   lightReveal: number;
   focus: number;
   exit: number;
@@ -46,6 +47,7 @@ export function createTransitionTimeline(
     pointerWeight: 1,
     crystalEntry: 0,
     cameraTravel: 0,
+    cameraOrbit: 0,
     lightReveal: 0,
     focus: 0,
     exit: 0,
@@ -75,7 +77,8 @@ export function createTransitionTimeline(
       { crystalEntry: 1, duration: 0.37, ease: "sine.inOut" },
       CRYSTAL_START,
     )
-    .to(state, { cameraTravel: 1, duration: 0.5 }, CRYSTAL_START)
+    .to(state, { cameraTravel: 1, duration: OPENING.orbitStart - CRYSTAL_START }, CRYSTAL_START)
+    .to(state, { cameraOrbit: 1, duration: OPENING.exitStart - OPENING.orbitStart }, OPENING.orbitStart)
     .to(state, { lightReveal: 1, duration: 0.32, ease: "sine.inOut" }, 0.58)
     // 晶石只剩视野边缘时开始破洞，与原始退出运镜的末段重叠。
     .to(state, { focus: 1, duration: 0.18, ease: "sine.inOut" }, OPENING.exitStart)

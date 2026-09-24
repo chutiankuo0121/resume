@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { createElimarExit } from "./elimarExit";
-// 最终构图的固定相机；入场绕晶石做短弧后拉。
+// 入场终点的基础构图；阅读阶段以晶石为中心继续向右环绕。
 const finalHeading = 1.16;
 const finalDesktop = [4.52075, 2.36395, 2.1864] as const;
 const finalNarrow = [5.76591, 2.38705, 3.08398] as const;
@@ -10,6 +10,7 @@ export function createCameraRig(camera: THREE.PerspectiveCamera) {
   const pivot = new THREE.Vector3(0.02, 2.97, 0.875);
   const crystalCenter = new THREE.Vector3(-0.142649, 2.588605, -0.616885);
   const orbitAxis = new THREE.Vector3(0, 1, 0);
+  const orbitRotation = new THREE.Quaternion();
   const rotation = new THREE.Euler(0, 0, 0, "YXZ");
   const baseWorld = new THREE.Matrix4();
   const baseToClip = new THREE.Matrix4();
@@ -55,6 +56,7 @@ export function createCameraRig(camera: THREE.PerspectiveCamera) {
       travel: number,
       mobile: boolean,
       pointer: THREE.Vector2,
+      orbitProgress: number,
       focus = 0,
       exitProgress = 0,
     ) {
@@ -65,6 +67,13 @@ export function createCameraRig(camera: THREE.PerspectiveCamera) {
         .copy(pivot)
         .applyMatrix4(camera.matrixWorldInverse).z;
       const framingDepth = placeScrollCamera(travel, mobile);
+      // 同步旋转位置与朝向，保持晶石中心的屏幕位置、距离与深度。
+      // 每帧由滚动进度重建，回滚可原路返回，出场继承环绕终点。
+      const orbitAngle = THREE.MathUtils.degToRad(mobile ? 16 : 25) *
+        THREE.MathUtils.smootherstep(orbitProgress, 0, 1);
+      orbitRotation.setFromAxisAngle(orbitAxis, orbitAngle);
+      camera.position.sub(crystalCenter).applyQuaternion(orbitRotation).add(crystalCenter);
+      camera.quaternion.premultiply(orbitRotation);
       // 鼠标在滚动姿态上叠加小幅旋转，重算基础姿态可避免累积漂移。
       camera.rotateX(-pointer.y * Math.PI * 0.005 * (1 - focus));
       camera.rotateY(-pointer.x * Math.PI * 0.025 * (1 - focus));

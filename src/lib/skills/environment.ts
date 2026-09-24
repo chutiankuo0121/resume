@@ -82,7 +82,11 @@ export function createEnvironment(
   water.position.set(0, -2.65, -12);
   water.renderOrder = -2;
   water.frustumCulled = false;
-  water.getRenderTarget().texture.name = "skills-reflection";
+  const reflection = water.getRenderTarget().texture;
+  reflection.name = "skills-reflection";
+  // 波纹会局部压缩倒影；多级过滤避免方块边缘、星点被采成零散亮线。
+  reflection.generateMipmaps = true;
+  reflection.minFilter = THREE.LinearMipmapLinearFilter;
   scene.add(water);
   return {
     resize(width: number, height: number) {
