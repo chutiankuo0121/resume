@@ -1,11 +1,13 @@
 import { gsap } from "gsap";
 
-// 与镜头使用同一条逻辑时间线。这里只延长晶石的停留，不改入场和擦出的轨迹。
+// 原有镜头结束后追加圆形揭幕；每逻辑单位对应的滚动距离保持不变。
 export const OPENING = {
   crystalStart: 0.5,
   crystalReading: 1.02,
   exitStart: 2.1,
-  duration: 2.6,
+  portalStart: 2.6,
+  portalDuration: .34,
+  duration: 3,
 } as const;
 
 export function addOpeningTitles(timeline: gsap.core.Timeline, stage: HTMLElement) {

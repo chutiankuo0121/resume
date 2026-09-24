@@ -57,7 +57,7 @@ export function createLoadingProgress(
     state.reveal = media.matches
       ? clamp((exitTime - 0.1) / 0.2)
       : clamp((exitTime - completeHold - morphDuration - letterHold) / zoomDuration);
-    drawing.render(state.progress, media.matches ? 0 : morph, state.reveal, media.matches);
+    drawing.render(state.progress, media.matches ? 0 : morph, state.reveal, media.matches, timestamp / 1000);
     root.style.setProperty("--loading-copy-opacity", String(1 - clamp(state.reveal / 0.3)));
     if (state.reveal === 1) {
       completed = true;

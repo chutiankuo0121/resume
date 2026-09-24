@@ -5,7 +5,7 @@ export function createPreludeDrawing(canvas: HTMLCanvasElement) {
   const context = canvas.getContext("2d")!;
   const { barLength, strokeWidth, arcSweep } = LOADING_PRELUDE;
   let width = 1, height = 1, dpr = 1;
-  let progress = 0, morph = 0, zoom = 0, reduced = false;
+  let progress = 0, morph = 0, zoom = 0, reduced = false, time = 0;
 
   function draw() {
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -73,6 +73,32 @@ export function createPreludeDrawing(canvas: HTMLCanvasElement) {
       }
       context.stroke();
     }
+    if (!reduced && zoom < .52) {
+      const fade = 1 - Math.min(1, zoom / .52);
+      for (let i = 0; i < 34; i++) {
+        const t = (i + .5) / 34;
+        if (morph === 0 && t > progress) continue;
+        const sweep = arcSweep * Math.max(morph, .0001);
+        const bend = barLength / sweep;
+        const offset = (1 - Math.cos(sweep / 2)) * bend / 2;
+        const angle = (t - .5) * sweep;
+        // 与进度条 / C 形笔画共用同一条参数曲线。
+        const x = morph === 0 ? (t - .5) * barLength : Math.sin(angle) * bend;
+        const y = morph === 0 ? 0 : (1 - Math.cos(angle)) * bend - offset;
+        const px = x;
+        const py = y;
+        const blink = Math.pow(.5 + .5 * Math.sin(time * 2.2 + i * 2.4), 5);
+        const size = (i % 7 === 0 ? 2.5 : 1.2) * blink;
+        context.fillStyle = `rgba(255,255,255,${blink * fade * .9})`;
+        context.beginPath();
+        context.moveTo(px, py - size);
+        context.lineTo(px + size, py);
+        context.lineTo(px, py + size);
+        context.lineTo(px - size, py);
+        context.closePath();
+        context.fill();
+      }
+    }
     context.restore();
   }
 
@@ -89,11 +115,12 @@ export function createPreludeDrawing(canvas: HTMLCanvasElement) {
   observer.observe(canvas);
 
   return {
-    render(nextProgress: number, nextMorph: number, nextZoom: number, reduceMotion: boolean) {
+    render(nextProgress: number, nextMorph: number, nextZoom: number, reduceMotion: boolean, seconds: number) {
       progress = nextProgress;
       morph = nextMorph;
       zoom = nextZoom;
       reduced = reduceMotion;
+      time = seconds;
       draw();
     },
     dispose() { observer.disconnect(); },

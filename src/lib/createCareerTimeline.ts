@@ -8,7 +8,7 @@ export function createCareerTimeline(root: HTMLElement) {
     "(min-width: 800px) and (prefers-reduced-motion: no-preference)",
     () => {
       const periods = root.querySelectorAll<HTMLElement>(".career-period");
-      periods.forEach((period) => {
+      periods.forEach((period, index) => {
         const intro = period.querySelector<HTMLElement>(".career-intro")!;
         const story = period.querySelector<HTMLElement>(".career-story")!;
         const visual = period.querySelector<HTMLElement>(".career-visual")!;
@@ -38,7 +38,8 @@ export function createCareerTimeline(root: HTMLElement) {
           )
           .to(visual, { opacity: 1, duration: 0.767 }, 1.133);
         function draw(progress: number) {
-          sequence.progress(progress);
+          // 第一屏已经由圆形揭幕引入，进入洞口时就需要完整可读的构图。
+          sequence.progress(index === 0 ? .78 + progress * .22 : progress);
           // 原站背景使用 top bottom → bottom top 的整段进度。
           // 三屏高的章节停留时，局部 0～1 正好对应整段的 0.25～0.75。
           const sectionProgress = 0.25 + progress * 0.5;

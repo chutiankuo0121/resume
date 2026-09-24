@@ -1,5 +1,4 @@
 import Lenis from "lenis";
-import { elimarPaperReveal } from "./elimarExit";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCareerTimeline } from "./createCareerTimeline";
@@ -18,7 +17,7 @@ export type TransitionState = {
   lightReveal: number;
   focus: number;
   exit: number;
-  whiteout: number;
+  portalReveal: number;
 };
 export type FrameClock = {
   subscribe: (callback: (timestamp: number) => void) => () => void;
@@ -38,6 +37,7 @@ export function createTransitionTimeline(
 ) {
   gsap.registerPlugin(ScrollTrigger);
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const previousCareerInert = careerRoot.inert;
   const state: TransitionState = {
     progress: 0,
     holeApproach: 0,
@@ -48,7 +48,7 @@ export function createTransitionTimeline(
     lightReveal: 0,
     focus: 0,
     exit: 0,
-    whiteout: 0,
+    portalReveal: 0,
   };
   const lenis = new Lenis({
     autoRaf: false,
@@ -76,24 +76,25 @@ export function createTransitionTimeline(
     )
     .to(state, { cameraTravel: 1, duration: 0.5 }, CRYSTAL_START)
     .to(state, { lightReveal: 1, duration: 0.32, ease: "sine.inOut" }, 0.58)
-    // 晶石停留承载三组大字；最后一组消隐后，才进入原站的擦出轨迹。
+    // 先走完原始退出运镜和黑场，再独立启动圆形揭幕。
     .to(state, { focus: 1, duration: 0.18, ease: "sine.inOut" }, OPENING.exitStart)
-    .to(state, { exit: 1, duration: 0.48 }, OPENING.exitStart);
+    .to(state, { exit: 1, duration: 0.48 }, OPENING.exitStart)
+    .to(state, { portalReveal: 1, duration: OPENING.portalDuration }, OPENING.portalStart);
   const disposeTitles = addOpeningTitles(timeline, stage);
   let chapter: Chapter | undefined;
   let trigger: ScrollTrigger | undefined;
   function publish() {
     handoffs.update();
-    state.whiteout = elimarPaperReveal(state.exit);
-    // 白页与场景最后一屏重叠；只在白场完成时显露内容，避免白色方块提前上推。
-    careerRoot.style.setProperty(
-      "--timeline-reveal",
-      String(
-        media.matches
-          ? 1
-          : gsap.utils.clamp(0, 1, (state.whiteout - 0.97) / 0.03),
-      ),
-    );
+    const portal = !media.matches && state.exit > 0;
+    const careerStart = handoffs.positions.career;
+    const arriving = portal && window.scrollY < careerStart;
+    root.toggleAttribute("data-crystal-exit", portal);
+    careerRoot.classList.toggle("career-arriving", arriving);
+    careerRoot.style.setProperty("--timeline-reveal", media.matches || portal ? "1" : "0");
+    careerRoot.style.setProperty("--arrival-y", `${Math.min(0, window.scrollY - careerStart)}px`);
+    const settle = gsap.utils.clamp(0, 1, (state.portalReveal - .2) / .65);
+    careerRoot.style.setProperty("--arrival-focus", String(1 - settle * settle * (3 - 2 * settle)));
+    careerRoot.inert = previousCareerInert || (!media.matches && state.portalReveal < 1);
     // 提示随入洞退场，晶石显露时回来；终点不再提示向下滚动。
     const hintVisibility =
       state.progress * DURATION < CRYSTAL_START
@@ -103,7 +104,7 @@ export function createTransitionTimeline(
       "--scroll-hint-opacity",
       String(hintVisibility * (1 - state.focus)),
     );
-    const { career: careerStart, explore: exploreStart, contact: contactStart } = handoffs.positions;
+    const { explore: exploreStart, contact: contactStart } = handoffs.positions;
     const inContact = window.scrollY >= contactStart - 1;
     const inExplore = window.scrollY >= exploreStart - 1;
     const inCareer = window.scrollY >= careerStart - 1;
@@ -259,6 +260,12 @@ export function createTransitionTimeline(
       career.dispose();
       ScrollTrigger.removeEventListener("refresh", handoffs.refresh);
       handoffs.dispose();
+      root.removeAttribute("data-crystal-exit");
+      careerRoot.classList.remove("career-arriving");
+      careerRoot.style.removeProperty("--arrival-y");
+      careerRoot.style.removeProperty("--arrival-focus");
+      careerRoot.style.removeProperty("--timeline-reveal");
+      careerRoot.inert = previousCareerInert;
       lenis.destroy();
     },
   };

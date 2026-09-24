@@ -25,6 +25,20 @@ html {
 body {
   background: #0f0f0f;
 }
+.mouse-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform;
+}
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 400;
@@ -40,7 +54,8 @@ button:focus-visible {
 }
 .journey {
   position: relative;
-  height: 1530svh;
+  /* 100 + 550 × 3：追加揭幕距离，保持原有黑洞和晶石镜头的滚动速度。 */
+  height: 1750svh;
 }
 .astra {
   isolation: isolate;
@@ -320,7 +335,7 @@ button:focus-visible {
 }
 @media (max-width: 699px) {
   .journey {
-    height: 1296svh;
+    height: 1480svh;
   }
 }
 .reduced-journey {

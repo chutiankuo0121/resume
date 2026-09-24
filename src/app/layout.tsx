@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { profile } from "@/content/profile";
 import { assetUrl, ASSET_ORIGIN } from "@/lib/assetUrl";
 import fonts from "@/content/fonts.generated.json";
+import MouseDot from "@/components/MouseDot";
 import "./globals.css";
 import "./opening.css";
 import "./loading.css";
@@ -13,6 +14,7 @@ import "@/components/works/media-viewer.css";
 import "./skills.css";
 import "./explore.css";
 import "./chapter-transitions.css";
+import "./contact.css";
 import "@/components/sound/sound.css";
 
 export const metadata: Metadata = {
@@ -33,7 +35,10 @@ export default function RootLayout({
             as="font" type="font/woff2" crossOrigin="anonymous" />
         ))}
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <MouseDot />
+      </body>
     </html>
   );
 }

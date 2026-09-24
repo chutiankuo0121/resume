@@ -1,10 +1,28 @@
 /* 留给入场、停留、退场各自独立的滚动距离；展开作品后继续由原浏览器接管输入。 */
+.journey[data-crystal-exit] {
+  z-index: 2;
+  pointer-events: none;
+}
+.journey[data-crystal-exit] .experience { background: transparent; }
+.career-arriving .career-period:first-child .career-stage,
+.career-arriving .career-ruler {
+  transform: translate3d(0, var(--arrival-y, 0px), 0);
+  will-change: transform;
+}
+.career-arriving .career-period:first-child .career-stage { background: #fff; }
+@media (min-width: 800px) {
+  /* 洞口先接住下一幕的矿物图像，再将它归位到经历版面右侧。 */
+  .career-arriving .career-period:first-child .career-visual {
+    right: calc(20vw * var(--arrival-focus, 0));
+    top: calc(36svh - 12svh * var(--arrival-focus, 0));
+  }
+}
 .chapter-gap { height: 0; background: #eeeee9; }
 .chapter-gap--entry { background: #fff; }
-[data-chapter-handoffs] .chapter-gap--entry,
-[data-chapter-handoffs] .chapter-gap--exit { height: 15svh; }
+[data-chapter-handoffs] .chapter-gap--entry { height: 15svh; }
+[data-chapter-handoffs] .chapter-gap--exit { height: 65svh; }
 [data-chapter-handoffs] .explore-hub { height: 250svh; }
-/* 固定纸底遮住文档流中移动的区块底色，避免磨砂边缘出现横向色带。 */
+/* 固定纸底遮住文档流；内容保持原尺寸，裁切路径与视口粒子严格重合。 */
 .astra[data-chapter-transition]::after {
   content: "";
   position: fixed;
@@ -14,6 +32,7 @@
   pointer-events: none;
 }
 .astra[data-chapter-transition="entry"]::after { background: #fff; }
+.astra[data-chapter-transition="exit"]::after { background: #e4e3d7; }
 .explore-hub:has(.chapter-held) { z-index: 2; background: transparent; }
 .contact.chapter-held { z-index: 2; }
 .chapter-masks {
@@ -22,16 +41,28 @@
   height: 0;
   pointer-events: none;
 }
+.chapter-edge-sparkle {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 3;
+  pointer-events: none;
+}
 .chapter-held:not(.is-open) {
-  transform: translate3d(0, var(--chapter-y, 0px), 0) scale(var(--chapter-scale, 1));
+  transform: translate3d(0, var(--chapter-y, 0px), 0);
   transform-origin: center center;
   opacity: var(--chapter-opacity, 1);
+  will-change: transform;
+}
+/* 经历 → 目录按克隆版本的缩放、透明度和整层磨砂交接。 */
+.astra[data-chapter-transition="entry"] .chapter-held:not(.is-open) {
+  transform: translate3d(0, var(--chapter-y, 0px), 0) scale(var(--chapter-scale, 1));
   filter: blur(var(--chapter-blur, 0px));
   will-change: transform, filter;
 }
 .career-stage.chapter-held { background: #fff; }
 .chapter-reveal-entry:not(.is-open) { mask-image: url(#chapter-entry-mask); }
-.chapter-reveal-exit { mask-image: url(#chapter-exit-mask); }
 .chapter-contact-reveal .contact-kicker,
 .chapter-contact-reveal h2 {
   opacity: var(--contact-title, 1);

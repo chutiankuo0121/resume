@@ -9,9 +9,10 @@ import { createBlackHole } from "./createBlackHole";
 import { transitionFragment } from "./shaders/blackHole";
 import type { FrameClock, TransitionState } from "./transition";
 import { createCameraRig } from "./camera";
+import { elimarPaperReveal } from "./elimarExit";
 import { createPointerMotion, holeFollowScale } from "./pointer";
 import { createCrystal } from "./createCrystal";
-import { paperFragment } from "./shaders/elimarExit";
+import { paperFragment, portalCompositeFragment } from "./shaders/elimarExit";
 import type { LoadingState, LoadingTask } from "./loading/progress";
 
 type Options = {
@@ -40,7 +41,7 @@ export function createScene({
     renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: false,
-      alpha: false,
+      alpha: true,
       premultipliedAlpha: false,
       powerPreference: "high-performance",
     });
@@ -80,8 +81,10 @@ export function createScene({
     blurX = makeTarget(),
     soft = makeTarget(),
     sharp = makeTarget(),
-    crystalTarget = makeTarget();
-  const targets = [lighting, blurX, soft, sharp, crystalTarget];
+    crystalTarget = makeTarget(),
+    portalFrame = makeTarget(),
+    portalEmission = makeTarget();
+  const targets = [lighting, blurX, soft, sharp, crystalTarget, portalFrame, portalEmission];
   // 未模糊明暗层同时保存深度，粒子复用它遮挡背面，无需额外绘制网格。
   lighting.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
   lighting.depthTexture.minFilter = THREE.NearestFilter;
@@ -119,10 +122,6 @@ export function createScene({
       },
     }),
   );
-  const exitComposite = material(composite.clone());
-  exitComposite.uniforms = composite.uniforms;
-  // 退出时裁掉相机身后的雾光平面，避免反向投影让亮雾重新进入画面。
-  exitComposite.defines = { ELIMAR_EXIT: 1 };
   const paper = material(
     new THREE.ShaderMaterial({
       vertexShader: fullscreenVertex,
@@ -132,9 +131,40 @@ export function createScene({
       uniforms: {
         uScene: { value: crystalTarget.texture },
         uReveal: { value: 0 },
+        uBlackout: { value: 0 },
+        uTime: { value: 0 },
+        uResolution: { value: new THREE.Vector2(1, 1) },
+        uCenter: { value: new THREE.Vector2(.5, .5) },
       },
     }),
   );
+  const exitComposite = material(new THREE.ShaderMaterial({
+    vertexShader: fullscreenVertex,
+    fragmentShader: compositeFragment,
+    uniforms: composite.uniforms,
+    defines: { ELIMAR_EXIT: 1 },
+    depthTest: false,
+    depthWrite: false,
+  }));
+  const portalGlow = material(new THREE.ShaderMaterial({
+    vertexShader: fullscreenVertex,
+    fragmentShader: paperFragment,
+    uniforms: paper.uniforms,
+    defines: { PORTAL_GLOW: 1 },
+    depthTest: false,
+    depthWrite: false,
+  }));
+  const portalComposite = material(new THREE.ShaderMaterial({
+    vertexShader: fullscreenVertex,
+    fragmentShader: portalCompositeFragment,
+    depthTest: false,
+    depthWrite: false,
+    uniforms: {
+      uFrame: { value: portalFrame.texture },
+      uEmission: { value: portalEmission.texture },
+      uBloom: { value: soft.texture },
+    },
+  }));
   const transitionMaterial = material(
     new THREE.ShaderMaterial({
       vertexShader: fullscreenVertex,
@@ -190,9 +220,13 @@ export function createScene({
   let lastTimestamp = 0;
   let whiteCleared = false;
   let shaderError = false;
-  renderer.debug.onShaderError = (gl, program) => {
+  renderer.debug.onShaderError = (gl, program, vertexShader, fragmentShader) => {
     shaderError = true;
-    console.error("着色器编译失败:", gl.getProgramInfoLog(program));
+    console.error("着色器编译失败:", JSON.stringify({
+      program: gl.getProgramInfoLog(program),
+      vertex: gl.getShaderInfoLog(vertexShader),
+      fragment: gl.getShaderInfoLog(fragmentShader),
+    }));
     onError("画面着色器未能编译，请重新加载预览。");
   };
 
@@ -228,11 +262,14 @@ export function createScene({
     );
     sharp.setSize(Math.round(width * dpr), Math.round(height * dpr));
     crystalTarget.setSize(sharp.width, sharp.height);
+    portalFrame.setSize(sharp.width, sharp.height);
+    portalEmission.setSize(lighting.width, lighting.height);
     hole.resize(width, height, dpr);
     transitionMaterial.uniforms.uResolution.value.set(
       width * dpr,
       height * dpr,
     );
+    paper.uniforms.uResolution.value.set(width * dpr, height * dpr);
     followScale.set(...holeFollowScale(width, height));
     pointMaterial.uniforms.uPixelRatio.value = dpr;
     pointMaterial.uniforms.uViewportScale.value = mobile ? 0.6 : 1;
@@ -282,6 +319,8 @@ export function createScene({
       ]);
       if (disposed || shaderError) return;
       ready = true;
+      // 首屏就实际绘制退出链到离屏目标，提前暴露 fragment/link 错误。
+      renderPortal(sharp);
       drawLoading();
       if (!shaderError) onReady();
     } catch (error) {
@@ -309,12 +348,40 @@ export function createScene({
     renderer.render(postScene, postCamera);
   }
 
+  function renderPortal(output: THREE.WebGLRenderTarget | null = null) {
+    renderer.setClearColor(0, 0);
+    quad.material = paper;
+    renderer.setRenderTarget(portalFrame);
+    renderer.clear();
+    renderer.render(postScene, postCamera);
+    quad.material = portalGlow;
+    renderer.setRenderTarget(portalEmission);
+    renderer.clear();
+    renderer.render(postScene, postCamera);
+    // 晶石已合成为一张图，复用原来的两个半分辨率目标做亮边 Bloom。
+    quad.material = blur;
+    blur.uniforms.uInput.value = portalEmission.texture;
+    blur.uniforms.uStep.value.set(2.4 / portalEmission.width, 0);
+    renderer.setRenderTarget(blurX);
+    renderer.clear();
+    renderer.render(postScene, postCamera);
+    blur.uniforms.uInput.value = blurX.texture;
+    blur.uniforms.uStep.value.set(0, 2.4 / portalEmission.height);
+    renderer.setRenderTarget(soft);
+    renderer.clear();
+    renderer.render(postScene, postCamera);
+    quad.material = portalComposite;
+    renderer.setRenderTarget(output);
+    renderer.clear();
+    renderer.render(postScene, postCamera);
+  }
+
   function draw() {
-    // 章节完全退场后只保留白色页面，停止模型、多层模糊和粒子绘制。
-    if (transition.whiteout === 1) {
+    // 完全揭幕后清空 alpha，交给下方真实经历页；回滚时重新绘制晶石。
+    if (transition.portalReveal === 1) {
       if (!whiteCleared) {
         renderer.setRenderTarget(null);
-        renderer.setClearColor(0xffffff, 1);
+        renderer.setClearColor(0, 0);
         renderer.clear();
         whiteCleared = true;
       }
@@ -391,7 +458,13 @@ export function createScene({
     uniforms.uHoleScale.value = holeScale;
     uniforms.uHoleApproach.value = transition.holeApproach;
     uniforms.uCrystalReveal.value = transition.crystalReveal;
-    paper.uniforms.uReveal.value = transition.whiteout;
+    paper.uniforms.uReveal.value = transition.portalReveal;
+    paper.uniforms.uBlackout.value = elimarPaperReveal(transition.exit);
+    paper.uniforms.uTime.value = time;
+    if (transition.portalReveal > 0) {
+      renderPortal();
+      return;
+    }
     quad.material = transition.exit > 0 ? paper : transitionMaterial;
     renderer.setRenderTarget(null);
     renderer.setClearColor(0, 1);
