@@ -4,6 +4,8 @@ import {
   useRef,
   useState,
   type RefObject,
+  type PointerEvent,
+  type MouseEvent,
 } from "react";
 import { gsap } from "gsap";
 import Portfolio from "./Portfolio";
@@ -20,11 +22,9 @@ import {
 export default function ExploreHub({
   ref: root,
   onOpenChange,
-  onContact,
 }: {
   ref: RefObject<HTMLElement | null>;
   onOpenChange: (open: boolean) => void;
-  onContact: () => void;
 }) {
   const stage = useRef<HTMLDivElement>(null);
   const chain = useRef<HTMLCanvasElement>(null);
@@ -43,6 +43,7 @@ export default function ExploreHub({
     pointerX: 0.5,
     pointerY: 0.5,
     pointerStrength: 0,
+    gather: 1,
   });
   const presentations = useRef({
     work: createPresentation(boundary.current),
@@ -54,6 +55,23 @@ export default function ExploreHub({
   } | null>(null);
   const [opened, setOpened] = useState<HubDestination | null>(null);
   const [interactive, setInteractive] = useState(false);
+  const press = useRef({ x: 0, y: 0, moved: false });
+
+  function beginChoice(event: PointerEvent<HTMLButtonElement>) {
+    if (!event.isPrimary || event.button !== 0) return;
+    press.current = { x: event.clientX, y: event.clientY, moved: false };
+    // Keep the pressed destination even if its animated edge moves before release.
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  function moveChoice(event: PointerEvent<HTMLButtonElement>) {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    if (Math.hypot(event.clientX - press.current.x, event.clientY - press.current.y) > 10)
+      press.current.moved = true;
+  }
+  function choose(event: MouseEvent<HTMLButtonElement>, target: HubDestination) {
+    if (event.detail !== 0 && press.current.moved) return;
+    controls.current?.open(target);
+  }
 
   const setPlaying = useCallback((playing: boolean) => {
     // 试玩占据整屏时停绘底层，不销毁相机，因此返回后仍在同一件作品上。
@@ -81,6 +99,7 @@ export default function ExploreHub({
     let current: HubDestination | null = null;
     let animation: gsap.core.Timeline | undefined;
     let busy = false;
+    let openedDuringHandoff = false;
     const previousOverflow = document.documentElement.style.overflow;
     const notify = () => {
       workPane.current
@@ -92,6 +111,7 @@ export default function ExploreHub({
       busy = true;
       current = target;
       const y = element.getBoundingClientRect().top;
+      openedDuringHandoff = element.classList.contains("chapter-held");
       onOpenChange(true);
       document.documentElement.style.overflow = "hidden";
       state.destination = target;
@@ -134,7 +154,7 @@ export default function ExploreHub({
       notify();
       animation?.kill();
       const rect = root.current!.getBoundingClientRect();
-      const y = Math.min(
+      const y = openedDuringHandoff ? 0 : Math.min(
         Math.max(rect.top, 0),
         rect.bottom - element.clientHeight,
       );
@@ -291,39 +311,38 @@ export default function ExploreHub({
             <button
               ref={workButton}
               className="hub-choice hub-choice--work"
-              aria-label="Enter works"
-              onClick={() => controls.current?.open("work")}
+              aria-label="进入作品"
+              onClick={(event) => choose(event, "work")}
+              onPointerDown={beginChoice}
+              onPointerMove={moveChoice}
+              onPointerCancel={() => { press.current.moved = true; }}
               onPointerEnter={() => hover(1)}
               onPointerLeave={() => hover(0)}
             >
               <span className="hub-label">
                 <span>
-                  Works <i>↗</i>
+                  作品 <i aria-hidden="true">↗</i>
                 </span>
               </span>
             </button>
             <button
               ref={skillsButton}
               className="hub-choice hub-choice--skills"
-              aria-label="Enter skills"
-              onClick={() => controls.current?.open("skills")}
+              aria-label="进入技能"
+              onClick={(event) => choose(event, "skills")}
+              onPointerDown={beginChoice}
+              onPointerMove={moveChoice}
+              onPointerCancel={() => { press.current.moved = true; }}
               onPointerEnter={() => hover(-1)}
               onPointerLeave={() => hover(0)}
             >
               <span className="hub-label">
                 <span>
-                  Skills <i>↗</i>
+                  技能 <i aria-hidden="true">↗</i>
                 </span>
               </span>
             </button>
           </div>
-          <button
-            className="hub-continue"
-            onClick={onContact}
-            tabIndex={opened ? -1 : 0}
-          >
-            Contact <span>↓</span>
-          </button>
           <button
             ref={back}
             className="hub-back"

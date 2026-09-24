@@ -1,7 +1,7 @@
 /* 主线只经过这一屏目录。作品与技能共用预览实例，展开后独立接管输入。 */
 .explore-hub {
   position: relative;
-  height: 145svh;
+  height: 250svh;
   background: #e9e9e7;
 }
 .hub-stage {
@@ -56,6 +56,7 @@
   inset: 0;
   z-index: 4;
   transition: opacity 0.3s;
+  pointer-events: none;
 }
 .hub-choice {
   position: absolute;
@@ -66,6 +67,7 @@
   height: 100%;
   background: transparent;
   text-align: left;
+  pointer-events: auto;
 }
 .hub-label {
   position: absolute;
@@ -90,7 +92,7 @@
 .hub-label > span {
   font:
     400 62px/1 var(--font-heading);
-  letter-spacing: -0.045em;
+  letter-spacing: 0.06em;
 }
 .hub-label i {
   display: inline-block;
@@ -110,17 +112,13 @@
   outline: 1px solid currentColor;
   outline-offset: 12px;
 }
-.hub-back,
-.hub-continue {
+.hub-back {
+  pointer-events: auto;
   position: absolute;
   z-index: 5;
-  border: 0;
-  background: none;
   padding: 14px;
   font:
     12px/1.3 var(--font-body);
-}
-.hub-back {
   top: 24px;
   left: 34px;
   visibility: hidden;
@@ -135,19 +133,7 @@
 .hub-back span {
   margin-left: 10px;
 }
-.hub-continue {
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  letter-spacing: 0.03em;
-  color: #fff;
-  text-shadow: 0 1px 8px #000;
-}
-.hub-continue span {
-  margin-left: 20px;
-}
-.hub-stage.is-open .hub-choices,
-.hub-stage.is-open .hub-continue {
+.hub-stage.is-open .hub-choices {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -163,114 +149,9 @@
 .astra[data-exploring="true"] > .page-scrollbar {
   visibility: hidden;
 }
-.contact {
-  min-height: 100svh;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 100px max(85px, 9vw) 45px;
-  color: #20201f;
-  background: #eeeee9;
-}
-.contact-kicker {
-  margin: 0 0 46px;
-  font:
-    12px/1.5 var(--font-body);
-  letter-spacing: 0.18em;
-}
-.contact h2 {
-  margin: 0 0 42px;
-  font:
-    400 76px / 1.05 var(--font-heading);
-  letter-spacing: -0.055em;
-}
-.contact h2 em {
-  font-weight: 400;
-  font-style: normal;
-  color: #797974;
-}
-.contact-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
-  align-items: end;
-  gap: 64px;
-  margin-bottom: 56px;
-}
-.contact-name {
-  margin: 0 0 14px;
-  font: 400 30px/1.5 var(--font-heading);
-}
-.contact-name span {
-  display: inline-block;
-  margin-left: 18px;
-  font: 12px/1.5 var(--font-body);
-  color: #73736e;
-}
-.contact-focus,
-.contact-introduction,
-.contact-education {
-  font: 17px/1.9 var(--font-body);
-}
-.contact-focus {
-  margin: 0 0 16px;
-}
-.contact-introduction {
-  max-width: 490px;
-  margin: 0 0 16px;
-  color: #656560;
-}
-.contact-education {
-  margin: 0 0 26px;
-  font-size: 12px;
-  color: #73736e;
-}
-.contact-email {
-  color: inherit;
-  font: 21px/1.6 var(--font-body);
-  text-underline-offset: 6px;
-}
-.contact-wechat {
-  margin: 0;
-}
-.contact-wechat img {
-  display: block;
-  width: 220px;
-  height: 220px;
-}
-.contact-wechat figcaption {
-  margin-top: 14px;
-  font: 12px/1.6 var(--font-body);
-  color: #73736e;
-  text-align: center;
-}
-.contact-footer {
-  display: flex;
-  align-items: baseline;
-  gap: 36px;
-  border-top: 1px solid #2223;
-  padding-top: 24px;
-  font:
-    12px/1.6 var(--font-body);
-}
-.contact-footer p {
-  color: #73736e;
-  margin: 0;
-}
-.contact-footer > :last-child {
-  margin-left: auto;
-}
-@media (min-width: 800px) and (max-width: 1199px) {
-  .contact h2 {
-    font-size: 56px;
-  }
-  .contact-layout {
-    gap: 32px;
-  }
-}
 @media (max-width: 799px) {
   .explore-hub {
-    height: 130svh;
+    height: 220svh;
   }
   .hub-choice--work .hub-label {
     top: 15%;
@@ -286,27 +167,6 @@
   .hub-back {
     left: 16px;
     top: 48px;
-  }
-  .contact {
-    padding: 90px 28px 35px;
-  }
-  .contact h2 {
-    font-size: 48px;
-  }
-  .contact-layout {
-    grid-template-columns: 1fr;
-    gap: 36px;
-  }
-  .contact-wechat {
-    justify-self: start;
-  }
-  .contact-footer {
-    flex-wrap: wrap;
-    gap: 18px;
-  }
-  .contact-footer p {
-    width: 100%;
-    order: 2;
   }
 }
 @media (prefers-reduced-motion: reduce) {

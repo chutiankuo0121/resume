@@ -14,6 +14,7 @@ import { createPointerMotion, holeFollowScale } from "./pointer";
 import { createCrystal } from "./createCrystal";
 import { paperFragment, portalCompositeFragment } from "./shaders/elimarExit";
 import type { LoadingState, LoadingTask } from "./loading/progress";
+import { createPreludeDrawing } from "./loading/drawPrelude";
 
 type Options = {
   canvas: HTMLCanvasElement;
@@ -85,6 +86,7 @@ export function createScene({
     portalFrame = makeTarget(),
     portalEmission = makeTarget();
   const targets = [lighting, blurX, soft, sharp, crystalTarget, portalFrame, portalEmission];
+  let prelude: ReturnType<typeof createPreludeDrawing> | undefined = createPreludeDrawing(renderer, sharp.texture);
   // 未模糊明暗层同时保存深度，粒子复用它遮挡背面，无需额外绘制网格。
   lighting.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
   lighting.depthTexture.minFilter = THREE.NearestFilter;
@@ -92,6 +94,9 @@ export function createScene({
   const hole = createBlackHole(renderer);
   const holeCenter = new THREE.Vector2(0.5, 0.505);
   const followScale = new THREE.Vector2();
+  const portalPointerTarget = new THREE.Vector3(-2, -2, 0);
+  const portalPointer = new THREE.Vector3(-2, -2, 0);
+  let portalFlow = 0, previousScroll = window.scrollY;
   const blur = material(
     new THREE.ShaderMaterial({
       vertexShader: fullscreenVertex,
@@ -135,6 +140,9 @@ export function createScene({
         uTime: { value: 0 },
         uResolution: { value: new THREE.Vector2(1, 1) },
         uCenter: { value: new THREE.Vector2(.5, .5) },
+        uPointer: { value: portalPointer },
+        uViewport: { value: new THREE.Vector2(1, 1) },
+        uFlow: { value: 0 },
       },
     }),
   );
@@ -219,6 +227,7 @@ export function createScene({
     time = 0;
   let lastTimestamp = 0;
   let whiteCleared = false;
+  let loadingBackgroundReady = false;
   let shaderError = false;
   renderer.debug.onShaderError = (gl, program, vertexShader, fragmentShader) => {
     shaderError = true;
@@ -232,6 +241,7 @@ export function createScene({
 
   function resize() {
     whiteCleared = false;
+    loadingBackgroundReady = false;
     width = canvas.clientWidth;
     height = canvas.clientHeight;
     if (!width || !height) return;
@@ -261,6 +271,7 @@ export function createScene({
       lighting.height,
     );
     sharp.setSize(Math.round(width * dpr), Math.round(height * dpr));
+    prelude?.resize(width, height, dpr);
     crystalTarget.setSize(sharp.width, sharp.height);
     portalFrame.setSize(sharp.width, sharp.height);
     portalEmission.setSize(lighting.width, lighting.height);
@@ -270,6 +281,7 @@ export function createScene({
       height * dpr,
     );
     paper.uniforms.uResolution.value.set(width * dpr, height * dpr);
+    paper.uniforms.uViewport.value.set(width, height);
     followScale.set(...holeFollowScale(width, height));
     pointMaterial.uniforms.uPixelRatio.value = dpr;
     pointMaterial.uniforms.uViewportScale.value = mobile ? 0.6 : 1;
@@ -283,9 +295,13 @@ export function createScene({
         y = ((e.clientY - r.top) / r.height) * 2 - 1;
       pointer.set(x, y);
       crystal.setPointer(x, y);
+      portalPointerTarget.set((x + 1) * .5, (1 - y) * .5, 1);
+    } else {
+      portalPointerTarget.z = 0;
     }
   }
   function leave() {
+    portalPointerTarget.z = 0;
     pointer.set(0, 0);
     crystal.setPointer(0, 0);
   }
@@ -298,6 +314,9 @@ export function createScene({
   function resetFrameTimestamp() {
     // 后台恢复时从当前相位继续，避免把离开页面的时间计为一次巨大步进。
     lastTimestamp = 0;
+    previousScroll = window.scrollY;
+    portalFlow = 0;
+    portalPointerTarget.z = 0;
   }
   window.addEventListener("pointermove", move);
   window.addEventListener("blur", leave);
@@ -334,18 +353,22 @@ export function createScene({
 
   function drawLoading() {
     // 首页始终保持正式尺寸；加载遮罩通过 C 字窗口揭开，不再缩放黑洞。
-    holeCenter.set(0.5, 0.505);
-    hole.render(time, pointer.hole, 1, 1, holeCenter);
-    const uniforms = transitionMaterial.uniforms;
-    uniforms.uTime.value = time;
-    uniforms.uHoleScale.value = 1;
-    uniforms.uHoleApproach.value = 0;
-    uniforms.uCrystalReveal.value = 0;
-    quad.material = transitionMaterial;
-    renderer.setRenderTarget(null);
-    renderer.setClearColor(0xf8f8f7, 1);
-    renderer.clear();
-    renderer.render(postScene, postCamera);
+    if (loading.reveal > 0 || (ready && !loadingBackgroundReady)) {
+      holeCenter.set(0.5, 0.505);
+      hole.render(time, pointer.hole, 1, 1, holeCenter);
+      const uniforms = transitionMaterial.uniforms;
+      uniforms.uTime.value = time;
+      uniforms.uHoleScale.value = 1;
+      uniforms.uHoleApproach.value = 0;
+      uniforms.uCrystalReveal.value = 0;
+      quad.material = transitionMaterial;
+      renderer.setRenderTarget(sharp);
+      renderer.setClearColor(0xf8f8f7, 1);
+      renderer.clear();
+      renderer.render(postScene, postCamera);
+      loadingBackgroundReady = true;
+    }
+    prelude?.render(loading, motionPreference.matches, time);
   }
 
   function renderPortal(output: THREE.WebGLRenderTarget | null = null) {
@@ -478,16 +501,33 @@ export function createScene({
     if (document.hidden) return;
     const dt = Math.min(elapsed, 0.05);
     const reduced = motionPreference.matches;
+    // Same local response as the collage seam: exponential follow, gentle
+    // pointer influence and a scroll-speed impulse which settles at rest.
+    if (reduced) {
+      portalPointer.z = 0;
+      portalFlow = 0;
+    } else {
+      portalPointer.lerp(portalPointerTarget, 1 - Math.exp(-dt * 9));
+      const activePortal = transition.portalReveal > 0 && transition.portalReveal < 1;
+      const speed = activePortal && elapsed > 0
+        ? Math.min(1, Math.abs(window.scrollY - previousScroll) / elapsed / 1400) : 0;
+      portalFlow += (speed - portalFlow) * (1 - Math.exp(-dt * (speed > portalFlow ? 14 : 3)));
+    }
+    previousScroll = window.scrollY;
+    paper.uniforms.uFlow.value = portalFlow;
     pointer.update(dt, reduced);
     crystal.update(dt, transition.crystalEntry, reduced, transition.focus);
     // 平滑输入限制单帧步长，粒子用真实秒数，避免低帧率改变运动速度。
     if (!reduced) time += elapsed;
     pointMaterial.uniforms.uTime.value = time;
     if (!shaderError) {
-      // 完全被黑幕遮住时只做一次首帧预热，揭幕开始后再连续绘制。
       if (loading.reveal < 1) {
-        if (loading.reveal > 0) drawLoading();
-      } else if (ready) draw();
+        drawLoading();
+      } else if (ready) {
+        prelude?.dispose();
+        prelude = undefined;
+        draw();
+      }
     }
   }
   const unsubscribe = clock.subscribe(animate);
@@ -497,6 +537,7 @@ export function createScene({
     unsubscribe();
     observer.disconnect();
     hole.dispose();
+    prelude?.dispose();
     crystal.dispose();
     window.removeEventListener("pointermove", move);
     window.removeEventListener("blur", leave);

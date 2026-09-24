@@ -14,6 +14,7 @@ import { opening } from "@/content/opening";
 import { loadTypography } from "@/lib/typography";
 import LoadingPrelude from "./LoadingPrelude";
 import { createLoadingProgress } from "@/lib/loading/progress";
+import { preloadPreviews } from "@/lib/loading/previews";
 import ChapterMasks from "./ChapterMasks";
 import Soundscape from "./sound/Soundscape";
 
@@ -63,6 +64,7 @@ export default function AstraExperience() {
     );
     timeline.current = scroll;
     let disposed = false;
+    const previewAbort = new AbortController();
     readyRef.current = false;
     scroll.setPaused(true);
     const loading = createLoadingProgress(scroll.clock, prelude.current, () => {
@@ -78,11 +80,22 @@ export default function AstraExperience() {
     const fail = (message: string) => {
       if (disposed) return;
       loading.fail();
+      previewAbort.abort();
       readyRef.current = false;
       scroll.setPaused(true);
       setReady(false);
       setError(message);
     };
+    void preloadPreviews(progress => {
+      if (!disposed) loading.update("previews", progress);
+    }, previewAbort.signal).then(failures => {
+      if (disposed || previewAbort.signal.aborted || !failures.length) return;
+      console.warn("部分预览图片预载未完成，页面展示时将再次请求:", failures);
+    }).catch(error => {
+      if (disposed || previewAbort.signal.aborted) return;
+      console.warn("预览资源预载未完成，保留页面按需加载:", error);
+      loading.complete("previews");
+    });
     // 开场与字体一起就绪，避免首屏先闪现系统字体再突然换字形。
     void loadTypography([
       opening.name, opening.englishName, opening.focus,
@@ -102,6 +115,7 @@ export default function AstraExperience() {
     });
     return () => {
       disposed = true;
+      previewAbort.abort();
       loading.dispose();
       disposeScene();
       scroll.dispose();
@@ -115,10 +129,6 @@ export default function AstraExperience() {
     timeline.current?.setExploring(open);
     timeline.current?.setPaused(open || !readyRef.current);
   }, []);
-  const navigateContact = useCallback(
-    () => timeline.current?.seek("contact"),
-    [],
-  );
 
   function reload() {
     readyRef.current = false;
@@ -154,7 +164,6 @@ export default function AstraExperience() {
         <ExploreHub
           ref={explore}
           onOpenChange={setExplorationOpen}
-          onContact={navigateContact}
         />
       </div>
       <div className="chapter-gap chapter-gap--exit" aria-hidden="true" />

@@ -1,5 +1,5 @@
 .contact {
-  position: relative; display: block; height: 460svh; padding: 0;
+  position: relative; display: block; height: 460svh; min-height: 100svh; padding: 0;
   color: #eee9dd; background: #101c28; --signal-gold: #c9b995;
 }
 .contact:has(.chapter-held) { z-index: 2; background: transparent; }
@@ -9,7 +9,6 @@
 .signal-art { opacity: 0; transition: opacity 1.2s; z-index: 1; }
 [data-art="ready"] .signal-art { opacity: 1; }
 .contact-stage[data-collage-reveal] { mask-image: url(#contact-collage-mask); }
-.contact-stage[data-collage-reveal] .signal-touch { visibility: hidden; }
 .signal-shade { z-index: 2; background: linear-gradient(90deg, #0a152748, transparent 60%), linear-gradient(0deg, #08111bba, transparent 24%, transparent 83%, #08111b55); }
 .signal-word { position: absolute; z-index: 2; left: 5%; top: 9%; font: 400 clamp(100px, 20vw, 340px)/1 var(--font-heading); letter-spacing: -.07em; color: #eee6d114; transform: translate3d(calc(var(--signal-p, 0) * -18vw), calc(var(--signal-p, 0) * -12vh), 0); pointer-events: none; }
 .signal-header, .signal-footer { position: absolute; left: max(65px, 7.5%); right: 5%; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
@@ -37,10 +36,6 @@
 .signal-actions :is(a,button):hover { color: #fff; border-color: #f0e4c8; }
 .signal-email { display: inline-block; margin-top: 15px; color: #ccc9bf99; font: 12px/1.8 var(--font-body); letter-spacing: .05em; text-decoration: none; }
 .signal-email:hover { color: #eee9dd; }
-.signal-touch { position: absolute; z-index: 3; left: var(--signal-x, 72%); top: var(--signal-y, 48%); transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; width: 120px; height: 120px; border: 0; border-radius: 50%; background: radial-gradient(circle, #182c3980, transparent 70%); color: #fff9e8; cursor: pointer; font: 10px/1.5 var(--font-body); letter-spacing: .15em; opacity: .6; transition: opacity .3s; }
-.signal-touch { width: clamp(170px, 29vw, 440px); height: 62%; background: none; }
-.signal-touch:hover, .signal-touch:focus-visible { opacity: 1; }
-.signal-touch-cross { font: 28px/1 var(--font-body); font-weight: 200; }
 .signal-specimen { position: absolute; z-index: 3; left: var(--signal-x, 72%); top: 81%; transform: translateX(-50%); color: #d7caae99; white-space: nowrap; font: 8px/1.5 var(--font-body); letter-spacing: .15em; display: flex; align-items: center; gap: 10px; }
 .signal-specimen i { display: block; width: 32px; height: 1px; background: #c8b48b55; }
 .signal-footer { bottom: 27px; font: 9px/1.6 var(--font-body); letter-spacing: .12em; color: #ded9cba3; }
@@ -79,7 +74,6 @@
   .signal-email { font-size: 10px; margin-top: 10px; }
   .signal-word { top: 45%; left: -10%; font-size: 27vw; }
   .signal-specimen { top: 86%; font-size: 7px; }
-  .signal-touch { width: 52%; height: 34%; font-size: 8px; }
   .signal-footer { bottom: 22px; gap: 12px; font-size: 8px; }
   .signal-chapters { gap: 9px; }
   .signal-chapters b { width: 15px; }
@@ -92,6 +86,6 @@
   .signal-copy { position: relative; top: auto; left: auto; width: 100%; }
   .signal-copy--intro, .signal-copy--making { display: none; }
   .signal-copy--connect { opacity: 1; visibility: visible; }
-  .signal-word, .signal-touch, .signal-specimen, .signal-scroll { display: none; }
+  .signal-word, .signal-specimen, .signal-scroll { display: none; }
   .signal-art { transition: none; }
 }

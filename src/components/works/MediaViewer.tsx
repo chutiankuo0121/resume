@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { Work } from "@/content/works";
 import AudioPlayer from "./AudioPlayer";
+import ProgressiveImage from "./ProgressiveImage";
+import { portfolioMedia } from "@/content/works/gallery";
 
 type MediaWork = Extract<Work, { kind: "image" | "video" | "audio" }>;
 
@@ -10,13 +12,14 @@ export default function MediaViewer({ work, onClose }: { work: MediaWork; onClos
   const surface = useRef<HTMLDivElement>(null);
   const motion = useRef<Animation | null>(null);
   const closing = useRef(false);
+  const media = portfolioMedia.find(item => item.id === work.id && item.main);
 
   useEffect(() => {
     const element = dialog.current!;
     element.showModal();
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
       motion.current = surface.current!.animate([
-        { opacity: 0, transform: "scale(.96)", filter: "blur(8px)" },
+        { opacity: work.kind === "image" ? 1 : 0, transform: "scale(.96)", filter: work.kind === "image" ? "none" : "blur(8px)" },
         { opacity: 1, transform: "none", filter: "blur(0px)" },
       ], { duration: 420, easing: "cubic-bezier(.2,.8,.2,1)" });
     }
@@ -57,7 +60,9 @@ export default function MediaViewer({ work, onClose }: { work: MediaWork; onClos
       <div ref={surface} className="media-viewer-content" data-kind={work.kind}>
         {work.kind === "image" ? (
           <button className="media-viewer-image" type="button" onClick={close} aria-label="关闭图片预览">
-            <img src={work.images[0]?.src ?? work.cover} alt={work.alt} decoding="async" />
+            <ProgressiveImage key={work.id} src={work.images[0]?.src ?? work.cover}
+              preview={work.cover} alt={work.alt}
+              width={media?.textureWidth ?? 1600} height={media?.textureHeight ?? 1000} />
           </button>
         ) : work.kind === "video" ? (
           <div className="media-viewer-video">

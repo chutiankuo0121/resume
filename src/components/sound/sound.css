@@ -52,7 +52,6 @@
 @media (max-width: 799px) {
   .axis-bar .sound-toggle { margin-left: auto; order: 1; }
   .axis-bar:has(.sound-toggle) .axis-link, .axis-bar:has(.sound-toggle) .axis-fill { padding: 0 9px; }
-  .axis-bar:has(.sound-toggle) .axis-link { max-width: 40px; }
-  .axis-bar:has(.sound-toggle) .axis-link[aria-current], .axis-bar:has(.sound-toggle) .axis-link:focus-visible { max-width: 150px; }
+  .axis-bar:has(.sound-toggle) .axis-link { --axis-collapsed-size: 40px; }
   .sound-toggle--floating { left: 12px; bottom: 18px; }
 }

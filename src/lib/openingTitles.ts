@@ -1,13 +1,13 @@
 import { gsap } from "gsap";
 
-// 原有镜头结束后追加圆形揭幕；每逻辑单位对应的滚动距离保持不变。
+// 圆形揭幕与退出运镜末段重叠；每逻辑单位对应的滚动距离保持不变。
 export const OPENING = {
   crystalStart: 0.5,
   crystalReading: 1.02,
   exitStart: 2.1,
-  portalStart: 2.6,
-  portalDuration: .34,
-  duration: 3,
+  portalStart: 2.36,
+  portalDuration: .2,
+  duration: 2.6,
 } as const;
 
 export function addOpeningTitles(timeline: gsap.core.Timeline, stage: HTMLElement) {

@@ -1,11 +1,12 @@
 /* 首页画布先固定在加载遮罩下，C 字窗口打开后恢复原粘性布局。 */
 html:has(.astra[data-loading="true"]) { overflow: hidden; }
+.astra[data-loading="true"] > .journey { z-index: 20; }
 .astra[data-loading="true"] .experience {
   position: fixed;
   inset: 0;
   width: 100%;
   z-index: 20;
-  background: #f8f8f7;
+  background: #000;
 }
 .astra[data-loading="true"] > .chapter-axis,
 .astra[data-loading="true"] > .page-scrollbar {
@@ -17,14 +18,8 @@ html:has(.astra[data-loading="true"]) { overflow: hidden; }
   z-index: 30;
   touch-action: none;
   overscroll-behavior: none;
-  background: #000;
-}
-.prelude-canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
+  background: transparent;
+  backdrop-filter: blur(var(--loading-blur, 0px));
 }
 .prelude-copy {
   position: absolute;
@@ -74,8 +69,7 @@ html:has(.astra[data-loading="true"]) { overflow: hidden; }
   padding: 8px 28px;
   background: transparent;
 }
-.loading-prelude[data-failed="true"] .prelude-copy,
-.loading-prelude[data-failed="true"] .prelude-canvas { visibility: hidden; }
+.loading-prelude[data-failed="true"] .prelude-copy { visibility: hidden; }
 /* 揭幕完成才让身份文字入场，雾场先到，文字后到。 */
 .experience.is-ready .opening-titles { animation: opening-after-loading 1s ease-out both; }
 @keyframes opening-after-loading {

@@ -63,9 +63,6 @@ export default function Contact({
           </div>
           <a className="signal-email" href={`mailto:${profile.email}`}>{profile.email}</a>
         </div>
-        <button className="signal-touch" type="button" aria-label="触碰晶石，发出光点信号">
-          <span className="signal-touch-cross" aria-hidden="true">＋</span><span>触碰晶石</span>
-        </button>
         <div className="signal-specimen" aria-hidden="true"><span>FIG. 01</span><i /> THE SHAPE OF POSSIBILITY</div>
         <footer className="signal-footer">
           <div className="signal-chapters" aria-label="联系页阅读进度">

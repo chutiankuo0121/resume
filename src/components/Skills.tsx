@@ -4,9 +4,9 @@ import dynamic from "next/dynamic";
 import { useWorkDetail } from "./works/useWorkDetail";
 import { SkillArtwork } from "./SkillArtwork";
 import { cardOrigin, type CardOrigin } from "@/lib/cardMotion";
-const SkillDetail = dynamic(() => import("./SkillDetail"));
 import type { PortalPresentation } from "@/lib/hub/presentation";
 
+const SkillDetail = dynamic(() => import("./SkillDetail"));
 
 export default function Skills({
   presentation,
@@ -20,8 +20,9 @@ export default function Skills({
   const [active, setActive] = useState<Skill | null>(null);
   const detailOrigin = useRef<CardOrigin | undefined>(undefined);
   const { detail, error: detailError, open, clear } = useWorkDetail();
-  const [staticMode, setStaticMode] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -32,6 +33,7 @@ export default function Skills({
     async function load() {
       if (loading || control || motion.matches || cancelled) return;
       loading = true;
+      setError("");
       const signal = abort.signal;
       try {
         const { createSkillsScene } = await import("@/lib/skills/createScene");
@@ -53,7 +55,7 @@ export default function Skills({
       } catch (error) {
         if (!cancelled && !signal.aborted) {
           console.error("Skills scene could not initialize", error);
-          setStaticMode(true);
+          setError("技能画面加载失败，请刷新页面重试。");
         }
       } finally {
         loading = false;
@@ -73,7 +75,8 @@ export default function Skills({
       control?.dispose();
       control = undefined;
       setReady(false);
-      setStaticMode(motion.matches);
+      setError("");
+      setReducedMotion(motion.matches);
       if (
         !motion.matches &&
         root.current!.getBoundingClientRect().top < window.innerHeight + 1600
@@ -100,7 +103,7 @@ export default function Skills({
     if (id)
       root.current
         ?.querySelector<HTMLButtonElement>(
-          `${staticMode ? ".skill-static-card" : ".skills-hit"}[data-skill="${id}"]`,
+          `${reducedMotion ? ".skill-static-card" : ".skills-hit"}[data-skill="${id}"]`,
         )
         ?.focus({ preventScroll: true });
   }
@@ -110,8 +113,8 @@ export default function Skills({
       id="skills"
       ref={root}
       inert={!enabled}
-      data-lenis-prevent={staticMode ? true : undefined}
-      className={`skills ${staticMode ? "skills--static" : ""}`}
+      data-lenis-prevent={reducedMotion ? true : undefined}
+      className={`skills ${reducedMotion ? "skills--static" : ""}`}
       aria-label="Skills"
     >
       <div className="skills-stage">
@@ -128,11 +131,12 @@ export default function Skills({
             </button>
           ))}
         </nav>
-        {!ready && !staticMode && (
+        {!ready && !reducedMotion && !error && (
           <p className="skills-loading" role="status">
             Gathering light…
           </p>
         )}
+        {error && <p className="skills-loading" role="alert">{error}</p>}
         <button
           className="skills-hit"
           aria-label={`Explore ${skills[0].title}`}
@@ -147,7 +151,7 @@ export default function Skills({
             }
           }}
         />
-        {staticMode && (
+        {reducedMotion && (
           <div className="skills-static-grid">
             {skills.map((skill) => (
               <button

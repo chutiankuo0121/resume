@@ -10,34 +10,45 @@ type Props = {
 };
 
 const chapters = [
-  { id: "intro", number: "01/", label: "Prologue" },
-  { id: "crystal", number: "02/", label: "Crystal" },
-  { id: "career", number: "03/", label: "Journey" },
-  { id: "explore", number: "04/", label: "Explore" },
-  { id: "contact", number: "05/", label: "Contact" },
+  { id: "intro", number: "01/", label: "序章" },
+  { id: "crystal", number: "02/", label: "晶石" },
+  { id: "career", number: "03/", label: "经历" },
+  { id: "explore", number: "04/", label: "探索" },
+  { id: "contact", number: "05/", label: "联系" },
 ] as const;
+
+function AxisText({ text }: { text: string }) {
+  return (
+    <span className="axis-text">
+      {Array.from(text, (character, index) => (
+        <span className="axis-glyph" key={index}>{character}</span>
+      ))}
+    </span>
+  );
+}
 
 export default function ChapterAxis({ ref, current, onNavigate, soundHidden }: Props) {
   return (
-    <nav ref={ref} className="chapter-axis" aria-label="Chapters">
+    <nav ref={ref} className="chapter-axis" aria-label="章节导航">
       <div className="axis-bar">
-        <span className="axis-title">Index</span>
+        <span className="axis-title"><AxisText text="目录" /></span>
         {!soundHidden && <SoundToggle />}
         <ol className="axis-items">
           {chapters.map(({ id, number, label }) => (
             <li className="axis-item" key={id}>
               <button
                 className="axis-link"
-                aria-label={`Go to ${label}`}
+                data-chapter={id}
+                aria-label={`前往${label}`}
                 aria-current={current === id ? "step" : undefined}
                 onClick={() => onNavigate(id)}
               >
                 <span className="axis-number">{number}</span>
-                <span className="axis-label">{label}</span>
+                <span className="axis-label"><AxisText text={label} /></span>
                 {/* 反色覆盖层与正文同位置，遮罩只显示当前章节已经走过的部分。 */}
                 <span className="axis-fill" aria-hidden="true">
                   <span className="axis-number">{number}</span>
-                  <span className="axis-label">{label}</span>
+                  <span className="axis-label"><AxisText text={label} /></span>
                 </span>
               </button>
             </li>

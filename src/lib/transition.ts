@@ -4,6 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCareerTimeline } from "./createCareerTimeline";
 import { addOpeningTitles, OPENING } from "./openingTitles";
 import { createChapterHandoffs } from "./chapters/createHandoffs";
+import { axisChapters, createChapterAxis } from "./chapters/createChapterAxis";
 
 export type Chapter = "intro" | "crystal" | "career" | "explore" | "contact";
 
@@ -76,13 +77,14 @@ export function createTransitionTimeline(
     )
     .to(state, { cameraTravel: 1, duration: 0.5 }, CRYSTAL_START)
     .to(state, { lightReveal: 1, duration: 0.32, ease: "sine.inOut" }, 0.58)
-    // 先走完原始退出运镜和黑场，再独立启动圆形揭幕。
+    // 晶石只剩视野边缘时开始破洞，与原始退出运镜的末段重叠。
     .to(state, { focus: 1, duration: 0.18, ease: "sine.inOut" }, OPENING.exitStart)
     .to(state, { exit: 1, duration: 0.48 }, OPENING.exitStart)
     .to(state, { portalReveal: 1, duration: OPENING.portalDuration }, OPENING.portalStart);
   const disposeTitles = addOpeningTitles(timeline, stage);
   let chapter: Chapter | undefined;
   let trigger: ScrollTrigger | undefined;
+  const chapterAxis = createChapterAxis(axis);
   function publish() {
     handoffs.update();
     const portal = !media.matches && state.exit > 0;
@@ -104,11 +106,11 @@ export function createTransitionTimeline(
       "--scroll-hint-opacity",
       String(hintVisibility * (1 - state.focus)),
     );
-    const { explore: exploreStart, contact: contactStart } = handoffs.positions;
+    const { entryStart, explore: exploreStart, exitStart, contact: contactStart } = handoffs.positions;
     const inContact = window.scrollY >= contactStart - 1;
     const inExplore = window.scrollY >= exploreStart - 1;
     const inCareer = window.scrollY >= careerStart - 1;
-    const next = inContact
+    const settledChapter = inContact
       ? "contact"
       : inExplore
         ? "explore"
@@ -117,33 +119,27 @@ export function createTransitionTimeline(
           : state.progress * DURATION < CRYSTAL_START
             ? "intro"
             : "crystal";
-    const progress = inContact
-      ? gsap.utils.clamp(
-          0,
-          1,
-          (window.scrollY - contactStart) /
-            Math.max(1, contactRoot.offsetHeight - window.innerHeight),
-        )
-      : inExplore
-        ? gsap.utils.clamp(
-            0,
-            1,
-            (window.scrollY - exploreStart) /
-              Math.max(1, exploreRoot.offsetHeight - window.innerHeight),
-          )
-        : inCareer
-          ? gsap.utils.clamp(
-              0,
-              1,
-              (window.scrollY - careerStart) /
-                Math.max(1, careerRoot.offsetHeight - window.innerHeight),
-            )
-          : next === "intro"
-            ? (state.progress * DURATION) / CRYSTAL_START
-            : (state.progress * DURATION - CRYSTAL_START) /
-              (DURATION - CRYSTAL_START);
-    // 连续进度直接写 CSS，仅跨章节时更新 React，避免滚动中反复渲染组件。
-    axis.style.setProperty("--chapter-progress", String(progress));
+    const clamp = gsap.utils.clamp(0, 1);
+    const range = (start: number, end: number) => clamp((window.scrollY - start) / Math.max(1, end - start));
+    // Use the scene's own camera/portal progress and the exact chapter handoff
+    // ranges. Adjacent sections share one unit of expansion at every frame.
+    const crystal = state.cameraTravel;
+    const journey = state.portalReveal;
+    const explore = range(entryStart, exploreStart);
+    const contact = range(exitStart, contactStart);
+    const openness = media.matches
+      ? axisChapters.map(id => Number(id === settledChapter))
+      : [1 - crystal, crystal * (1 - journey), journey * (1 - explore), explore * (1 - contact), contact];
+    const time = state.progress * DURATION;
+    chapterAxis.update(openness, [
+      clamp(time / CRYSTAL_START),
+      clamp((time - CRYSTAL_START) / (OPENING.portalStart - CRYSTAL_START)),
+      range(careerStart, entryStart),
+      range(exploreStart, exitStart),
+      range(contactStart, contactStart + contactRoot.offsetHeight - window.innerHeight),
+    ]);
+    // aria-current follows the dominant chapter; it no longer triggers animation.
+    const next = axisChapters[openness.indexOf(Math.max(...openness))];
     if (next !== chapter) {
       chapter = next;
       onChapterChange(next);
@@ -260,6 +256,7 @@ export function createTransitionTimeline(
       career.dispose();
       ScrollTrigger.removeEventListener("refresh", handoffs.refresh);
       handoffs.dispose();
+      chapterAxis.dispose();
       root.removeAttribute("data-crystal-exit");
       careerRoot.classList.remove("career-arriving");
       careerRoot.style.removeProperty("--arrival-y");

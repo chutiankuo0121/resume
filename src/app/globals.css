@@ -54,8 +54,8 @@ button:focus-visible {
 }
 .journey {
   position: relative;
-  /* 100 + 550 × 3：追加揭幕距离，保持原有黑洞和晶石镜头的滚动速度。 */
-  height: 1750svh;
+  /* 100 + 550 × 2.6：揭幕并入运镜末段，前面各镜头的滚动速度保持不变。 */
+  height: 1530svh;
 }
 .astra {
   isolation: isolate;
@@ -175,35 +175,37 @@ button:focus-visible {
   text-transform: uppercase;
 }
 .axis-link {
+  --axis-open: 0;
+  --axis-collapsed-size: 55px;
+  --axis-expanded-size: 160px;
   position: relative;
   overflow: hidden;
-  max-width: 55px;
+  width: var(--axis-expanded-size);
+  max-width: calc(var(--axis-collapsed-size) + (var(--axis-expanded-size) - var(--axis-collapsed-size)) * var(--axis-open));
   border: 0;
   background: transparent;
-  transition:
-    max-width 0.8s ease-in-out,
-    background-color 0.6s ease-out;
+  transition: background-color 0.2s ease-out;
 }
 .axis-link:hover {
   background: rgb(238 238 238 / 13%);
-}
-.axis-link[aria-current],
-.axis-link:hover,
-.axis-link:focus-visible {
-  max-width: 500px;
 }
 .axis-number,
 .axis-label {
   white-space: nowrap;
 }
 .axis-label {
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  width: max-content;
+  opacity: var(--axis-open);
 }
-.axis-link[aria-current] .axis-label,
-.axis-link:hover .axis-label,
-.axis-link:focus-visible .axis-label {
-  opacity: 1;
+.axis-text {
+  display: inline-flex;
+  gap: 0.2em;
+}
+.axis-glyph {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  text-align: center;
 }
 .axis-fill {
   position: absolute;
@@ -211,7 +213,7 @@ button:focus-visible {
   width: 100%;
   color: #171717;
   background: #eee;
-  opacity: 0;
+  opacity: var(--axis-open);
   pointer-events: none;
   mask-image: linear-gradient(
     270deg,
@@ -222,9 +224,6 @@ button:focus-visible {
   );
   mask-position: calc(-100% * var(--chapter-progress));
   mask-size: 200%;
-}
-.axis-link[aria-current] .axis-fill {
-  opacity: 1;
 }
 
 /* 原站 ScrollIndicator 的双份文字循环与竖线；固定尺寸替代 vw 比例。
@@ -312,6 +311,10 @@ button:focus-visible {
   .axis-title {
     padding: 0 10px 0 16px;
   }
+  /* 整条轴顺时针旋转，汉字反向旋转后沿侧栏逐字直立排列。 */
+  .axis-glyph {
+    transform: rotate(-90deg);
+  }
 }
 /* 窄屏顶部横轴只展开当前章节；五章使用相同的紧凑索引。 */
 @media (max-width: 799px) {
@@ -319,15 +322,11 @@ button:focus-visible {
     top: 53px;
   }
   .axis-link {
-    max-width: 48px;
+    --axis-collapsed-size: 48px;
   }
   .axis-link,
   .axis-fill {
     padding: 0 12px;
-  }
-  .axis-link[aria-current],
-  .axis-link:focus-visible {
-    max-width: 160px;
   }
   .axis-title {
     display: none;
@@ -335,7 +334,7 @@ button:focus-visible {
 }
 @media (max-width: 699px) {
   .journey {
-    height: 1480svh;
+    height: 1296svh;
   }
 }
 .reduced-journey {

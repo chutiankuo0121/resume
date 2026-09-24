@@ -1,128 +1,215 @@
+import * as THREE from "three";
+import { fullscreenVertex, blurFragment } from "../shaders/composite";
+import { portalCompositeFragment } from "../shaders/elimarExit";
+import { portalLightGLSL, portalDustFragment } from "../shaders/portalLight";
 import { LOADING_PRELUDE } from "./config";
+import type { LoadingState } from "./progress";
 
-/** 独立的二维遮罩，不增加 WebGL 上下文，也不复制首页黑洞的绘制逻辑。 */
-export function createPreludeDrawing(canvas: HTMLCanvasElement) {
-  const context = canvas.getContext("2d")!;
-  const { barLength, strokeWidth, arcSweep } = LOADING_PRELUDE;
-  let width = 1, height = 1, dpr = 1;
-  let progress = 0, morph = 0, zoom = 0, reduced = false, time = 0;
-
-  function draw() {
-    context.setTransform(dpr, 0, 0, dpr, 0, 0);
-    context.clearRect(0, 0, width, height);
-    context.fillStyle = "#000";
-    context.fillRect(0, 0, width, height);
-    canvas.style.opacity = String(reduced ? 1 - zoom : 1);
-
-    // 小屏仍保留足够大的进度条；横竖屏都按对角线计算最终覆盖范围。
-    const unit = Math.min(1, width / 640, height / 420);
-    const radius = barLength / arcSweep;
-    const focusX = -(1 - Math.cos(arcSweep / 2)) * radius / 2;
-    const travel = reduced ? 0 : zoom ** 3;
-    const endScale = (Math.hypot(width, height) + Math.abs(focusX) * unit * 2)
-      / (strokeWidth * unit) * 1.15;
-    const scale = 1 + (endScale - 1) * travel;
-
-    context.save();
-    context.translate(width / 2 - focusX * unit * (scale - 1), height / 2);
-    context.scale(unit * scale, unit * scale);
-    context.lineWidth = strokeWidth;
-    context.lineCap = "round";
-    context.lineJoin = "round";
-
-    if (morph === 0) {
-      const barWidth = barLength + strokeWidth;
-      context.beginPath();
-      context.roundRect(-barWidth / 2, -strokeWidth / 2,
-        barWidth, strokeWidth, strokeWidth / 2);
-      context.fillStyle = "#303030";
-      context.fill();
-      // 外轮廓与填充前端都保留圆角；0% 不露白点，100% 与形变首帧完全重合。
-      context.save();
-      context.clip();
-      if (progress > 0) {
-        context.beginPath();
-        context.roundRect(-barWidth / 2, -strokeWidth / 2,
-          barWidth * progress, strokeWidth, strokeWidth / 2);
-        context.fillStyle = "#fff";
-        context.fill();
-      }
-      context.restore();
-    } else {
-      // 保持弧长不变，只增加曲率：直线自然弯成开口向右的 C，没有换字或缩成细线。
-      const sweep = arcSweep * morph;
-      const bendRadius = barLength / sweep;
-      const offset = (1 - Math.cos(sweep / 2)) * bendRadius / 2;
-      context.rotate(-Math.PI / 2 * morph);
-      context.beginPath();
-      for (let i = 0; i <= 96; i++) {
-        const angle = (i / 96 - 0.5) * sweep;
-        const x = Math.sin(angle) * bendRadius;
-        const y = (1 - Math.cos(angle)) * bendRadius - offset;
-        if (i === 0) context.moveTo(x, y);
-        else context.lineTo(x, y);
-      }
-      // 笔画先挖穿黑幕，再逐步撤去白墨。镜头推进后窗口覆盖屏幕，直接交给原场景。
-      context.strokeStyle = "#fff";
-      if (zoom > 0 && !reduced) {
-        context.globalCompositeOperation = "destination-out";
-        context.stroke();
-        context.globalCompositeOperation = "source-over";
-        const fade = Math.min(1, zoom / 0.75);
-        context.globalAlpha = 1 - fade * fade * (3 - 2 * fade);
-      }
-      context.stroke();
-    }
-    if (!reduced && zoom < .52) {
-      const fade = 1 - Math.min(1, zoom / .52);
-      for (let i = 0; i < 34; i++) {
-        const t = (i + .5) / 34;
-        if (morph === 0 && t > progress) continue;
-        const sweep = arcSweep * Math.max(morph, .0001);
-        const bend = barLength / sweep;
-        const offset = (1 - Math.cos(sweep / 2)) * bend / 2;
-        const angle = (t - .5) * sweep;
-        // 与进度条 / C 形笔画共用同一条参数曲线。
-        const x = morph === 0 ? (t - .5) * barLength : Math.sin(angle) * bend;
-        const y = morph === 0 ? 0 : (1 - Math.cos(angle)) * bend - offset;
-        const px = x;
-        const py = y;
-        const blink = Math.pow(.5 + .5 * Math.sin(time * 2.2 + i * 2.4), 5);
-        const size = (i % 7 === 0 ? 2.5 : 1.2) * blink;
-        context.fillStyle = `rgba(255,255,255,${blink * fade * .9})`;
-        context.beginPath();
-        context.moveTo(px, py - size);
-        context.lineTo(px + size, py);
-        context.lineTo(px, py + size);
-        context.lineTo(px - size, py);
-        context.closePath();
-        context.fill();
-      }
-    }
-    context.restore();
+// Both the ink mask and emission use this exact contour, including its moving grain.
+const contourGLSL = /* glsl */`
+  uniform vec2 uViewport, uResolution, uOrigin;
+  uniform float uTime, uScale, uMorph, uZoom, uProgress, uReduced;
+  const float BAR = ${LOADING_PRELUDE.barLength.toFixed(1)};
+  const float STROKE = ${LOADING_PRELUDE.strokeWidth.toFixed(1)};
+  const float SWEEP = ${LOADING_PRELUDE.arcSweep};
+  ${portalLightGLSL}
+  vec2 rotatePoint(vec2 p, float angle) {
+    float c=cos(angle), s=sin(angle);
+    return vec2(c*p.x-s*p.y,s*p.x+c*p.y);
   }
-
-  function resize() {
-    width = canvas.clientWidth;
-    height = canvas.clientHeight;
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.round(width * dpr));
-    canvas.height = Math.max(1, Math.round(height * dpr));
-    draw();
+  float roundedBar(vec2 p, float progress) {
+    float w=max(.001,(BAR+STROKE)*progress);
+    float r=min(STROKE*.5,w*.5);
+    vec2 center=vec2(-(BAR+STROKE)*.5+w*.5,0.);
+    vec2 q=abs(p-center)-vec2(w*.5,STROKE*.5)+r;
+    return length(max(q,0.))+min(max(q.x,q.y),0.)-r;
   }
-  resize();
-  const observer = new ResizeObserver(resize);
-  observer.observe(canvas);
+  float strokeDistance(vec2 p) {
+    if(uMorph<.002) return roundedBar(p,uProgress);
+    p=rotatePoint(p,1.570796327*uMorph);
+    float sweep=SWEEP*uMorph, radius=BAR/sweep;
+    float offset=(1.-cos(sweep*.5))*radius*.5;
+    vec2 fromCenter=p-vec2(0.,radius-offset);
+    float angle=clamp(atan(fromCenter.x,-fromCenter.y),-sweep*.5,sweep*.5);
+    vec2 nearest=vec2(sin(angle),-cos(angle))*radius;
+    return length(fromCenter-nearest)-STROKE*.5;
+  }
+  float rimDistance(vec2 pixel) {
+    float d=strokeDistance((pixel-uOrigin)/uScale)*uScale;
+    vec2 q=pixel/uViewport.y;
+    float wave=(field(q*18.+vec2(uTime*.12,-uTime*.09))-.5)*2.8;
+    float grain=(field(q*110.+uTime*.04)-.5)*1.4;
+    return d+(wave+grain)*mix(.65,2.5,smoothstep(0.,.6,uZoom));
+  }
+`;
 
+/** Uses the opening renderer: no extra WebGL context, and no scaled bitmap stars. */
+export function createPreludeDrawing(renderer: THREE.WebGLRenderer, background: THREE.Texture) {
+  const target = () => new THREE.WebGLRenderTarget(1, 1, {
+    type: THREE.HalfFloatType, depthBuffer: false,
+    minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter,
+  });
+  const frame = target(), emission = target(), blurX = target(), bloom = target();
+  const uniforms = {
+    uViewport: { value: new THREE.Vector2(1, 1) },
+    uResolution: { value: new THREE.Vector2(1, 1) },
+    uOrigin: { value: new THREE.Vector2() },
+    uTime: { value: 0 }, uScale: { value: 1 }, uMorph: { value: 0 },
+    uZoom: { value: 0 }, uProgress: { value: 0 }, uReduced: { value: 0 },
+    uBackground: { value: background },
+  };
+  const ink = new THREE.ShaderMaterial({
+    name: "PreludeStarMask", uniforms, vertexShader: fullscreenVertex,
+    depthTest: false, depthWrite: false,
+    fragmentShader: /* glsl */`
+      varying vec2 vUv;
+      uniform sampler2D uBackground;
+      ${contourGLSL}
+      void main(){
+        vec2 pixel=vec2(vUv.x,1.-vUv.y)*uViewport;
+        float d=rimDistance(pixel);
+        float fill=1.-smoothstep(-.8,.8,d);
+        fill*=step(.00001,uProgress);
+        float track=uMorph<.002 ? 1.-smoothstep(-.8,.8,
+          roundedBar((pixel-uOrigin)/uScale,1.)*uScale) : 0.;
+        vec3 color=vec3(track*.075);
+        vec3 picture=texture2D(uBackground,vUv).rgb;
+        // The white stroke becomes a window; its full luminous perimeter stays visible.
+        float opening=smoothstep(0.,.68,uZoom);
+        color=mix(color,mix(vec3(.82),picture,opening),fill);
+        if(uReduced>.5) color=mix(color,picture,uZoom);
+        gl_FragColor=vec4(color,1.);
+      }
+    `,
+  });
+  const edge = new THREE.ShaderMaterial({
+    name: "PreludeStarEmission", uniforms, vertexShader: fullscreenVertex,
+    depthTest: false, depthWrite: false,
+    fragmentShader: /* glsl */`
+      varying vec2 vUv;
+      ${contourGLSL}
+      void main(){
+        vec2 pixel=vec2(vUv.x,1.-vUv.y)*uViewport;
+        float d=rimDistance(pixel);
+        float strength=smoothstep(0.,.02,uProgress)*(1.-uReduced);
+        vec2 q=(vUv-.5)*vec2(uViewport.x/uViewport.y,1.);
+        vec3 light=vec3(0.);
+        if(abs(d)<uViewport.y*.14 && strength>0.)
+          light=portalLight(d/uViewport.y,strength,vUv,q,0.);
+        if(uMorph<.002 && uReduced<.5){
+          float track=roundedBar((pixel-uOrigin)/uScale,1.)*uScale;
+          light+=portalLight(track/uViewport.y,.12*(1.-uProgress),vUv,q,0.);
+        }
+        gl_FragColor=vec4(light,1.);
+      }
+    `,
+  });
+  const geometry = new THREE.PlaneGeometry(2, 2);
+  const scene = new THREE.Scene(), lightScene = new THREE.Scene();
+  const camera = new THREE.Camera();
+  const quad = new THREE.Mesh(geometry, ink);
+  scene.add(quad);
+  lightScene.add(new THREE.Mesh(geometry, edge));
+  const seeds = new Float32Array(720 * 4);
+  let seed = 91273;
+  for (let i = 0; i < seeds.length; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    seeds[i] = seed / 4294967296;
+  }
+  const dustGeometry = new THREE.BufferGeometry();
+  dustGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(720 * 3), 3));
+  dustGeometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 4));
+  const dustMaterial = new THREE.ShaderMaterial({
+    name: "PreludeDriftingStars", uniforms: { ...uniforms, uDpr: { value: 1 } },
+    transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */`
+      attribute vec4 aSeed;
+      uniform float uDpr;
+      varying float vAlpha,vFlash;
+      ${contourGLSL}
+      void main(){
+        float life=fract(uTime/(3.5+aSeed.z*4.)+aSeed.y);
+        float side=aSeed.w>.43?1.:-1.;
+        float t=aSeed.x;
+        vec2 p,normal;
+        if(uMorph<.002){
+          float w=(BAR+STROKE)*uProgress;
+          p=vec2(-(BAR+STROKE)*.5+min(15.,w*.5)+t*max(0.,w-STROKE),0.);
+          normal=vec2(0.,side);
+        }else{
+          float sweep=SWEEP*uMorph, radius=BAR/sweep;
+          float angle=(t-.5)*sweep;
+          float offset=(1.-cos(sweep*.5))*radius*.5;
+          p=vec2(sin(angle)*radius,(1.-cos(angle))*radius-offset);
+          normal=vec2(-sin(angle),cos(angle))*side;
+          p=rotatePoint(p,-1.570796327*uMorph);
+          normal=rotatePoint(normal,-1.570796327*uMorph);
+        }
+        vec2 pos=uOrigin+(p+normal*STROKE*.5)*uScale;
+        // Drift remains in CSS pixels while the C grows around it.
+        float spread=10.+pow(aSeed.z,2.)*98.;
+        pos+=normal*(3.+life*spread);
+        pos+=vec2(normal.y,-normal.x)*sin(uTime*.7+aSeed.y*30.)*7.*life;
+        float blink=.5+.5*sin(uTime*(1.2+aSeed.z*2.4)+aSeed.x*60.);
+        vFlash=pow(blink,10.)*step(.92,aSeed.w);
+        vAlpha=smoothstep(0.,.12,life)*(1.-smoothstep(.45,1.,life))
+          *(.28+.72*blink)*(.5+aSeed.z*.5)*smoothstep(0.,.08,uProgress)*(1.-uReduced);
+        vAlpha*=min(1.,(BAR+STROKE)*uProgress*uScale/uViewport.x);
+        gl_Position=vec4(pos.x/uViewport.x*2.-1.,1.-pos.y/uViewport.y*2.,0.,1.);
+        gl_PointSize=(1.2+aSeed.z*1.9+vFlash*5.)*uDpr;
+      }
+    `,
+    fragmentShader: portalDustFragment,
+  });
+  const dust = new THREE.Points(dustGeometry, dustMaterial);
+  dust.frustumCulled = false; dust.renderOrder = 1; lightScene.add(dust);
+  const blur = new THREE.ShaderMaterial({
+    vertexShader: fullscreenVertex, fragmentShader: blurFragment, depthTest: false, depthWrite: false,
+    uniforms: { uInput: { value: emission.texture }, uStep: { value: new THREE.Vector2() } },
+  });
+  const composite = new THREE.ShaderMaterial({
+    vertexShader: fullscreenVertex, fragmentShader: portalCompositeFragment, depthTest: false, depthWrite: false,
+    uniforms: { uFrame: { value: frame.texture }, uEmission: { value: emission.texture }, uBloom: { value: bloom.texture } },
+  });
+  let width = 1, height = 1;
+  function pass(material: THREE.ShaderMaterial, output: THREE.WebGLRenderTarget | null) {
+    quad.material = material;
+    renderer.setRenderTarget(output); renderer.clear(); renderer.render(scene, camera);
+  }
   return {
-    render(nextProgress: number, nextMorph: number, nextZoom: number, reduceMotion: boolean, seconds: number) {
-      progress = nextProgress;
-      morph = nextMorph;
-      zoom = nextZoom;
-      reduced = reduceMotion;
-      time = seconds;
-      draw();
+    resize(w: number, h: number, dpr: number) {
+      width = w; height = h;
+      uniforms.uViewport.value.set(w, h); uniforms.uResolution.value.set(w * dpr, h * dpr);
+      frame.setSize(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
+      for (const buffer of [emission, blurX, bloom]) buffer.setSize(Math.max(1, Math.round(w * dpr * .5)), Math.max(1, Math.round(h * dpr * .5)));
+      dustMaterial.uniforms.uDpr.value = dpr * .5;
+      dustGeometry.setDrawRange(0, width < 600 ? 360 : 720);
     },
-    dispose() { observer.disconnect(); },
+    render(state: LoadingState, reduced: boolean, time: number) {
+      const { barLength, strokeWidth, arcSweep } = LOADING_PRELUDE;
+      const unit = Math.min(1, width / 640, height / 420);
+      const focusX = -(1 - Math.cos(arcSweep / 2)) * (barLength / arcSweep) / 2;
+      const endScale = (Math.hypot(width, height) + Math.abs(focusX) * unit * 2) / (strokeWidth * unit) * 1.15;
+      const zoom = reduced ? 0 : state.reveal;
+      const scale = 1 + (endScale - 1) * zoom ** 3;
+      uniforms.uOrigin.value.set(width / 2 - focusX * unit * (scale - 1), height / 2);
+      uniforms.uScale.value = unit * scale;
+      uniforms.uTime.value = reduced ? 0 : time;
+      uniforms.uMorph.value = state.morph; uniforms.uZoom.value = state.reveal;
+      uniforms.uProgress.value = state.progress; uniforms.uReduced.value = reduced ? 1 : 0;
+      renderer.setClearColor(0, 1);
+      pass(ink, frame);
+      renderer.setRenderTarget(emission); renderer.clear(); renderer.render(lightScene, camera);
+      blur.uniforms.uInput.value = emission.texture;
+      blur.uniforms.uStep.value.set(2.4 / emission.width, 0); pass(blur, blurX);
+      blur.uniforms.uInput.value = blurX.texture;
+      blur.uniforms.uStep.value.set(0, 2.4 / emission.height); pass(blur, bloom);
+      pass(composite, null);
+    },
+    dispose() {
+      for (const buffer of [frame, emission, blurX, bloom]) buffer.dispose();
+      for (const material of [ink, edge, dustMaterial, blur, composite]) material.dispose();
+      geometry.dispose(); dustGeometry.dispose();
+    },
   };
 }

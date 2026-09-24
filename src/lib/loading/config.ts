@@ -6,5 +6,5 @@ export const LOADING_PRELUDE = {
   completeHold: 0.12,
   morphDuration: 0.86,
   letterHold: 0.18,
-  zoomDuration: 1.05,
+  zoomDuration: 1.55,
 } as const;

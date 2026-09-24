@@ -28,7 +28,7 @@ const vertex = /* glsl */`
 const fragment = /* glsl */`
   varying vec2 vUv;
   uniform sampler2D uMap;
-  uniform float uTime, uKind, uCut, uPulse, uHover, uOpacity, uPart;
+  uniform float uTime, uKind, uCut, uPart;
   bool inBox(vec2 p, vec4 box) {
     return p.x >= box.x && p.y >= box.y && p.x <= box.z && p.y <= box.w;
   }
@@ -52,13 +52,12 @@ const fragment = /* glsl */`
       if (inBox(pixel, vec4(943.0, 629.0, 1005.0, 716.0))) part = 5.0;
       if (abs(part - uPart) > .1) discard;
     }
-    ink.a *= uOpacity;
     if (uCut > .5 && uCut < 1.5) ink.a *= 1.0 - smoothstep(.49, .51, uv.x);
     if (uCut > 1.5) ink.a *= smoothstep(.49, .51, uv.x);
     if (ink.a < .005) discard;
     if (uKind > .5 && uKind < 1.5) {
       float facets = pow(max(0.0, sin(uv.x * 29.0 + uv.y * 12.0 - uTime * .55)), 18.0);
-      ink.rgb += vec3(.20, .16, .09) * facets * (.06 + uHover * .25 + uPulse * .8);
+      ink.rgb += vec3(.20, .16, .09) * facets * .06;
     }
     gl_FragColor = ink;
     #include <colorspace_fragment>
@@ -69,11 +68,10 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   gsap.registerPlugin(ScrollTrigger);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const copies = Array.from(stage.querySelectorAll<HTMLElement>("[data-signal-copy]"));
-  const touch = stage.querySelector<HTMLButtonElement>(".signal-touch")!;
-  const pointer = { x: 0, y: 0, tx: 0, ty: 0, hover: 0, hoverTarget: 0 };
+  const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   const scroll = { p: 0 };
   let width = 1, height = 1, mobile = false, active = false, disposed = false;
-  let ready = false, lost = false, lastTime = 0, clock = 0, burstAt = -100, previousAct = -1;
+  let ready = false, lost = false, lastTime = 0, clock = 0, previousAct = -1;
   let previousCopyProgress = -1;
   let renderer: THREE.WebGLRenderer | undefined;
   const scene = new THREE.Scene();
@@ -101,9 +99,8 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uMap: { value: texture }, uTime: { value: 0 }, uBend: { value: 0 },
-        uKind: { value: kind }, uCut: { value: cut }, uPulse: { value: 0 },
-        uHover: { value: 0 }, uPointer: { value: new THREE.Vector2() },
-        uOpacity: { value: 1 },
+        uKind: { value: kind }, uCut: { value: cut },
+        uPointer: { value: new THREE.Vector2() },
         uPart: { value: part },
       }, vertexShader: vertex, fragmentShader: fragment,
       transparent: true, depthTest: false, depthWrite: false, toneMapped: false,
@@ -118,8 +115,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     return mesh;
   }
 
-  // Deterministic dust, not a lightning outline. Sparse glints sit in the space
-  // between the painted layers and spread outward when the crystal is touched.
+  // Sparse ambient glints drift between the painted layers.
   const dustGeometry = new THREE.BufferGeometry();
   const dustPositions = new Float32Array(150 * 3);
   const seeds = new Float32Array(150);
@@ -132,34 +128,28 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   dustGeometry.setAttribute("position", new THREE.BufferAttribute(dustPositions, 3));
   dustGeometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
   const dustMaterial = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uSize: { value: new THREE.Vector2() }, uOrigin: { value: new THREE.Vector2() }, uBurst: { value: 0 }, uDpr: { value: 1 }, uOpacity: { value: 1 } },
+    uniforms: { uTime: { value: 0 }, uSize: { value: new THREE.Vector2() }, uDpr: { value: 1 } },
     vertexShader: /* glsl */`
       attribute float aSeed;
-      uniform float uTime, uBurst, uDpr;
-      uniform vec2 uSize, uOrigin;
+      uniform float uTime, uDpr;
+      uniform vec2 uSize;
       varying float vAlpha;
       void main() {
         vec2 p = (position.xy - .5) * uSize;
         p.x += sin(uTime * .13 + aSeed * 30.0) * 12.0;
         p.y += sin(uTime * .18 + aSeed * 40.0) * 18.0;
-        if (aSeed > .65 && uBurst > .001) {
-          float angle = position.x * 6.283185;
-          float radius = (1.0 - uBurst) * uSize.y * (.12 + position.y * .25);
-          p = uOrigin + vec2(cos(angle), sin(angle)) * radius;
-        }
         float twinkle = pow(.5 + .5 * sin(uTime * .9 + aSeed * 80.0), 8.0);
-        vAlpha = .08 + .5 * twinkle + uBurst * .45;
-        gl_PointSize = (1.1 + twinkle * 2.5 + uBurst * 2.0) * uDpr;
+        vAlpha = .08 + .5 * twinkle;
+        gl_PointSize = (1.1 + twinkle * 2.5) * uDpr;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 5.0, 1.0);
       }
     `,
     fragmentShader: /* glsl */`
       varying float vAlpha;
-      uniform float uOpacity;
       void main() {
         float d = length(gl_PointCoord - .5);
         float a = (1.0 - smoothstep(.05, .5, d)) * vAlpha;
-        gl_FragColor = vec4(.92, .87, .74, a * uOpacity);
+        gl_FragColor = vec4(.92, .87, .74, a);
       }
     `, transparent: true, depthTest: false, depthWrite: false,
   });
@@ -216,17 +206,14 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     const settle = 1 - Math.exp(-dt * 5);
     pointer.x += (pointer.tx - pointer.x) * settle;
     pointer.y += (pointer.ty - pointer.y) * settle;
-    pointer.hover += (pointer.hoverTarget - pointer.hover) * settle;
     const approach = smooth(.13, .42, p);
     const depart = smooth(.56, .82, p);
     const middle = approach * (1 - depart);
     const cx = mobile ? width * (.64 - middle * .14) : width * (.73 - .46 * middle + .015 * depart);
     const cy = mobile ? height * .68 : height * (.47 + .025 * middle);
     stage.style.setProperty("--signal-x", `${cx + pointer.x * 18}px`);
-    stage.style.setProperty("--signal-y", `${cy - pointer.y * 12}px`);
     if (!ready || !renderer || lost) return;
     const t = reduced.matches ? 0 : clock;
-    const pulse = reduced.matches ? 0 : Math.max(0, 1 - (clock - burstAt) / 2.2);
     const [background, crystal, left, right] = layers;
     const coverHeight = Math.max(height, width / (1672 / 941));
     const coverWidth = coverHeight * (1672 / 941);
@@ -257,12 +244,8 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
       material.uniforms.uBend.value = reduced.matches || kind === 1 ? 0
         : (kind === 0 ? .004 : .012 + middle * .026);
       material.uniforms.uPointer.value.set(pointer.x, pointer.y);
-      material.uniforms.uPulse.value = pulse;
-      material.uniforms.uHover.value = pointer.hover;
     });
     dustMaterial.uniforms.uTime.value = t;
-    dustMaterial.uniforms.uBurst.value = pulse;
-    dustMaterial.uniforms.uOrigin.value.set(cx - width / 2, height / 2 - cy);
     renderer.render(scene, camera);
   }
 
@@ -289,9 +272,6 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     pointer.ty = 1 - (event.clientY - rect.top) / height * 2;
   }
   const leave = () => { pointer.tx = 0; pointer.ty = 0; };
-  const hover = () => { pointer.hoverTarget = 1; };
-  const unhover = () => { pointer.hoverTarget = 0; };
-  const burst = () => { burstAt = clock; };
   const contextLost = (event: Event) => { event.preventDefault(); lost = true; delete stage.dataset.art; };
   const contextRestored = () => { lost = false; if (ready) stage.dataset.art = "ready"; render(0); };
   const tween = gsap.to(scroll, { p: 1, ease: "none", scrollTrigger: {
@@ -302,8 +282,6 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   observer.observe(root);
   const sizeObserver = new ResizeObserver(resize); sizeObserver.observe(stage);
   stage.addEventListener("pointermove", move); stage.addEventListener("pointerleave", leave);
-  touch.addEventListener("pointerenter", hover); touch.addEventListener("pointerleave", unhover);
-  touch.addEventListener("focus", hover); touch.addEventListener("blur", unhover); touch.addEventListener("click", burst);
   canvas.addEventListener("webglcontextlost", contextLost); canvas.addEventListener("webglcontextrestored", contextRestored);
   reduced.addEventListener("change", resize);
   gsap.ticker.add(tick);
@@ -314,8 +292,6 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     tween.scrollTrigger?.kill(); tween.kill(); gsap.ticker.remove(tick);
     observer.disconnect(); sizeObserver.disconnect(); reduced.removeEventListener("change", resize);
     stage.removeEventListener("pointermove", move); stage.removeEventListener("pointerleave", leave);
-    touch.removeEventListener("pointerenter", hover); touch.removeEventListener("pointerleave", unhover);
-    touch.removeEventListener("focus", hover); touch.removeEventListener("blur", unhover); touch.removeEventListener("click", burst);
     canvas.removeEventListener("webglcontextlost", contextLost); canvas.removeEventListener("webglcontextrestored", contextRestored);
     textures.forEach(texture => texture.dispose()); materials.forEach(material => material.dispose());
     geometry.dispose(); crystalGeometry.dispose(); dustGeometry.dispose(); dustMaterial.dispose(); renderer?.dispose();
