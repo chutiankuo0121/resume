@@ -63,3 +63,12 @@
 @media (prefers-reduced-motion: reduce) {
   .chapter-gap { display: none; }
 }
+
+/* GPU picture masks clip each picture and its details to their own side.
+   Keep DOM labels and static fallbacks under the original SVG mask. */
+.hub-stage[data-star-gather] .hub-pane:has(canvas[data-boundary-ready]) {
+  mask-image: none;
+  background: transparent;
+}
+.hub-stage[data-star-gather] .portfolio:has(canvas[data-boundary-ready]) { background: transparent; }
+.hub-stage[data-star-gather] :is(.work-status, .skills-loading, .skills-index) { mask-image: url(#chapter-entry-mask); }

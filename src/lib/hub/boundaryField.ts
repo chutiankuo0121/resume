@@ -1,4 +1,6 @@
-import { Vector2, Vector3, Vector4 } from "three";
+import { pictureDetailGLSL } from "../shaders/pictureDetail";
+import { DataTexture, FloatType, NearestFilter, RGBAFormat, Vector2, Vector3 } from "three";
+import { EDGE_SAMPLES } from "../chapters/createChapterEdge";
 
 export type HubDestination = "work" | "skills";
 export type BoundaryState = {
@@ -15,19 +17,37 @@ export type BoundaryState = {
   gather: number;
 };
 
-/** 视觉柔化有宽度，点击归属仍由中轴决定；粒子漂出边界不改变按钮热区。 */
-function boundaryCurve(x: number, state: BoundaryState) {
-  const envelope = Math.sin(Math.PI * x);
-  const rest =
-    0.91 -
-    x * 0.82 +
-    Math.sin(x * 11 - 0.7) * 0.037 +
-    Math.sin(x * 22 + 0.9) * 0.01 * envelope;
-  const drift = Math.sin(x * 12 + state.time * 0.33) * 0.012 * envelope;
-  const y = rest + drift + state.hover * 0.022 * envelope;
-  return (
-    y + ((state.destination === "work" ? 1.4 : -0.4) - y) * state.expansion
-  );
+// Each renderer owns its GPU texture, but all read the same CPU contour samples.
+const sampledCurves = new WeakMap<BoundaryState, Float32Array>();
+export function boundarySamples(state: BoundaryState) {
+  let samples = sampledCurves.get(state);
+  if (!samples) {
+    samples = new Float32Array(EDGE_SAMPLES * 4);
+    for (let i = 0; i < EDGE_SAMPLES; i++) {
+      const y = .91 - i / (EDGE_SAMPLES - 1) * .82;
+      samples.set([y, y, y, 0], i * 4);
+    }
+    sampledCurves.set(state, samples);
+  }
+  return samples;
+}
+
+// Shared, short pointer wake; update once per contour frame, not per renderer.
+const pointerWakes = new WeakMap<BoundaryState, Vector3[]>();
+function pointerWake(state: BoundaryState) {
+  let wake = pointerWakes.get(state);
+  if (!wake) {
+    wake = Array.from({ length: 6 }, () => new Vector3(-2, -2, 0));
+    pointerWakes.set(state, wake);
+  }
+  return wake;
+}
+export function updateBoundaryWake(state: BoundaryState, dt: number) {
+  const wake = pointerWake(state);
+  for (let i = wake.length - 1; i > 0; i--) {
+    wake[i].lerp(wake[i - 1], 1 - Math.exp(-dt * 12));
+  }
+  wake[0].set(state.pointerX, state.pointerY, state.pointerStrength);
 }
 
 export function starSeparation(gather: number, height: number) {
@@ -35,87 +55,86 @@ export function starSeparation(gather: number, height: number) {
   return (1 - t * t * (3 - 2 * t)) * (height + 120);
 }
 
-/** Shared mask/glow geometry; GLSL below mirrors this curve. */
-export function starBoundaryCurve(x: number, state: BoundaryState) {
-  const px = x * state.width, base = boundaryCurve(x, state) * state.height;
-  const presence = 1 - Math.min(1, state.expansion / .82);
-  const ripple = (Math.sin(px * .06 + state.time * 1.4) * 3
-    + Math.sin(px * .17 - state.time * .8) * 1.1) * presence;
-  const local = Math.exp(-Math.pow((px - state.pointerX * state.width) / 105, 2)
-    - Math.pow((base - state.pointerY * state.height) / 135, 2)) * state.pointerStrength;
-  const push = local * Math.tanh((state.pointerY * state.height - base) / 45) * 24 * presence;
-  return (base + ripple + push) / state.height;
-}
-
 /** 三个 WebGL 上下文读取同一份状态，避免雾层、裁剪与高光各自漂移。 */
 export function createBoundaryUniforms(state: BoundaryState) {
+  const curve = new DataTexture(boundarySamples(state), EDGE_SAMPLES, 1, RGBAFormat, FloatType);
+  curve.minFilter = curve.magFilter = NearestFilter;
   const uniforms = {
-    uBoundary: { value: new Vector4() },
+    uBoundaryCurve: { value: curve },
+    uBoundary: { value: new Vector2() },
     uBoundarySize: { value: new Vector2(1, 1) },
-    uBoundaryPointer: { value: new Vector3() },
-    uBoundaryGap: { value: 0 },
+    uBoundaryGather: { value: state.gather },
+    uBoundaryWake: { value: pointerWake(state) },
   };
   function update() {
-    uniforms.uBoundaryGap.value = starSeparation(state.gather, state.height) / state.height;
-    uniforms.uBoundary.value.set(
-      state.time,
-      state.expansion,
-      state.hover,
-      state.destination === "work" ? 1.4 : -0.4,
-    );
+    curve.needsUpdate = true;
+    uniforms.uBoundary.value.set(state.time, state.expansion);
     uniforms.uBoundarySize.value.set(state.width, state.height);
-    uniforms.uBoundaryPointer.value.set(
-      state.pointerX,
-      state.pointerY,
-      state.pointerStrength,
-    );
+    uniforms.uBoundaryGather.value = state.gather;
   }
   update();
-  return { uniforms, update };
+  return { uniforms, update, dispose() { curve.dispose(); } };
 }
 
 export const boundaryGLSL = /* glsl */ `
-uniform vec4 uBoundary;
+uniform vec2 uBoundary;
 uniform vec2 uBoundarySize;
-uniform vec3 uBoundaryPointer;
-uniform float uBoundaryGap;
-float boundaryHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-float boundaryNoise(vec2 p){
-  vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-  return mix(mix(boundaryHash(i),boundaryHash(i+vec2(1.,0.)),f.x),
-    mix(boundaryHash(i+vec2(0.,1.)),boundaryHash(i+1.),f.x),f.y);
+uniform sampler2D uBoundaryCurve;
+uniform float uBoundaryGather;
+uniform vec3 uBoundaryWake[6];
+${pictureDetailGLSL}
+vec3 boundaryCurves(float x){
+  float index=clamp(x*512.,0.,511.999);
+  return mix(texture2D(uBoundaryCurve,vec2((floor(index)+.5)/513.,.5)).rgb,
+    texture2D(uBoundaryCurve,vec2((floor(index)+1.5)/513.,.5)).rgb,fract(index));
 }
-float boundaryCurve(float x){
-  float envelope=sin(3.14159265*x);
-  float rest=.91-x*.82+sin(x*11.-.7)*.037+sin(x*22.+.9)*.01*envelope;
-  float drift=sin(x*12.+uBoundary.x*.33)*.012*envelope;
-  return mix(rest+drift+uBoundary.z*.022*envelope,uBoundary.w,uBoundary.y);
-}
-float starBoundaryCurve(float x){
-  float px=x*uBoundarySize.x, base=boundaryCurve(x)*uBoundarySize.y;
-  float presence=1.-min(1.,uBoundary.y/.82);
-  float ripple=(sin(px*.06+uBoundary.x*1.4)*3.+sin(px*.17-uBoundary.x*.8)*1.1)*presence;
-  vec2 delta=(vec2(px,base)-uBoundaryPointer.xy*uBoundarySize)/vec2(105.,135.);
-  float local=exp(-dot(delta,delta))*uBoundaryPointer.z;
-  float offset=clamp((uBoundaryPointer.y*uBoundarySize.y-base)/45.,-10.,10.);
-  float e=exp(2.*offset);
-  float push=local*((e-1.)/(e+1.))*24.*presence;
-  return (base+ripple+push)/uBoundarySize.y;
-}
-// Coverage and narrow image softening follow the same two moving seams.
-vec3 boundaryField(vec2 uv){
+// The mask, hit regions and glow upload these exact same samples.
+vec4 boundaryField(vec2 uv){
   vec2 q=vec2(uv.x,1.-uv.y);
   float aspect=uBoundarySize.x/uBoundarySize.y;
   float left=max(0.,q.x-8./512.),right=min(1.,q.x+8./512.);
-  float slope=(starBoundaryCurve(right)-starBoundaryCurve(left))/(right-left)/aspect;
-  float normalScale=sqrt(1.+slope*slope);
-  float dy=q.y-starBoundaryCurve(q.x);
-  float distance=dy/normalScale;
-  // Use the nearest edge, never add blur strengths as the two bands merge.
-  float nearest=min(abs(dy-uBoundaryGap),abs(dy+uBoundaryGap))*uBoundarySize.y/normalScale;
-  float coverage=smoothstep(-8.,8.,distance*uBoundarySize.y);
+  vec3 slope=(boundaryCurves(right)-boundaryCurves(left))/(right-left)/aspect;
+  vec3 normalScale=sqrt(vec3(1.)+slope*slope);
+  vec3 distance=(vec3(q.y)-boundaryCurves(q.x))/normalScale;
+  float nearest=min(abs(distance.x),abs(distance.y))*uBoundarySize.y;
+  float coverage=smoothstep(-8.,8.,distance.z*uBoundarySize.y);
   float frost=(1.-smoothstep(3.,20.,nearest))*(1.-smoothstep(.65,1.,uBoundary.y));
-  return vec3(coverage,frost,distance);
+  return vec4(coverage,frost,distance.z,nearest);
+}
+float boundaryGhostWeight(vec2 uv,float nearest){
+  float phase=smoothstep(.04,.2,uBoundaryGather)*(1.-smoothstep(.82,1.,uBoundaryGather));
+  float band=(1.-smoothstep(28.,150.,nearest))*smoothstep(2.,10.,nearest);
+  vec2 pixel=vec2(uv.x,1.-uv.y)*uBoundarySize;
+  float hover=0.;
+  for(int i=0;i<6;i++){
+    vec2 delta=(pixel-uBoundaryWake[i].xy*uBoundarySize)/105.;
+    hover=max(hover,exp(-dot(delta,delta))*uBoundaryWake[i].z*(1.-float(i)*.12));
+  }
+  return min(1.6,phase+hover*.9)*band*(1.-smoothstep(0.,.45,uBoundary.y))
+    *smoothstep(0.,.04,uBoundaryGather);
+}
+// Each picture and its extracted details share the same side coverage.
+float boundaryPictureDistance(vec2 uv,bool skills){
+  float x=uv.x;
+  float left=max(0.,x-8./512.),right=min(1.,x+8./512.);
+  vec3 slope=(boundaryCurves(right)-boundaryCurves(left))/(right-left)
+    *uBoundarySize.y/uBoundarySize.x;
+  vec3 distances=((1.-uv.y)-boundaryCurves(x))*uBoundarySize.y/sqrt(1.+slope*slope);
+  return abs(skills ? distances.y : distances.x);
+}
+float boundaryPictureCoverage(vec2 uv,bool skills){
+  vec3 curves=boundaryCurves(uv.x);
+  float y=(1.-uv.y)*uBoundarySize.y;
+  if(skills) return smoothstep(-8.,8.,y-curves.y*uBoundarySize.y);
+  float upper=1.-smoothstep(-8.,8.,y-curves.x*uBoundarySize.y);
+  // Restore the full underlying work scene as the two seams finish meeting.
+  return mix(upper,1.,smoothstep(.98,1.,uBoundaryGather));
+}
+vec4 boundaryPicture(vec3 color,float detail,vec2 uv,float nearest,float coverage){
+  float weight=boundaryGhostWeight(uv,nearest);
+  float emission=pictureGhostEmission(detail,uv,uBoundarySize,uBoundary.x)*weight;
+  vec3 inside=color*(1.-weight*.2)+vec3(.9,.96,1.)*emission*.8;
+  return vec4(inside,coverage);
 }
 // 在原始场景纹理上采样柔化；雾带外直接返回原图，作品和技能主体保持清晰。
 vec4 boundarySample(sampler2D frame,vec2 uv,vec2 screenUv,float frost){
@@ -125,11 +144,11 @@ vec4 boundarySample(sampler2D frame,vec2 uv,vec2 screenUv,float frost){
   vec4 original=textureGrad(frame,uv,dx,dy);
   if(frost<.002)return original;
   vec2 p=screenUv*uBoundarySize;
-  vec2 flow=vec2(boundaryNoise(p*.006+uBoundary.x*.025),boundaryNoise(p*.006-7.-uBoundary.x*.02))-.5;
+  vec2 flow=vec2(pictureNoise(p*.006+uBoundary.x*.025),pictureNoise(p*.006-7.-uBoundary.x*.02))-.5;
   vec2 blur=vec2(7.)*frost/uBoundarySize;
   vec2 center=uv+flow*blur*.65;
   // 黄金角采样并按像素旋转，避免大模糊半径产生多重边缘；种子不随时间闪烁。
-  float angle=boundaryHash(floor(p))*6.2831853;
+  float angle=pictureHash(floor(p))*6.2831853;
   vec4 color=vec4(0.);
   float total=0.;
   for(int i=0;i<24;i++){
@@ -142,7 +161,7 @@ vec4 boundarySample(sampler2D frame,vec2 uv,vec2 screenUv,float frost){
   return color/total;
 }
 vec3 boundaryGrain(vec3 color,vec2 uv,float frost){
-  float grain=boundaryHash(floor(uv*uBoundarySize))-.5;
+  float grain=pictureHash(floor(uv*uBoundarySize))-.5;
   return color+vec3(grain*.022*frost);
 }
 `;

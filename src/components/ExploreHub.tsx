@@ -22,9 +22,13 @@ import {
 export default function ExploreHub({
   ref: root,
   onOpenChange,
+  onReturnToExplore,
+  onPrepareOpen,
 }: {
   ref: RefObject<HTMLElement | null>;
   onOpenChange: (open: boolean) => void;
+  onReturnToExplore: () => void;
+  onPrepareOpen: (complete: () => void) => (() => void) | undefined;
 }) {
   const stage = useRef<HTMLDivElement>(null);
   const chain = useRef<HTMLCanvasElement>(null);
@@ -99,7 +103,7 @@ export default function ExploreHub({
     let current: HubDestination | null = null;
     let animation: gsap.core.Timeline | undefined;
     let busy = false;
-    let openedDuringHandoff = false;
+    let cancelPreparation: (() => void) | undefined;
     const previousOverflow = document.documentElement.style.overflow;
     const notify = () => {
       workPane.current
@@ -110,8 +114,13 @@ export default function ExploreHub({
       if (current || busy) return;
       busy = true;
       current = target;
+      cancelPreparation = onPrepareOpen(() => {
+        cancelPreparation = undefined;
+        expand(target, updateHistory);
+      });
+    }
+    function expand(target: HubDestination, updateHistory: boolean) {
       const y = element.getBoundingClientRect().top;
-      openedDuringHandoff = element.classList.contains("chapter-held");
       onOpenChange(true);
       document.documentElement.style.overflow = "hidden";
       state.destination = target;
@@ -141,8 +150,16 @@ export default function ExploreHub({
         .to(state, { expansion: 1, hover: 0 }, 0)
         .to(presentations.current[target], { expansion: 1 }, 0);
     }
-    function close(updateHistory = true) {
+    function close() {
       if (!current) return;
+      if (cancelPreparation) {
+        cancelPreparation();
+        cancelPreparation = undefined;
+        current = null;
+        busy = false;
+        onOpenChange(false);
+        return;
+      }
       const target = current;
       element
         .querySelectorAll<HTMLDialogElement>("dialog[open]")
@@ -153,11 +170,10 @@ export default function ExploreHub({
       setInteractive(false);
       notify();
       animation?.kill();
-      const rect = root.current!.getBoundingClientRect();
-      const y = openedDuringHandoff ? 0 : Math.min(
-        Math.max(rect.top, 0),
-        rect.bottom - element.clientHeight,
-      );
+      // Rebase the paused document while this fixed view still covers it.
+      // The closing animation always lands on the complete directory.
+      onReturnToExplore();
+      state.gather = 1;
       animation = gsap.timeline({
         defaults: {
           duration: reduced.matches ? 0 : 1.05,
@@ -172,7 +188,7 @@ export default function ExploreHub({
           gsap.set(element, { clearProps: "transform" });
           document.documentElement.style.overflow = previousOverflow;
           onOpenChange(false);
-          if (updateHistory) history.replaceState(null, "", "#explore");
+          history.replaceState(null, "", "#explore");
           (target === "work" ? workButton : skillsButton).current?.focus({
             preventScroll: true,
           });
@@ -181,7 +197,7 @@ export default function ExploreHub({
       animation
         .to(state, { expansion: 0 }, 0)
         .to(presentations.current[target], { expansion: 0 }, 0)
-        .to(element, { y }, 0);
+        .to(element, { y: 0 }, 0);
     }
     function keyboard(event: KeyboardEvent) {
       if (!current || document.querySelector("dialog[open]")) return;
@@ -232,7 +248,7 @@ export default function ExploreHub({
           root.current!.scrollIntoView({ block: "start", behavior: "instant" });
           open(hash, false);
         }
-      } else if (current) close(false);
+      } else if (current) close();
     }
     controls.current = { open, close };
     window.addEventListener("keydown", keyboard);
@@ -241,6 +257,7 @@ export default function ExploreHub({
     const initial = requestAnimationFrame(followLocation);
     return () => {
       cancelAnimationFrame(initial);
+      cancelPreparation?.();
       animation?.kill();
       gsap.killTweensOf(state);
       disposeBoundary();
@@ -251,7 +268,7 @@ export default function ExploreHub({
       window.removeEventListener("hashchange", followLocation);
       onOpenChange(false);
     };
-  }, [root, onOpenChange]);
+  }, [root, onOpenChange, onReturnToExplore, onPrepareOpen]);
 
   function hover(value: number) {
     if (!opened)

@@ -9,6 +9,7 @@ import { createPortfolioMediaLoader } from "./media";
 
 import type { PortalPresentation } from "../hub/presentation";
 import { createBoundaryUniforms } from "../hub/boundaryField";
+import { createDepartureDetails } from "../contact/departureDetails";
 import type { CardOrigin } from "../cardMotion";
 
 type Options = {
@@ -42,11 +43,14 @@ export function createPortfolioScene({
   const target = new THREE.WebGLRenderTarget(1, 1, { samples: 2 });
   const post = new THREE.Scene();
   const boundary = createBoundaryUniforms(presentation.boundary);
+  const departure = createDepartureDetails(canvas);
   const lens = new THREE.ShaderMaterial({
     vertexShader: screenVertex,
     fragmentShader: lensFragment,
+    premultipliedAlpha: true,
     uniforms: {
       ...boundary.uniforms,
+      ...departure.uniforms,
       uScene: { value: target.texture },
       uStrength: { value: 1 },
     },
@@ -137,6 +141,7 @@ export function createPortfolioScene({
     );
     lastTime = timestamp;
     boundary.update();
+    departure.update();
     const reduced = motion.matches;
     rig.update(dt, reduced);
     // 预览向左上取景；展开时沿同一相机回到全幅，浏览坐标不变。
@@ -181,6 +186,7 @@ export function createPortfolioScene({
     renderer.render(scene, rig.camera);
     renderer.setRenderTarget(null);
     renderer.render(post, postCamera);
+    canvas.dataset.boundaryReady = "true";
     if (!ready && (mediaView.visible.length === 0 || mediaView.visible.some(loader.ready))) {
       ready = true;
       onReady();
@@ -485,6 +491,7 @@ export function createPortfolioScene({
     restore,
     dispose() {
       disposed = true;
+      delete canvas.dataset.boundaryReady;
       cancelAnimationFrame(frame);
       loader.dispose();
       root.removeEventListener("portal-update", updatePresentation);
@@ -506,6 +513,8 @@ export function createPortfolioScene({
       surface.dispose();
       screen.geometry.dispose();
       lens.dispose();
+      boundary.dispose();
+      departure.dispose();
       target.dispose();
       renderer.dispose();
       scene.clear();

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { createContactGhost } from "./createContactGhost";
 
 const smooth = (a: number, b: number, value: number) => {
   const x = Math.max(0, Math.min(1, (value - a) / (b - a)));
@@ -74,6 +75,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   let ready = false, lost = false, lastTime = 0, clock = 0, previousAct = -1;
   let previousCopyProgress = -1;
   let renderer: THREE.WebGLRenderer | undefined;
+  let ghost: ReturnType<typeof createContactGhost> | undefined;
   const scene = new THREE.Scene();
   // The rotated planes are measured in screen pixels; allow enough depth for
   // their edges to tilt toward the camera without hitting its near plane.
@@ -93,6 +95,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.debug.onShaderError = () => { lost = true; delete stage.dataset.art; };
+    ghost = createContactGhost(renderer, stage);
   } catch { /* The complete painted fallback remains visible without WebGL. */ }
 
   function layer(texture: THREE.Texture, kind: number, cut: number, z: number, part = 0) {
@@ -247,6 +250,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     });
     dustMaterial.uniforms.uTime.value = t;
     renderer.render(scene, camera);
+    ghost?.render();
   }
 
   function resize() {
@@ -255,6 +259,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     camera.left = -width / 2; camera.right = width / 2;
     camera.top = height / 2; camera.bottom = -height / 2; camera.updateProjectionMatrix();
     renderer?.setSize(width, height, false);
+    ghost?.resize();
     dustMaterial.uniforms.uSize.value.set(width, height);
     dustMaterial.uniforms.uDpr.value = Math.min(devicePixelRatio, 1.5);
     render(0);
@@ -294,6 +299,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     stage.removeEventListener("pointermove", move); stage.removeEventListener("pointerleave", leave);
     canvas.removeEventListener("webglcontextlost", contextLost); canvas.removeEventListener("webglcontextrestored", contextRestored);
     textures.forEach(texture => texture.dispose()); materials.forEach(material => material.dispose());
+    ghost?.dispose();
     geometry.dispose(); crystalGeometry.dispose(); dustGeometry.dispose(); dustMaterial.dispose(); renderer?.dispose();
     delete stage.dataset.art;
   };

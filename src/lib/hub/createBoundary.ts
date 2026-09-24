@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import { starBoundaryCurve, type BoundaryState } from "./boundaryField";
+import { updateBoundaryWake, type BoundaryState } from "./boundaryField";
 import { createStarFlow } from "./createStarFlow";
 export type { BoundaryState, HubDestination } from "./boundaryField";
 
@@ -43,7 +43,8 @@ export function createBoundary(
     state.pointerStrength +=
       ((motion.matches ? 0 : pointer.strength) - state.pointerStrength) *
       follow;
-    const seams = stars.render();
+    updateBoundaryWake(state, motion.matches ? 1 : dt);
+    const seams = stars.render(motion.matches ? 0 : dt);
     const pixels = (point: { x: number; y: number }) => `${point.x.toFixed(2)}px ${point.y.toFixed(2)}px`;
     const workClip = `polygon(0% 0%,100% 0%,${seams.upper.map(pixels).reverse().join(",")})`;
     const skillsClip = `polygon(${seams.lower.map(pixels).join(",")},100% 100%,0% 100%)`;
@@ -52,7 +53,7 @@ export function createBoundary(
     // 无动态画廊时，静态卡片也保留羽化边界；展开后恢复完整可滚动的卡片。
     const staticGallery = skillRoot.classList.contains("skills--static") ? skillRoot : null;
     if (staticGallery) {
-      const path = `M-1,2 L-1,${starBoundaryCurve(0, state)} L${seams.lower.map(p => `${p.x / state.width},${p.y / state.height}`).join(" L")} L2,${starBoundaryCurve(1, state)} L2,2 Z`;
+      const path = `M-1,2 L-1,${seams.lower[0].y / state.height} L${seams.lower.map(p => `${p.x / state.width},${p.y / state.height}`).join(" L")} L2,${seams.lower.at(-1)!.y / state.height} L2,2 Z`;
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" preserveAspectRatio="none"><filter id="f" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${3.5 / state.width} ${3.5 / state.height}"/></filter><path fill="white" filter="url(#f)" d="${path}"/></svg>`;
       const mask =
         state.expansion > 0.99 && state.destination === "skills"
@@ -86,7 +87,8 @@ export function createBoundary(
     const rect = canvas.getBoundingClientRect();
     pointer.x = (event.clientX - rect.left) / rect.width;
     pointer.y = (event.clientY - rect.top) / rect.height;
-    pointer.strength = event.pointerType === "mouse" ? 1 : 0;
+    pointer.strength = event.pointerType === "mouse" && pointer.x >= 0 && pointer.x <= 1
+      && pointer.y >= 0 && pointer.y <= 1 ? 1 : 0;
   }
   function leave() {
     pointer.strength = 0;
@@ -100,12 +102,16 @@ export function createBoundary(
   // Track input across all visible chapters, including the gap between seams.
   window.addEventListener("pointermove", move, { passive: true });
   stage.addEventListener("pointerleave", leave);
+  document.documentElement.addEventListener("pointerleave", leave);
+  window.addEventListener("blur", leave);
   gsap.ticker.add(draw);
   resize();
   return () => {
     gsap.ticker.remove(draw);
     window.removeEventListener("pointermove", move);
     stage.removeEventListener("pointerleave", leave);
+    document.documentElement.removeEventListener("pointerleave", leave);
+    window.removeEventListener("blur", leave);
     observer.disconnect();
     visibility.disconnect();
     stars.dispose();

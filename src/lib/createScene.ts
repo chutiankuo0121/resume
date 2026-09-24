@@ -15,6 +15,7 @@ import { createCrystal } from "./createCrystal";
 import { paperFragment, portalCompositeFragment } from "./shaders/elimarExit";
 import type { LoadingState, LoadingTask } from "./loading/progress";
 import { createPreludeDrawing } from "./loading/drawPrelude";
+import { createPortalArrival } from "./portalArrival";
 
 type Options = {
   canvas: HTMLCanvasElement;
@@ -96,6 +97,8 @@ export function createScene({
   const followScale = new THREE.Vector2();
   const portalPointerTarget = new THREE.Vector3(-2, -2, 0);
   const portalPointer = new THREE.Vector3(-2, -2, 0);
+  const portalWake = Array.from({ length: 6 }, () => new THREE.Vector3(-2, -2, 0));
+  const portalArrival = createPortalArrival(canvas);
   let portalFlow = 0, previousScroll = window.scrollY;
   const blur = material(
     new THREE.ShaderMaterial({
@@ -135,6 +138,8 @@ export function createScene({
       depthWrite: false,
       uniforms: {
         uScene: { value: crystalTarget.texture },
+        ...portalArrival.uniforms,
+        uGhostWake: { value: portalWake },
         uReveal: { value: 0 },
         uBlackout: { value: 0 },
         uTime: { value: 0 },
@@ -271,7 +276,7 @@ export function createScene({
       lighting.height,
     );
     sharp.setSize(Math.round(width * dpr), Math.round(height * dpr));
-    prelude?.resize(width, height, dpr);
+    prelude?.resize(width, height);
     crystalTarget.setSize(sharp.width, sharp.height);
     portalFrame.setSize(sharp.width, sharp.height);
     portalEmission.setSize(lighting.width, lighting.height);
@@ -314,6 +319,7 @@ export function createScene({
   function resetFrameTimestamp() {
     // 后台恢复时从当前相位继续，避免把离开页面的时间计为一次巨大步进。
     lastTimestamp = 0;
+    portalWake.forEach(point => { point.z = 0; });
     previousScroll = window.scrollY;
     portalFlow = 0;
     portalPointerTarget.z = 0;
@@ -368,7 +374,7 @@ export function createScene({
       renderer.render(postScene, postCamera);
       loadingBackgroundReady = true;
     }
-    prelude?.render(loading, motionPreference.matches, time);
+    prelude?.render(loading, motionPreference.matches);
   }
 
   function renderPortal(output: THREE.WebGLRenderTarget | null = null) {
@@ -485,6 +491,7 @@ export function createScene({
     paper.uniforms.uBlackout.value = elimarPaperReveal(transition.exit);
     paper.uniforms.uTime.value = time;
     if (transition.portalReveal > 0) {
+      portalArrival.update();
       renderPortal();
       return;
     }
@@ -513,6 +520,11 @@ export function createScene({
         ? Math.min(1, Math.abs(window.scrollY - previousScroll) / elapsed / 1400) : 0;
       portalFlow += (speed - portalFlow) * (1 - Math.exp(-dt * (speed > portalFlow ? 14 : 3)));
     }
+    for (let i = portalWake.length - 1; i > 0; i--) {
+      portalWake[i].lerp(portalWake[i - 1], reduced ? 1 : 1 - Math.exp(-dt * 12));
+      if (reduced) portalWake[i].z = 0;
+    }
+    portalWake[0].copy(portalPointer);
     previousScroll = window.scrollY;
     paper.uniforms.uFlow.value = portalFlow;
     pointer.update(dt, reduced);
@@ -537,6 +549,7 @@ export function createScene({
     unsubscribe();
     observer.disconnect();
     hole.dispose();
+    portalArrival.dispose();
     prelude?.dispose();
     crystal.dispose();
     window.removeEventListener("pointermove", move);

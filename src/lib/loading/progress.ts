@@ -56,10 +56,6 @@ export function createLoadingProgress(
       ? clamp((exitTime - 0.1) / 0.2)
       : clamp((exitTime - completeHold - morphDuration - letterHold) / zoomDuration);
     state.morph = media.matches ? 0 : morph;
-    const focus = clamp(state.reveal / .9);
-    const softness = media.matches ? 0 : 1.6 * Math.sin(state.morph * Math.PI / 2)
-      * (1 - focus * focus * (3 - 2 * focus));
-    root.style.setProperty("--loading-blur", `${softness.toFixed(3)}px`);
     root.style.setProperty("--loading-copy-opacity", String(1 - clamp(state.reveal / 0.3)));
     if (state.reveal === 1) {
       completed = true;

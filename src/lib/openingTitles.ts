@@ -1,13 +1,13 @@
 import { gsap } from "gsap";
 
-// 圆形揭幕与退出运镜末段重叠；每逻辑单位对应的滚动距离保持不变。
+// 破洞延后约三个滚轮刻度；同步延长 journey，保持运镜和破洞展开速度。
 export const OPENING = {
   crystalStart: 0.5,
   crystalReading: 1.02,
   exitStart: 2.1,
-  portalStart: 2.36,
+  portalStart: 2.44,
   portalDuration: .2,
-  duration: 2.6,
+  duration: 2.68,
 } as const;
 
 export function addOpeningTitles(timeline: gsap.core.Timeline, stage: HTMLElement) {

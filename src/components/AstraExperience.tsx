@@ -130,6 +130,15 @@ export default function AstraExperience() {
     timeline.current?.setPaused(open || !readyRef.current);
   }, []);
 
+  const prepareExplorationOpen = useCallback((complete: () => void) => {
+    if (timeline.current) return timeline.current.prepareExploreOpen(complete);
+    complete();
+  }, []);
+
+  const returnToExplore = useCallback(() => {
+    timeline.current?.prepareExploreReturn();
+  }, []);
+
   function reload() {
     readyRef.current = false;
     setError("");
@@ -164,6 +173,8 @@ export default function AstraExperience() {
         <ExploreHub
           ref={explore}
           onOpenChange={setExplorationOpen}
+          onReturnToExplore={returnToExplore}
+          onPrepareOpen={prepareExplorationOpen}
         />
       </div>
       <div className="chapter-gap chapter-gap--exit" aria-hidden="true" />

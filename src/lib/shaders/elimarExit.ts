@@ -1,8 +1,12 @@
 import { portalLightGLSL } from "./portalLight";
+import { pictureDetailGLSL } from "./pictureDetail";
 
 /** 圆形传送门：alpha 揭开真实 DOM；同一个场输出 HDR 亮边供独立 Bloom 使用。 */
 export const paperFragment = /* glsl */ `
-uniform sampler2D uScene;
+uniform sampler2D uScene, uArrival, uArrivalText;
+uniform vec4 uArrivalRect;
+uniform float uArrivalReady;
+uniform vec3 uGhostWake[6];
 uniform float uReveal;
 uniform float uBlackout;
 uniform float uTime;
@@ -13,6 +17,7 @@ uniform vec2 uViewport;
 uniform float uFlow;
 varying vec2 vUv;
 ${portalLightGLSL}
+${pictureDetailGLSL}
 void main(){
   if(uReveal<=0.){
     #ifdef PORTAL_GLOW
@@ -50,7 +55,8 @@ void main(){
   float envelope=smoothstep(0.,.075,uReveal)*(1.-smoothstep(.88,1.,uReveal));
   float band=exp(-abs(distanceToRim)*40.)*envelope;
   vec2 sceneUV=uCenter+(vUv-uCenter)*(1.+uReveal*.065);
-  vec3 scene=texture2D(uScene,clamp(sceneUV,0.,1.)).rgb*(1.-uBlackout);
+  vec3 original=texture2D(uScene,clamp(sceneUV,0.,1.)).rgb;
+  vec3 scene=original*(1.-uBlackout);
   float luma=dot(scene,vec3(.299,.587,.114));
   float contours=min(fwidth(luma)*9.,2.);
   float dust=stars(dustUV,11.)+stars(dustUV+vec2(uTime*.001,-uTime*.0015),29.)*1.5;
@@ -59,6 +65,35 @@ void main(){
   vec3 surface=mix(scene,vec3(.018)+vec3(min(contours,.65))*.3,band*.9);
   float particleAlpha=clamp(band*dust*.72,0.,.85);
   float alpha=max(coverage,particleAlpha);
+  #ifndef PORTAL_GLOW
+    // Extract BEFORE blackout: fading the surface must not erase its detail field.
+    vec2 pixel=vec2(vUv.x,1.-vUv.y)*uViewport;
+    vec2 arrivalUV=(pixel-uArrivalRect.xy)/uArrivalRect.zw;
+    vec3 arriving=texture2D(uArrival,clamp(vec2(arrivalUV.x,1.-arrivalUV.y),0.,1.)).rgb;
+    float arrivalDetail=pictureDetails(arriving);
+    vec2 margin=min(arrivalUV,1.-arrivalUV)*uArrivalRect.zw;
+    float valid=smoothstep(0.,5.,min(margin.x,margin.y))*uArrivalReady;
+    float textDetail=pictureDetails(texture2D(uArrivalText,vUv).rgb);
+    // Each side owns its source: career content must never leak onto the crystal.
+    float outgoingDetail=pictureDetails(original)*.5;
+    float incomingDetail=max(arrivalDetail*valid*.5,textDetail*.6);
+    float hover=0.;
+    for(int i=0;i<6;i++){
+      vec2 mouseDelta=(vUv-uGhostWake[i].xy)*uViewport/105.;
+      hover=max(hover,exp(-dot(mouseDelta,mouseDelta))*uGhostWake[i].z*(1.-float(i)*.12));
+    }
+    float distancePx=abs(distanceToRim)*uViewport.y;
+    float detailBand=(1.-smoothstep(28.,150.,distancePx))*smoothstep(2.,10.,distancePx);
+    float weight=min(1.6,1.+hover*.9)*detailBand*envelope;
+    float outgoingGhost=pictureGhostEmission(outgoingDetail,vUv,uViewport,uTime)*weight;
+    float incomingGhost=pictureGhostEmission(incomingDetail,vUv,uViewport,uTime)*weight;
+    surface+=vec3(.9,.96,1.)*outgoingGhost*.8*coverage;
+    // On the white DOM side a silver contour has contrast without obscuring text.
+    float ghostAlpha=clamp(incomingGhost*.38,0.,.38)*(1.-coverage);
+    float combined=alpha+ghostAlpha*(1.-alpha);
+    surface=(surface*alpha+vec3(.24,.31,.38)*ghostAlpha*(1.-alpha))/max(combined,.0001);
+    alpha=combined;
+  #endif
   if(uReveal>=1.){alpha=0.;emission=vec3(0.);}
   #ifdef PORTAL_GLOW
     gl_FragColor=vec4(emission,1.);

@@ -1,6 +1,7 @@
 import { gsap } from "gsap";
 import { createChapterEdge, EDGE_SAMPLES } from "./createChapterEdge";
 import { createLiquidContour } from "./liquidContour";
+import { contactTransitionField, updateContactTransition } from "../contact/transitionField";
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const smooth = (from: number, to: number, value: number) => {
@@ -27,6 +28,7 @@ export function createChapterHandoffs(
   const ruler = career.querySelector<HTMLElement>(".career-ruler")!;
   const hub = explore.querySelector<HTMLElement>(".hub-stage")!;
   const contactStage = contact.querySelector<HTMLElement>(".contact-stage")!;
+  const contactContent = contactStage.querySelector<HTMLElement>(".signal-content")!;
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const elements = [careerStage, ruler, hub, contactStage];
   const collageMask = masks.querySelector<SVGPathElement>("[data-curtain='collage']")!;
@@ -41,7 +43,7 @@ export function createChapterHandoffs(
   const liquid = createLiquidContour(EDGE_SAMPLES);
   let lastFrame = 0;
   function pointerMove(event: PointerEvent) {
-    if (event.pointerType === "touch") return;
+    if (event.pointerType === "touch") { pointer.targetStrength = 0; return; }
     pointer.targetX = event.clientX;
     pointer.targetY = event.clientY;
     pointer.targetStrength = 1;
@@ -63,8 +65,13 @@ export function createChapterHandoffs(
     collageMask.setAttribute("d", `M-128,${screenHeight + 128} L${screenWidth + 128},${screenHeight + 128} L${screenWidth + 128},${points.at(-1)!.y} L${[...points].reverse().map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" L")} L-128,${points[0].y} Z`);
     // SVG masks only change paint. Clip hit testing too, so the transparent
     // part of the contact stage cannot intercept the still-visible hub.
-    contactStage.style.clipPath = `polygon(${points.map(({ x, y }) => `${x.toFixed(2)}px ${y.toFixed(2)}px`).join(",")},100% 100%,0% 100%)`;
-    particles?.render(points, null, time, smooth(0, .08, revealProgress) * (1 - smooth(.92, 1, revealProgress)),
+    const clip = `polygon(${points.map(({ x, y }) => `${x.toFixed(2)}px ${y.toFixed(2)}px`).join(",")},100% 100%,0% 100%)`;
+    // DOM hit testing and GPU picture details use the same moving seam.
+    contactContent.style.clipPath = clip;
+    contactStage.style.clipPath = contactStage.dataset.art === "ready" ? "none" : clip;
+    const strength = smooth(0, .08, revealProgress) * (1 - smooth(.92, 1, revealProgress));
+    updateContactTransition(contactStage, points, screenWidth, screenHeight, time, strength, dt, pointer);
+    particles?.render(points, null, time, strength,
       { x: pointer.x, y: pointer.y, strength: pointer.strength, flow, velocities });
   }
 
@@ -72,6 +79,8 @@ export function createChapterHandoffs(
     if (!active) return;
     active = "";
     delete contactStage.dataset.collageReveal;
+    contactTransitionField(contactStage).active = false;
+    contactContent.style.removeProperty("clip-path");
     contactStage.style.removeProperty("clip-path");
     delete hub.dataset.starGather;
     particles?.clear();

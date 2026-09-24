@@ -189,6 +189,7 @@ export function createTransitionTimeline(
     callbacks.forEach((callback) => callback(seconds * 1000));
   };
   gsap.ticker.add(tick);
+  let prepareOpening: gsap.core.Tween | undefined;
   const clock: FrameClock = {
     subscribe(callback) {
       callbacks.add(callback);
@@ -201,6 +202,47 @@ export function createTransitionTimeline(
     state,
     clock,
     setExploring: handoffs.suspend,
+    prepareExploreOpen(complete: () => void) {
+      const y = window.scrollY;
+      const { entryStart, explore, exitStart, contact } = handoffs.positions;
+      const exiting = y > exitStart && y < contact;
+      const entering = y > entryStart && y < explore;
+      if (media.matches || (!exiting && !entering)) { complete(); return; }
+      // Drive the existing scroll-owned seam to its endpoint before suspending
+      // it. Contact retreats downward; an arriving directory finishes gathering.
+      lenis.stop();
+      const position = { y };
+      const destination = exiting ? Math.floor(exitStart) : Math.ceil(explore);
+      const remaining = exiting ? (y-exitStart)/(contact-exitStart) : (explore-y)/(explore-entryStart);
+      prepareOpening?.kill();
+      const tween = gsap.to(position, {
+        y: destination,
+        duration: .45 + .35 * Math.sqrt(remaining),
+        ease: "power2.inOut",
+        onUpdate: () => {
+          lenis.scrollTo(position.y, { immediate: true, force: true });
+          ScrollTrigger.update();
+          publish();
+        },
+        onComplete: () => {
+          prepareOpening = undefined;
+          complete();
+        },
+      });
+      prepareOpening = tween;
+      return () => {
+        tween.kill();
+        if (prepareOpening === tween) prepareOpening = undefined;
+      };
+    },
+    prepareExploreReturn() {
+      // Remain paused and keep chapter masks cleared until the fixed view closes.
+      handoffs.suspend(true);
+      handoffs.refresh();
+      lenis.scrollTo(Math.ceil(handoffs.positions.explore), { immediate: true, force: true });
+      ScrollTrigger.update();
+      publish();
+    },
     // 查看作品时暂停页面惯性；弹窗内部使用原生滚动和媒体控件。
     setPaused(paused: boolean) {
       if (paused) lenis.stop();
@@ -247,6 +289,7 @@ export function createTransitionTimeline(
       );
     },
     dispose() {
+      prepareOpening?.kill();
       gsap.ticker.remove(tick);
       callbacks.clear();
       media.removeEventListener("change", configure);

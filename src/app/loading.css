@@ -19,7 +19,6 @@ html:has(.astra[data-loading="true"]) { overflow: hidden; }
   touch-action: none;
   overscroll-behavior: none;
   background: transparent;
-  backdrop-filter: blur(var(--loading-blur, 0px));
 }
 .prelude-copy {
   position: absolute;

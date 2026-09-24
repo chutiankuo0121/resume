@@ -1,4 +1,5 @@
 import { boundaryGLSL } from "../hub/boundaryField";
+import { departureDetailsGLSL } from "../contact/departureDetails";
 
 export const tileVertex = /* glsl */ `
 varying vec2 vUv;
@@ -51,15 +52,20 @@ uniform sampler2D uScene;
 uniform float uStrength;
 varying vec2 vUv;
 ${boundaryGLSL}
+${departureDetailsGLSL}
 void main() {
   // Brown–Conrady 径向畸变。Storyline 参数 -0.02 × 5.5 = -0.11。
   // 浏览与拖拽共用整屏曲面，预览媒体不改变底下的浏览构图。
   vec2 p = vUv * 2.0 - 1.0;
   vec2 sampleUv = p * (1.0 - .11 * uStrength * dot(p, p)) * .5 + .5;
-  vec3 boundary=boundaryField(vUv);
+  float detail=pictureDetails(texture2D(uScene,sampleUv).rgb);
+  vec4 boundary=boundaryField(vUv);
   vec4 layer=boundarySample(uScene,sampleUv,vUv,boundary.y);
   // 边缘散射降低局部反差，与技能的透明雾层共同完成灰阶过渡。
   layer.rgb=mix(layer.rgb,vec3(.42),boundary.y*.18);
-  gl_FragColor=vec4(boundaryGrain(layer.rgb,vUv,boundary.y),1.);
+  gl_FragColor=boundaryPicture(boundaryGrain(layer.rgb,vUv,boundary.y),detail,vUv,boundaryPictureDistance(vUv,false),
+    boundaryPictureCoverage(vUv,false));
+  gl_FragColor.rgb=departureDetails(gl_FragColor.rgb,detail,vUv);
   #include <colorspace_fragment>
+  #include <premultiplied_alpha_fragment>
 }`;

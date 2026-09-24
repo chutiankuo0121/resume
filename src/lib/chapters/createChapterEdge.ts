@@ -5,7 +5,7 @@ import { portalLightGLSL, portalDustFragment } from "../shaders/portalLight";
 
 export const EDGE_SAMPLES = 513;
 export type EdgePoint = { x: number; y: number };
-type EdgeMotion = { x: number; y: number; strength: number; flow: number; velocities?: Float32Array };
+type EdgeMotion = { x: number; y: number; strength: number; flow: number; velocities?: Float32Array; lowerVelocities?: Float32Array };
 const noiseGLSL = /* glsl */ `
   ${portalLightGLSL}
   vec4 contour(sampler2D curve,float x){
@@ -108,7 +108,8 @@ export function createChapterEdge(canvas: HTMLCanvasElement) {
         if(uDouble>.5 && aSeed.y>.5) line.xz=line.yw;
         vec2 normal=normalize(vec2(-line.z,1.));
         vec2 tangent=vec2(normal.y,-normal.x);
-        float velocity=contour(uVelocity,x/uSize.x).x;
+        vec2 velocities=contour(uVelocity,x/uSize.x).xy;
+        float velocity=uDouble>.5 && aSeed.y>.5 ? velocities.y : velocities.x;
         float moving=smoothstep(25.,650.,abs(velocity));
         float spread=(10.+pow(aSeed.z,2.)*98.)*(1.+uFlow*.42);
         vec2 pos=vec2(x,line.x)+normal*side*(3.+life*spread);
@@ -165,6 +166,7 @@ export function createChapterEdge(canvas: HTMLCanvasElement) {
         const slope = (points: EdgePoint[]) => (points[after].y - points[before].y) / Math.max(.001, points[after].x - points[before].x);
         data.set([upper[i].y, lower?.[i].y ?? upper[i].y, slope(upper), slope(lower ?? upper)], i * 4);
         speeds[i * 4] = motion.velocities?.[i] ?? 0;
+        speeds[i * 4 + 1] = motion.lowerVelocities?.[i] ?? speeds[i * 4];
       }
       curve.needsUpdate = true;
       velocityMap.needsUpdate = true;

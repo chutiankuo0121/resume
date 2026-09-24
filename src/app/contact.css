@@ -89,3 +89,19 @@
   .signal-word, .signal-specimen, .signal-scroll { display: none; }
   .signal-art { transition: none; }
 }
+
+/* The GPU clips contact art and its details together; DOM keeps its own hit mask. */
+.signal-content { position: absolute; inset: 0; z-index: 2; }
+.contact-stage[data-collage-reveal][data-art="ready"] {
+  mask-image: none;
+  background: transparent;
+  pointer-events: none;
+}
+.contact-stage[data-collage-reveal][data-art="ready"] .signal-fallback { visibility: hidden; }
+.contact-stage[data-collage-reveal][data-art="ready"] .signal-content {
+  mask-image: url(#contact-collage-mask);
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .signal-content { display: contents; }
+}

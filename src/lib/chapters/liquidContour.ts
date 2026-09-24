@@ -77,9 +77,12 @@ export function createLiquidContour(count: number) {
           + (-a + 3 * b - 3 * c + d) * t * t * t);
         const grain = noise(px * .042 + phase * .25, phase * .55) * (3 + result.flow * 3)
           + noise(px * .19, phase * .7) * 1.2;
-        const local = Math.exp(-(((px - pointer.x) / 105) ** 2) - ((base - pointer.y) / 135) ** 2)
+        // Halve deformation around the travelling baseline, including local drag
+        // and fine ripples; scrolling distance and the animation clock stay intact.
+        const contour = level * height + (base + grain - level * height) * .5;
+        const local = Math.exp(-(((px - pointer.x) / 105) ** 2) - ((contour - pointer.y) / 135) ** 2)
           * pointer.strength;
-        const y = base + grain + local * Math.tanh((pointer.y - base) / 45) * 24;
+        const y = contour + local * Math.tanh((pointer.y - contour) / 45) * 24;
         points[i].x = px; points[i].y = y;
         if (Number.isFinite(previous[i]) && dt > 0) {
           const velocity = clamp((y - previous[i]) / dt, -1600, 1600);

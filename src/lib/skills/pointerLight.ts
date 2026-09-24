@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { simplex } from "../shaders/noise";
 import type { PaletteUniforms } from "./palette";
+import { createDepartureDetails, departureDetailsGLSL } from "../contact/departureDetails";
 import {
   boundaryGLSL,
   createBoundaryUniforms,
@@ -21,9 +22,11 @@ uniform vec3 uHighlight;
 varying vec2 vUv;
 ${simplex}
 ${boundaryGLSL}
+${departureDetailsGLSL}
 void main(){
   // 截取的是已经显示为 sRGB 的主画面，先还原线性光，再只叠加鼠标附近的亮度。
-  vec3 boundary=boundaryField(vUv);
+  float detail=pictureDetails(sRGBTransferEOTF(texture2D(uFrame,vUv)).rgb);
+  vec4 boundary=boundaryField(vUv);
   vec4 color=sRGBTransferEOTF(boundarySample(uFrame,vUv,vUv,boundary.y));
   vec2 p=vUv*vec2(uAspect,1.);
   float flow=snoise(vec3(p*2.5,uTime*.08));
@@ -32,7 +35,9 @@ void main(){
   // 在最终线性画面上叠加反馈场亮度，卡片、天空和水面共享同一束柔光。
   color.rgb+=uHighlight*(brush*uStrength);
   color.rgb=mix(color.rgb,vec3(.26),boundary.y*.08);
-  gl_FragColor=vec4(boundaryGrain(color.rgb,vUv,boundary.y),boundary.x);
+  gl_FragColor=boundaryPicture(boundaryGrain(color.rgb,vUv,boundary.y),detail,vUv,boundaryPictureDistance(vUv,true),
+    boundaryPictureCoverage(vUv,true));
+  gl_FragColor.rgb=departureDetails(gl_FragColor.rgb,detail,vUv);
   #include <colorspace_fragment>
   #include <premultiplied_alpha_fragment>
 }
@@ -48,6 +53,7 @@ export function createPointerLight(
 ) {
   let frame = new THREE.FramebufferTexture(1, 1);
   const boundary = createBoundaryUniforms(boundaryState);
+  const departure = createDepartureDetails(renderer.domElement);
   const material = new THREE.ShaderMaterial({
     name: "SkillsPointerLight",
     vertexShader,
@@ -56,6 +62,7 @@ export function createPointerLight(
     uniforms: {
       uHighlight: palette.uHighlight,
       ...boundary.uniforms,
+      ...departure.uniforms,
       uFrame: { value: frame },
       uPointerField: field,
       uTime: time,
@@ -82,14 +89,19 @@ export function createPointerLight(
     },
     render() {
       boundary.update();
+      departure.update();
       // 复用已完成的抗锯齿画面，无需重新绘制模型，也不改变原有透明层的合成。
       renderer.copyFramebufferToTexture(frame);
       const autoClear = renderer.autoClear;
       renderer.autoClear = false;
       renderer.render(scene, camera);
+      renderer.domElement.dataset.boundaryReady = "true";
       renderer.autoClear = autoClear;
     },
     dispose() {
+      delete renderer.domElement.dataset.boundaryReady;
+      boundary.dispose();
+      departure.dispose();
       frame.dispose();
       quad.geometry.dispose();
       material.dispose();
