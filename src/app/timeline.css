@@ -19,7 +19,7 @@
   width: max(100%, 177.778svh); height: max(100svh, 56.25vw);
   transform: translate(-50%, -50%);
 }
-.career-background, .career-layer, .career-guide, .career-piece, .career-cutout { position: absolute; inset: 0; }
+.career-background, .career-layer, .career-guide, .career-piece, .career-paper-fragment, .career-cutout { position: absolute; inset: 0; }
 .career-background img, .career-guide img, .career-cutout img { object-fit: fill; }
 .career-guide { mask-size: 100% 100%; mask-repeat: no-repeat; opacity: 0; }
 .career-piece { transform-origin: 68% 80%; }
@@ -27,12 +27,12 @@
   position: relative; z-index: 2; isolation: isolate;
   width: min(39%, 630px); margin: 9svh 0 9svh max(80px, 7.5%);
   padding: clamp(24px, 2.8vw, 48px);
-  background: #f8f3e8; border: 1px solid #b4a58d50;
-  box-shadow: 2px 5px 0 #d6cbb63d, 0 18px 45px #3e342016;
+  transform-origin: 50% 85%;
 }
-.career-layout::before {
-  content: ''; position: absolute; z-index: -1; inset: 0; pointer-events: none; opacity: .075;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath filter='url(%23p)' opacity='.5' d='M0 0h160v160H0z'/%3E%3C/svg%3E");
+.career-note-paper {
+  position: absolute; z-index: -1; inset: -12px -16px;
+  width: calc(100% + 32px); height: calc(100% + 24px);
+  overflow: visible; pointer-events: none;
 }
 .career-dateline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 20px; color: var(--career-ink); font: 13px/1.5 var(--font-body); letter-spacing: .06em; }
 .career-dateline > span { font-variant-numeric: tabular-nums; opacity: .65; }
@@ -86,6 +86,7 @@
 @media (max-width: 799px) {
   .career-artboard { transform: translate(-71%, -50%); }
   .career-layout { width: auto; margin: 36svh 5% 5svh max(48px, 5%); padding: 22px; }
+  .career-note-paper { inset: -8px -7px; width: calc(100% + 14px); height: calc(100% + 16px); }
   .career-dateline { font-size: 11px; gap: 4px 12px; }
   .career-company { margin: 12px 0 7px; font-size: 13px; line-height: 1.5; }
   .career-intro h2 { font-size: clamp(25px, 6.5vw, 34px); line-height: 1.25; }

@@ -19,7 +19,8 @@ export function careerPose(time: number, pages: number, first: boolean, last: bo
     assembly: smooth(.30, 1.18, time),
     subject: smooth(.48, 1.36, time),
     foreground: smooth(.68, 1.54, time),
-    text: smooth(1.22, 1.62, time) * (1 - (last ? 0 : smooth(readingEnd - .12, readingEnd + .28, time))),
+    note: smooth(.9, 1.62, time),
+    text: smooth(.9, 1.1, time) * (1 - (last ? 0 : smooth(readingEnd - .12, readingEnd + .28, time))),
     opacity: 1 - exit,
     page: Math.max(0, Math.min(pages - 1, Math.floor((time - CAREER_ENTRY) / CAREER_PAGE))),
   };

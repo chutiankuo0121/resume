@@ -3,6 +3,8 @@ import type { Ref, CSSProperties } from "react";
 import { experience } from "@/content/experience";
 import { careerArtwork } from "@/lib/career/artwork";
 import { careerRunway } from "@/lib/career/choreography";
+import CareerPaperEdge from "./CareerPaperEdge";
+import CareerTextPaper from "./CareerTextPaper";
 
 export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
   return (
@@ -22,6 +24,7 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                   <figure className="career-visual" role="img" aria-label={period.imageAlt}>
                     <svg className="career-defs" aria-hidden="true" focusable="false">
                       <defs>
+                        <CareerPaperEdge id={`${prefix}-torn`} seed={index * 13 + 5} />
                         <filter id={`${prefix}-ink`} colorInterpolationFilters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" /></filter>
                         <mask id={`${prefix}-background`} maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox" x="0" y="0" width="1" height="1" style={{ maskType: "luminance" }}>
                           <rect width="1" height="1" fill="white" />
@@ -39,14 +42,17 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                           <Image src={art.sketch} alt="" fill sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" />
                         </div>
                         <div className={`career-piece career-piece--${layer}`}>
-                          <div className="career-cutout" style={{ clipPath: `url(#${prefix}-${layerIndex})` }}>
-                            <Image src={art.objects} alt="" fill sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" />
+                          <div className="career-paper-fragment" style={{ filter: `url(#${prefix}-torn)` }}>
+                            <div className="career-cutout" style={{ clipPath: `url(#${prefix}-${layerIndex})` }}>
+                              <Image src={art.objects} alt="" fill sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" />
+                            </div>
                           </div>
                         </div>
                       </div>)}
                     </div>
                   </figure>
                   <div className="career-layout">
+                    <CareerTextPaper id={prefix} index={index} />
                     <header className="career-intro">
                       <div className="career-dateline"><span>{String(index + 1).padStart(2, "0")} / {String(experience.length).padStart(2, "0")}</span><p className="career-years">{period.years}</p></div>
                       <p className="career-company">{period.title}{period.location && <span> · {period.location}</span>}</p>

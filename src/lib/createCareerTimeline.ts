@@ -68,7 +68,13 @@ export function createCareerTimeline(root: HTMLElement, scrollTo: (position: num
         // At progress 1 every transform is zero, matching the background exactly.
         gsap.set(entry.guides[layer], { opacity: pose.background * (1 - smooth(.25, .9, progress)) });
       });
-      gsap.set(entry.layout, { opacity: pose.text, y: (1 - clamp(time / CAREER_ENTRY)) * 35 });
+      // Paper and live text enter as one collage fragment and land at identity.
+      gsap.set(entry.layout, {
+        opacity: pose.text,
+        y: (1 - pose.note) * height * 1.04,
+        x: (1 - pose.note) * height * .025,
+        rotation: (1 - pose.note) * -3.5,
+      });
       pages.forEach((page, index) => {
         const alpha = careerPageOpacity(time, index, pages.length, last);
         gsap.set(page, { opacity: alpha, visibility: alpha < .005 ? "hidden" : "visible", display: alpha < .005 ? "none" : "block", y: (1 - alpha) * 12 });
