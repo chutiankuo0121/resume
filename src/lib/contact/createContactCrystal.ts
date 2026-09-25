@@ -37,10 +37,18 @@ export function createContactCrystal(renderer: THREE.WebGLRenderer) {
     const grains = pointScene.getObjectByProperty("isPoints", true) as THREE.Points;
     const ambient = grains.geometry.getAttribute("aAmbient");
     const light = (grains.geometry.getAttribute("aLight") as THREE.BufferAttribute).clone();
+    const visible: number[] = [];
+    let ambientCount = 0;
     for (let i = 0; i < light.count; i++) {
-      if (ambient.getX(i) > .5) light.setX(i, .4 + .2*light.getX(i));
+      if (ambient.getX(i) > .5) {
+        // 固定保留每十个空间点中的一个；晶石表面点全部保留。
+        if (++ambientCount % 10 !== 0) continue;
+        light.setX(i, .4 + .2*light.getX(i));
+      }
+      visible.push(i);
     }
     grains.geometry.setAttribute("aLight", light);
+    grains.geometry.setIndex(visible);
     const box = new THREE.Box3().setFromObject(lightScene);
     box.getCenter(center); box.getSize(size);
     ready = true;

@@ -1,75 +1,67 @@
 .contact {
-  position: relative; display: block; height: 460svh; min-height: 100svh; padding: 0;
-  color: #eee9dd; background: #101c28; --signal-gold: #c9b995;
+  position: relative; display: block; height: 240svh; min-height: 100svh; padding: 0;
+  color: #eee9dd; background: #060709; --signal-gold: #bbb3a3;
 }
 .contact:has(.chapter-held) { z-index: 2; background: transparent; }
-.contact-stage { position: sticky; top: 0; height: 100svh; min-height: 480px; overflow: hidden; isolation: isolate; background: #101c28; }
+.contact-stage { position: sticky; top: 0; height: 100svh; min-height: 480px; overflow: hidden; isolation: isolate; background: #060709; }
 .signal-fallback, .signal-art, .signal-shade { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.signal-fallback { background: url('/contact-signal/landscape.webp') 65% center / cover; }
-.signal-art { opacity: 0; transition: opacity 1.2s; z-index: 1; }
+.signal-fallback { background: #060709; overflow: hidden; }
+.signal-rock { position: absolute; bottom: -4%; width: max(110%, 195.56vh); aspect-ratio: 16 / 9; background: center / contain no-repeat; }
+.signal-rock--left { left: -4.5%; bottom: -7%; background-image: url('/contact-signal/lunar-left.webp'); }
+.signal-rock--right { right: -5%; bottom: -14%; background-image: url('/contact-signal/lunar-right.webp'); }
+.signal-lens { position: absolute; left: 76%; top: 37%; width: min(45vh, 31vw); aspect-ratio: 1; transform: translate(-50%, -50%) rotate(-23deg); border-radius: 50%; background: radial-gradient(ellipse, #020304 48%, #e2ddd3 49%, #393735 50%, #141516 56%, #f5f1e8 58%, #c9beb0 61%, #51494288 67%, transparent 74%); }
+.signal-lens::after { content: ''; position: absolute; left: -65%; top: 47%; width: 230%; height: 8%; background: radial-gradient(ellipse, #fffcf3, #dbd4c7 28%, #7c756c66 52%, transparent 71%); }
+.signal-art { opacity: 0; z-index: 1; }
 [data-art="ready"] .signal-art { opacity: 1; }
+[data-art="ready"] .signal-fallback { visibility: hidden; }
 .contact-stage[data-collage-reveal] { mask-image: url(#contact-collage-mask); }
-.signal-shade { z-index: 2; background: linear-gradient(90deg, #0a152748, transparent 60%), linear-gradient(0deg, #08111bba, transparent 24%, transparent 83%, #08111b55); }
-.signal-word { position: absolute; z-index: 2; left: 5%; top: 9%; font: 400 clamp(100px, 20vw, 340px)/1 var(--font-heading); letter-spacing: -.07em; color: #eee6d114; transform: translate3d(calc(var(--signal-p, 0) * -18vw), calc(var(--signal-p, 0) * -12vh), 0); pointer-events: none; }
-.signal-copy { position: absolute; z-index: 4; left: max(70px, 9%); top: 29%; width: 45%; max-width: 650px; will-change: transform, opacity; }
-.signal-copy--making { left: 58%; width: 36%; top: 28%; opacity: 0; visibility: hidden; }
-.signal-copy--connect { opacity: 0; visibility: hidden; top: 25%; }
-.signal-eyebrow { color: var(--signal-gold); font: 10px/1.8 var(--font-body); letter-spacing: .17em; margin: 0 0 26px; }
-.contact .signal-copy h2, .contact .signal-copy h3 { margin: 0 0 28px; font: 400 clamp(38px, 5.1vw, 86px)/1.24 var(--font-heading); letter-spacing: -.02em; }
-.signal-copy h2 span, .signal-copy h3 span { display: block; }
-.signal-copy h2 span + span, .signal-copy h3 span + span { color: #cfc6b2; }
-.signal-description { margin: 0; font: 16px/1.95 var(--font-body); color: #d5d7d7c9; text-wrap: balance; }
-.signal-signature { display: block; margin-top: 30px; color: #dbd4c2; font: 12px/1.8 var(--font-body); letter-spacing: .04em; }
-.signal-signature i { margin: 0 12px; opacity: .5; }
-.signal-education { margin: 9px 0 0; color: #c8c8c68c; font: 10px/1.7 var(--font-body); }
-.signal-actions { display: flex; gap: 26px; margin-top: 27px; }
-.signal-actions button { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 13px 0; border: 0; border-bottom: 1px solid #d6c7a86b; background: none; color: #f0e9d8; text-decoration: none; font: 15px/1.5 var(--font-body); cursor: pointer; }
+.signal-shade { background: linear-gradient(90deg, #06070918, transparent 45%); }
+.signal-copy { position: absolute; z-index: 4; left: max(80px, 9.6%); top: 23%; width: 43%; max-width: 740px; }
+.contact .signal-copy h2 { margin: 0 0 28px; font: 400 clamp(40px, 5vw, 86px)/1.32 var(--font-heading); letter-spacing: -.025em; }
+.signal-copy h2 span { display: block; white-space: nowrap; }
+.signal-description { margin: 0; font: clamp(14px, 1.45vw, 24px)/1.8 var(--font-body); color: #ddd8cd; text-wrap: balance; }
+.signal-actions { display: flex; margin-top: clamp(22px, 2.8vh, 30px); }
+.signal-actions button { display: flex; align-items: center; justify-content: space-between; gap: 30px; min-height: 48px; padding: 11px 32px; border: 1px solid #d7d0c1; border-radius: 100px; background: transparent; color: #eee9dd; font: clamp(15px, 1.15vw, 19px)/1.5 var(--font-body); cursor: pointer; transition: background-color .25s, color .25s; }
 .signal-actions button span:last-child { transition: transform .3s; }
+.signal-actions button:hover { background: #eee9dd; color: #171614; }
 .signal-actions button:hover span:last-child { transform: rotate(90deg); }
-.signal-actions button:hover { color: #fff; border-color: #f0e4c8; }
-.contact :is(button,a):focus-visible { outline: 1px solid #f4db9d; outline-offset: 6px; }
-.signal-dialog { position: fixed; inset: 0; margin: auto; width: min(390px, calc(100vw - 48px)); padding: 42px 30px 30px; border: 1px solid #c4b38c44; background: #18232c; color: #eee9dd; text-align: center; box-shadow: 0 20px 100px #0008; }
-.signal-dialog::backdrop { background: #060d18c9; backdrop-filter: blur(12px); }
+.contact :is(button,a):focus-visible { outline: 2px solid #eee9dd; outline-offset: 6px; }
+.signal-eyebrow { color: var(--signal-gold); font: 10px/1.8 var(--font-body); letter-spacing: .17em; margin: 0 0 26px; }
+.signal-dialog { position: fixed; inset: 0; margin: auto; width: min(390px, calc(100vw - 48px)); padding: 42px 30px 30px; border: 1px solid #c4b38c44; background: #1c1b18; color: #eee9dd; text-align: center; box-shadow: 0 20px 100px #0008; }
+.signal-dialog::backdrop { background: #0b0b0bcc; backdrop-filter: blur(12px); }
 .signal-dialog-close { position: absolute; top: 6px; right: 12px; padding: 6px; font: 24px/1.5 var(--font-body); color: #ddd5c4; border: 0; background: none; cursor: pointer; }
 .signal-dialog .signal-eyebrow { font-size: 9px; margin-bottom: 14px; }
 .signal-dialog h3 { font: 28px/1.4 var(--font-heading); margin: 0 0 24px; }
 .signal-dialog img { display: block; width: 240px; height: 240px; max-width: 100%; object-fit: contain; margin: auto; }
 .signal-dialog > p:not(.signal-eyebrow), .signal-dialog a { font: 12px/1.8 var(--font-body); color: #ddd4bf; }
-@media (max-width: 799px) {
-  .contact { height: 430svh; }
+@media (max-width: 799px), (max-aspect-ratio: 1/1) {
+  .contact { height: 210svh; }
   .contact-stage { min-height: 520px; }
-  .signal-copy, .signal-copy--making, .signal-copy--connect { left: 50px; top: 13%; width: calc(100% - 78px); max-width: 500px; }
-  .contact .signal-copy h2, .contact .signal-copy h3 { font-size: clamp(32px, 6.5vw, 50px); margin-bottom: 15px; }
-  .signal-eyebrow { font-size: 8px; margin-bottom: 14px; }
-  .signal-description { font-size: 12px; line-height: 1.8; }
-  .signal-signature { font-size: 10px; margin-top: 16px; }
-  .signal-actions { margin-top: 15px; gap: 25px; }
-  .signal-actions button { font-size: 13px; padding: 8px 0; gap: 20px; }
-  .signal-word { top: 45%; left: -10%; font-size: 27vw; }
-  .signal-shade { background: linear-gradient(180deg, #0b172aba, #0b172a36 44%, transparent 68%, #08111b99); }
+  .signal-copy { left: 7%; top: 11%; width: 86%; max-width: 500px; }
+  .contact .signal-copy h2 { font-size: clamp(32px, 7.7vw, 52px); margin-bottom: 20px; }
+  .signal-description { font-size: 13px; line-height: 1.8; }
+  .signal-actions { margin-top: 22px; }
+  .signal-actions button { font-size: 14px; padding: 9px 24px; gap: 24px; }
+  .signal-shade { background: none; }
+  .signal-lens { left: 57%; top: 63%; width: min(60vw, 31vh); }
+  .signal-rock--left { width: 146%; bottom: -4%; }
+  .signal-rock--right { width: 138%; bottom: -4%; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .contact { height: auto; min-height: 100svh; }
-  .contact-stage { height: auto; min-height: 100svh; padding: 120px max(50px, 9%) 100px; }
-  .signal-copy { position: relative; top: auto; left: auto; width: 100%; }
-  .signal-copy--intro, .signal-copy--making { display: none; }
-  .signal-copy--connect { opacity: 1; visibility: visible; }
-  .signal-word { display: none; }
-  .signal-art { transition: none; }
+@media (min-width: 800px) and (max-height: 620px) {
+  .signal-copy { top: 22%; }
+  .contact .signal-copy h2 { font-size: clamp(36px, 7.5vh, 52px); margin-bottom: 24px; }
+  .signal-description { font-size: 15px; }
+  .signal-actions { margin-top: 24px; }
 }
-
-/* The GPU clips contact art and its details together; DOM keeps its own hit mask. */
+/* GPU art and DOM text keep the same side of the interactive handoff. */
 .signal-content { position: absolute; inset: 0; z-index: 2; }
 .contact-stage[data-collage-reveal][data-art="ready"] {
-  mask-image: none;
-  background: transparent;
-  pointer-events: none;
+  mask-image: none; background: transparent; pointer-events: none;
 }
-.contact-stage[data-collage-reveal][data-art="ready"] .signal-fallback { visibility: hidden; }
 .contact-stage[data-collage-reveal][data-art="ready"] .signal-content {
-  mask-image: url(#contact-collage-mask);
-  pointer-events: auto;
+  mask-image: url(#contact-collage-mask); pointer-events: auto;
 }
 @media (prefers-reduced-motion: reduce) {
-  .signal-content { display: contents; }
+  .contact { height: 100svh; }
+  .signal-actions button, .signal-actions button span:last-child { transition: none; }
 }

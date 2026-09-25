@@ -11,10 +11,9 @@ type Props = {
 
 const chapters = [
   { id: "intro", number: "01/", label: "序章" },
-  { id: "crystal", number: "02/", label: "晶石" },
-  { id: "career", number: "03/", label: "经历" },
-  { id: "explore", number: "04/", label: "探索" },
-  { id: "contact", number: "05/", label: "联系" },
+  { id: "career", number: "02/", label: "经历" },
+  { id: "explore", number: "03/", label: "探索" },
+  { id: "contact", number: "04/", label: "联系" },
 ] as const;
 
 function AxisText({ text }: { text: string }) {

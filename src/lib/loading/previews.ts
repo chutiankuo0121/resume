@@ -58,8 +58,8 @@ export async function preloadPreviews(onProgress: (progress: number) => void, si
   const previews: Preview[] = [
     ...experience.flatMap(period => [period.image, period.background].map(src => ({ src, cors: false }))),
     ...skills.map(skill => ({ src: skill.image, cors: true })),
-    ...["landscape", "foreground"].map(name => ({ src: `/contact-signal/${name}.webp`, cors: true })),
-    { src: "/contact-signal/landscape.webp", cors: false },
+    ...["lunar-left", "lunar-right"].flatMap(name =>
+      [true, false].map(cors => ({ src: `/contact-signal/${name}.webp`, cors }))),
     { src: assetUrl("/portfolio/paper-grain.webp"), cors: true },
     ...portfolioMedia.filter(item => item.kind !== "audio").map(item => ({ src: item.src, cors: true })),
   ];

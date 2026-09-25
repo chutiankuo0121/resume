@@ -32,27 +32,17 @@ export default function Contact({
       aria-labelledby="contact-title"
     >
       <div ref={stage} className="contact-stage">
-        <div className="signal-fallback" aria-hidden="true" />
+        <div className="signal-fallback" aria-hidden="true">
+          <div className="signal-lens" />
+          <div className="signal-rock signal-rock--left" />
+          <div className="signal-rock signal-rock--right" />
+        </div>
         <canvas ref={canvas} className="signal-art" aria-hidden="true" />
         <div className="signal-content">
-          <div className="signal-word" aria-hidden="true">BEYOND</div>
           <div className="signal-shade" aria-hidden="true" />
-          <div className="signal-copy signal-copy--intro" data-signal-copy="0">
-            <p className="signal-eyebrow">01 / A LITTLE ABOUT ME</p>
-            <h2 id="contact-title"><span>在未知中，</span><span>找到方向。</span></h2>
-            <p className="signal-description">我是{profile.name}。<br />在金融、代码与创意之间，<br />寻找值得投入的下一件事。</p>
-            <span className="signal-signature">Tiankuo Chu <i>—</i> 探索者 / 构建者</span>
-            <p className="signal-education">{profile.education}</p>
-          </div>
-          <div className="signal-copy signal-copy--making" data-signal-copy="1" aria-hidden="true" inert>
-            <p className="signal-eyebrow">02 / THOUGHT INTO FORM</p>
-            <h3><span>让想法，</span><span>拥有形状。</span></h3>
-            <p className="signal-description">从研究到模型，从代码到产品。<br />把抽象的可能，<br />一点点做成真实可用的东西。</p>
-          </div>
-          <div className="signal-copy signal-copy--connect" data-signal-copy="2" aria-hidden="true" inert>
-            <p className="signal-eyebrow">03 / THE NEXT CHAPTER IS OURS</p>
-            <h3><span>下一段探索，</span><span>从对话开始。</span></h3>
-            <p className="signal-description">一个想法，一次合作，或一句你好。<br />我在这里，期待你的信号。</p>
+          <div className="signal-copy">
+            <h2 id="contact-title"><span>下一段探索，</span><span>从对话开始。</span></h2>
+            <p className="signal-description">一个想法，一次合作，或一句你好。</p>
             <div className="signal-actions">
               <button type="button" onClick={() => dialog.current?.showModal()}><span>微信聊聊</span><span aria-hidden="true">＋</span></button>
             </div>

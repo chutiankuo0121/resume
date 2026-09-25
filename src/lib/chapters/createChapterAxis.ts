@@ -1,6 +1,6 @@
 import type { Chapter } from "../transition";
 
-export const axisChapters: Chapter[] = ["intro", "crystal", "career", "explore", "contact"];
+export const axisChapters: Chapter[] = ["intro", "career", "explore", "contact"];
 
 /** No independent tween: a stopped/reversed handoff must stop/reverse the rail. */
 export function createChapterAxis(axis: HTMLElement) {

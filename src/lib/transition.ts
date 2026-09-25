@@ -6,7 +6,7 @@ import { addOpeningTitles, OPENING } from "./openingTitles";
 import { createChapterHandoffs } from "./chapters/createHandoffs";
 import { axisChapters, createChapterAxis } from "./chapters/createChapterAxis";
 
-export type Chapter = "intro" | "crystal" | "career" | "explore" | "contact";
+export type Chapter = "intro" | "career" | "explore" | "contact";
 
 export type TransitionState = {
   progress: number;
@@ -119,24 +119,19 @@ export function createTransitionTimeline(
         ? "explore"
         : inCareer
           ? "career"
-          : state.progress * DURATION < CRYSTAL_START
-            ? "intro"
-            : "crystal";
+          : "intro";
     const clamp = gsap.utils.clamp(0, 1);
     const range = (start: number, end: number) => clamp((window.scrollY - start) / Math.max(1, end - start));
-    // Use the scene's own camera/portal progress and the exact chapter handoff
+    // Use the scene's own portal progress and the exact chapter handoff
     // ranges. Adjacent sections share one unit of expansion at every frame.
-    const crystal = state.cameraTravel;
     const journey = state.portalReveal;
     const explore = range(entryStart, exploreStart);
     const contact = range(exitStart, contactStart);
     const openness = media.matches
       ? axisChapters.map(id => Number(id === settledChapter))
-      : [1 - crystal, crystal * (1 - journey), journey * (1 - explore), explore * (1 - contact), contact];
-    const time = state.progress * DURATION;
+      : [1 - journey, journey * (1 - explore), explore * (1 - contact), contact];
     chapterAxis.update(openness, [
-      clamp(time / CRYSTAL_START),
-      clamp((time - CRYSTAL_START) / (OPENING.portalStart - CRYSTAL_START)),
+      state.progress,
       range(careerStart, entryStart),
       range(exploreStart, exitStart),
       range(contactStart, contactStart + contactRoot.offsetHeight - window.innerHeight),
@@ -279,17 +274,7 @@ export function createTransitionTimeline(
         return;
       }
       if (!trigger) return;
-      const end = chapter === "crystal";
-      lenis.scrollTo(
-        end
-          ? trigger.start + (trigger.end - trigger.start) * OPENING.crystalReading / DURATION
-          : trigger.start,
-        {
-          duration: end ? 2.4 : 2,
-          lerp: 0,
-          immediate,
-        },
-      );
+      lenis.scrollTo(trigger.start, { duration: 2, lerp: 0, immediate });
     },
     dispose() {
       prepareOpening?.kill();
