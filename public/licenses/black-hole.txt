@@ -1,4 +1,4 @@
-The contact page light-bending integrator and escaped-ray background sampling
+The contact page light-bending integrator and ray capture/escape logic
 adapt concepts and code from Dan Greenheck's webgpu-black-hole:
 https://github.com/dgreenheck/webgpu-black-hole
 Revision: cf2fca75a9e774449057cbebe2197129249d96b8

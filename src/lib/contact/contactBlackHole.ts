@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { blackHoleFragment } from "./blackHoleShader";
-import { createInfallDust } from "./infallDust";
+import { createBackgroundParticles } from "./backgroundParticles";
 
 const vertex = /* glsl */`
   varying vec2 vUv;
@@ -24,7 +24,7 @@ const blurFragment = /* glsl */`
   }
 `;
 
-/** One linear HDR image supplies both the mountains and the existing handoff.
+/** Composite the HDR black hole over ambient space before mountains and handoff.
  * Lensing adapts Dan Greenheck's MIT light integrator; see public/licenses/.
  * All gas, particles, bloom and composition code here is authored for this page. */
 export function createContactBlackHole() {
@@ -43,7 +43,7 @@ export function createContactBlackHole() {
   const smallA = target("Contact bloom small horizontal"), smallB = target("Contact bloom small");
   const wideA = target("Contact bloom wide horizontal"), wideB = target("Contact bloom wide");
   const targets = [frame, smallA, smallB, wideA, wideB];
-  const dust = createInfallDust();
+  const background = createBackgroundParticles();
   let seed = 83147;
   const noiseBytes = new Uint8Array(256 * 256 * 4);
   for (let i = 0; i < noiseBytes.length; i++) {
@@ -61,7 +61,7 @@ export function createContactBlackHole() {
       uTime: { value: 0 }, uResolution: { value: new THREE.Vector2(1, 1) },
       uCenter: { value: new THREE.Vector2() }, uRadius: { value: 1 },
       uOrbit: { value: new THREE.Vector2() }, uApproach: { value: 0 },
-      uNoise: { value: noise }, uDust: { value: dust.texture },
+      uNoise: { value: noise },
     },
   });
   const blur = new THREE.ShaderMaterial({
@@ -74,18 +74,27 @@ export function createContactBlackHole() {
   passScene.add(quad);
   const material = new THREE.ShaderMaterial({
     name: "ContactBlackHoleComposite", depthTest: false, depthWrite: false, toneMapped: false,
-    uniforms: { uFrame: { value: frame.texture }, uSmall: { value: smallB.texture }, uWide: { value: wideB.texture } },
+    uniforms: { uFrame: { value: frame.texture }, uSmall: { value: smallB.texture },
+      uWide: { value: wideB.texture }, uBackground: { value: background.texture } },
     vertexShader: /* glsl */`
       varying vec2 vUv;
       void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }
     `,
     fragmentShader: /* glsl */`
       varying vec2 vUv;
-      uniform sampler2D uFrame, uSmall, uWide;
+      uniform sampler2D uFrame, uSmall, uWide, uBackground;
       void main() {
-        vec3 c = texture2D(uFrame, vUv).rgb;
+        vec4 hole = texture2D(uFrame, vUv);
+        vec3 c = hole.rgb;
         c += texture2D(uSmall, vUv).rgb * .24 + texture2D(uWide, vUv).rgb * .45;
+        vec3 sky = vec3(.00182, .00212, .00243);
+        c += sky * mix(1., .28, hole.a);
         c = 1. - exp(-c * 1.18);
+        // Background space stays beneath the shadow and luminous disk. It is
+        // composited after bloom so its white round cores never create BH glints.
+        float diskCover = smoothstep(.002, .04, max(hole.r, max(hole.g, hole.b)));
+        float coverage = max(hole.a, diskCover);
+        c += texture2D(uBackground, vUv).rgb * (1. - coverage);
         gl_FragColor = vec4(c, 1.);
         #include <colorspace_fragment>
       }
@@ -94,7 +103,7 @@ export function createContactBlackHole() {
   let width = 1, height = 1, mobile = false;
   let floatChecked = false;
   const clearColor = new THREE.Color();
-  function resize(w: number, h: number, narrow: boolean) {
+  function resize(w: number, h: number, narrow: boolean, dpr: number) {
     width = w; height = h; mobile = narrow;
     // Full CSS resolution at ordinary desktop sizes (Prada's High convention).
     const scale = Math.min(mobile ? Math.min(devicePixelRatio, 1.4) : 1,
@@ -106,6 +115,7 @@ export function createContactBlackHole() {
     wideA.setSize(Math.max(1, rw >> 3), Math.max(1, rh >> 3));
     wideB.setSize(wideA.width, wideA.height);
     ray.uniforms.uResolution.value.set(w, h);
+    background.resize(w, h, dpr);
   }
   function drawBlur(renderer: THREE.WebGLRenderer, input: THREE.WebGLRenderTarget,
     output: THREE.WebGLRenderTarget, x: number, y: number, extract = 0) {
@@ -117,7 +127,7 @@ export function createContactBlackHole() {
     renderer.render(passScene, camera);
   }
   return {
-    material, resize,
+    material, resize, ready: background.ready,
     render(renderer: THREE.WebGLRenderer, time: number, x: number, y: number, progress: number) {
       if (!floatChecked) {
         floatChecked = true;
@@ -132,7 +142,7 @@ export function createContactBlackHole() {
       renderer.autoClear = true;
       renderer.setClearColor(0x000000, 0);
       try {
-        dust.render(renderer, time, mobile);
+        background.render(renderer, time);
         ray.uniforms.uTime.value = time;
         ray.uniforms.uOrbit.value.set(x * .052, y * .025);
         ray.uniforms.uApproach.value = progress;
@@ -156,7 +166,7 @@ export function createContactBlackHole() {
     },
     dispose() {
       targets.forEach(rt => rt.dispose());
-      geometry.dispose(); ray.dispose(); blur.dispose(); material.dispose(); noise.dispose(); dust.dispose();
+      geometry.dispose(); ray.dispose(); blur.dispose(); material.dispose(); noise.dispose(); background.dispose();
     },
   };
 }

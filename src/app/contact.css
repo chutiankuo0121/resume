@@ -1,6 +1,6 @@
 .contact {
   position: relative; display: block; height: 240svh; min-height: 100svh; padding: 0;
-  color: #eee9dd; background: #060709; --signal-gold: #bbb3a3;
+  color: #eee9dd; background: #060709;
 }
 .contact:has(.chapter-held) { z-index: 2; background: transparent; }
 .contact-stage { position: sticky; top: 0; height: 100svh; min-height: 480px; overflow: hidden; isolation: isolate; background: #060709; }
@@ -26,14 +26,12 @@
 .signal-actions button:hover { background: #eee9dd; color: #171614; }
 .signal-actions button:hover span:last-child { transform: rotate(90deg); }
 .contact :is(button,a):focus-visible { outline: 2px solid #eee9dd; outline-offset: 6px; }
-.signal-eyebrow { color: var(--signal-gold); font: 10px/1.8 var(--font-body); letter-spacing: .17em; margin: 0 0 26px; }
 .signal-dialog { position: fixed; inset: 0; margin: auto; width: min(390px, calc(100vw - 48px)); padding: 42px 30px 30px; border: 1px solid #c4b38c44; background: #1c1b18; color: #eee9dd; text-align: center; box-shadow: 0 20px 100px #0008; }
 .signal-dialog::backdrop { background: #0b0b0bcc; backdrop-filter: blur(12px); }
 .signal-dialog-close { position: absolute; top: 6px; right: 12px; padding: 6px; font: 24px/1.5 var(--font-body); color: #ddd5c4; border: 0; background: none; cursor: pointer; }
-.signal-dialog .signal-eyebrow { font-size: 9px; margin-bottom: 14px; }
 .signal-dialog h3 { font: 28px/1.4 var(--font-heading); margin: 0 0 24px; }
 .signal-dialog img { display: block; width: 240px; height: 240px; max-width: 100%; object-fit: contain; margin: auto; }
-.signal-dialog > p:not(.signal-eyebrow), .signal-dialog a { font: 12px/1.8 var(--font-body); color: #ddd4bf; }
+.signal-dialog > p, .signal-dialog a { font: 12px/1.8 var(--font-body); color: #ddd4bf; }
 @media (max-width: 799px), (max-aspect-ratio: 1/1) {
   .contact { height: 210svh; }
   .contact-stage { min-height: 520px; }

@@ -59,14 +59,14 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
 
   if (renderer) {
     const loader = new THREE.TextureLoader();
-    Promise.all(["lunar-left", "lunar-right"].map(name =>
+    Promise.all([blackHole.ready, Promise.all(["lunar-left", "lunar-right"].map(name =>
       loader.loadAsync(`/contact-signal/${name}.webp`).then(texture => {
         if (disposed) { texture.dispose(); return texture; }
         texture.colorSpace = THREE.SRGBColorSpace;
         textures.push(texture);
         return texture;
       }),
-    )).then(maps => {
+    ))]).then(([, maps]) => {
       if (disposed) return;
       maps.forEach((texture, index) => {
         const material = new THREE.ShaderMaterial({
@@ -83,6 +83,9 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
       render(0);
       if (!lost) stage.dataset.art = "ready";
     }).catch(() => { delete stage.dataset.art; });
+  } else {
+    // A failed WebGL setup already uses the static fallback.
+    void blackHole.ready.catch(() => {});
   }
 
   function render(dt: number) {
@@ -121,7 +124,7 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     camera.left = -width / 2; camera.right = width / 2;
     camera.top = height / 2; camera.bottom = -height / 2; camera.updateProjectionMatrix();
     sky.scale.set(width, height, 1);
-    blackHole.resize(width, height, mobile);
+    blackHole.resize(width, height, mobile, renderer?.getPixelRatio() ?? 1);
     renderer?.setSize(width, height, false);
     ghost?.resize(); render(0);
   }

@@ -53,11 +53,10 @@ export default function Contact({
         if (event.target === event.currentTarget) dialog.current?.close();
       }}>
         <button className="signal-dialog-close" type="button" aria-label="关闭微信二维码" onClick={() => dialog.current?.close()}>×</button>
-        <p className="signal-eyebrow">SIGNAL RECEIVED / 你好</p>
         <h3>让我们保持联系。</h3>
         <Image src={profile.wechat} alt="褚天阔的微信二维码" width={870} height={870} sizes="240px" unoptimized />
         <p>微信扫一扫 · {profile.name}</p>
-        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        <a href={`mailto:${profile.email}`}>邮箱：{profile.email}</a>
       </dialog>
     </section>
   );

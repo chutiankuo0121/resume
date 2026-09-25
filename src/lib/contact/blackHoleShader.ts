@@ -1,19 +1,13 @@
-/** Light bending and escaped-ray sampling adapted from Dan Greenheck (MIT).
+/** Light bending and ray capture/escape adapted from Dan Greenheck (MIT).
  * https://github.com/dgreenheck/webgpu-black-hole (cf2fca7)
  * Full attribution: /licenses/black-hole.txt. This is an art-directed lens model,
  * not a general-relativistic geodesic or matter solver. */
 export const blackHoleFragment = /* glsl */`
   varying vec2 vUv;
-  uniform sampler2D uNoise, uDust;
+  uniform sampler2D uNoise;
   uniform vec2 uResolution, uCenter, uOrbit;
   uniform float uTime, uRadius, uApproach;
-  const float PI = 3.14159265359;
   const float TAU = 6.28318530718;
-  float random(vec2 p) {
-    vec3 p3 = fract(vec3(p.xyx) * .1031);
-    p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.x + p3.y) * p3.z);
-  }
   float noise(vec2 p) { return texture2D(uNoise, p / 256.).r; }
   // Two fields crossfade before their phases wrap, preventing unbounded shear.
   float filaments(float radius, float angle, float phase) {
@@ -42,26 +36,6 @@ export const blackHoleFragment = /* glsl */`
     if (abs(dy) < .0001) return exp(-pow((a + b) * .5 / h, 2.)) * ds;
     return abs(erfApprox(b / h) - erfApprox(a / h)) * .8862269 * h * ds / abs(dy);
   }
-  vec3 stars(vec3 direction, float footprint) {
-    vec2 sphere = vec2(atan(direction.z, direction.x) / TAU + .5, asin(clamp(direction.y, -1., 1.)) / PI + .5);
-    vec2 grid = sphere * vec2(720., 360.);
-    vec2 cell = floor(grid), f = fract(grid);
-    vec3 light = vec3(0.);
-    for (int j = -1; j <= 1; j++) {
-      for (int i = -1; i <= 1; i++) {
-        vec2 offset = vec2(float(i), float(j));
-        vec2 id = cell + offset;
-        id.x = mod(id.x, 720.);
-        float seed = random(id);
-        vec2 spot = vec2(random(id + 8.7), random(id + 32.6));
-        vec2 d = f - offset - spot;
-        float variance = .0016 + footprint * footprint;
-        float point = exp(-dot(d, d) / variance) * .0016 / variance;
-        light += vec3(.82, .85, .9) * point * step(.994, seed) * (.5 + random(id + 9.) * 2.5);
-      }
-    }
-    return light;
-  }
   void main() {
     vec2 p = (vUv * uResolution - uCenter) / uRadius;
     float tilt = .40;
@@ -77,9 +51,11 @@ export const blackHoleFragment = /* glsl */`
     vec3 position = origin;
     vec3 color = vec3(0.);
     float transmission = 1.;
+    float nearestRadius = distanceToCenter;
     bool escaped = false;
     for (int i = 0; i < 200; i++) {
       float r = length(position);
+      nearestRadius = min(nearestRadius, r);
       if (r < 1.015 || transmission < .005) break;
       if (r > 30. && dot(position, direction) > 0.) { escaped = true; break; }
       // Midpoint integration reduces directional error on the secondary image.
@@ -103,14 +79,13 @@ export const blackHoleFragment = /* glsl */`
           float inner = smoothstep(2.45, 3.15, diskR);
           float outer = exp(-pow(diskR / 7.2, 4.)) * (1. - smoothstep(8., 11.5, diskR));
           float density = inner * outer * (.08 + structure * 1.3);
-          float dust = texture2D(uDust, diskPoint.xz / 24. + .5).r;
-          float opacity = 1. - exp(-(density * 8. + dust * 1.8) * column);
+          float opacity = 1. - exp(-density * 8. * column);
           float hot = pow(3. / max(diskR, 3.), 3.3);
           vec3 emission = mix(vec3(.50, .39, .30), vec3(1., .95, .86), hot);
           vec3 tangent = normalize(vec3(-diskPoint.z, 0., diskPoint.x));
           float doppler = clamp(1. + dot(tangent, -direction) * .35, .65, 1.35);
           emission *= (.12 + hot * 3.8) * (.45 + structure * .95) * doppler;
-          color += transmission * (emission * opacity + vec3(.92, .96, 1.) * dust * column * 30.);
+          color += transmission * emission * opacity;
           transmission *= 1. - opacity;
         }
         // A low-density atmosphere softens the rim without flattening the disc.
@@ -122,10 +97,11 @@ export const blackHoleFragment = /* glsl */`
       direction = nextDirection;
     }
     // A ray that exhausted its budget is not necessarily an escaped ray.
-    vec3 background = vec3(.00182, .00212, .00243);
-    float footprint = min(.5, length(fwidth(direction)) * 80.);
-    if (escaped) color += transmission * (stars(direction, footprint) + background);
-    else color += transmission * background * .28;
-    gl_FragColor = vec4(color, 1.);
+    // Alpha carries foreground coverage, including the opaque central shadow.
+    // Background particles are composed beneath this coverage in the final pass.
+    // The gap between secondary and primary rings belongs to the black-hole
+    // silhouette too, even when a ray escapes through a dim part of the gas.
+    float innerCover = 1. - smoothstep(3.2, 3.4, nearestRadius);
+    gl_FragColor = vec4(color, max(innerCover, escaped ? 1. - transmission : 1.));
   }
 `;
