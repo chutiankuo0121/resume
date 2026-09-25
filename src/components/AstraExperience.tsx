@@ -74,7 +74,7 @@ export default function AstraExperience() {
       scroll.setPaused(exploringRef.current);
       // 初次定位发生在增强布局之前；加载结束后对齐真实锚点，避免停在不可点击的转场中。
       const anchor = location.hash.slice(1);
-      if (!exploringRef.current && (anchor === "explore" || anchor === "contact"))
+      if (!exploringRef.current && (anchor === "career" || anchor === "explore" || anchor === "contact"))
         scroll.seek(anchor, true);
     });
     const fail = (message: string) => {
