@@ -1,14 +1,14 @@
 import { gsap } from "gsap";
 
-// 破洞延后约三个滚轮刻度；journey 同步延长，保持各阶段的滚动速度。
+// 破洞比上一版提前约两个滚轮刻度（0.05）；journey 同步缩短，保持各阶段的滚动速度。
 export const OPENING = {
   crystalStart: 0.5,
   orbitStart: 1.0,
   crystalReading: 1.02,
   exitStart: 2.1,
-  portalStart: 2.44,
+  portalStart: 2.39,
   portalDuration: .2,
-  duration: 2.68,
+  duration: 2.63,
 } as const;
 
 export function addOpeningTitles(timeline: gsap.core.Timeline, stage: HTMLElement) {
