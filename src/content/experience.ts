@@ -10,7 +10,6 @@ export type CareerEntry = {
   title: string;
   role: string;
   location?: string;
-  image: string;
   imageAlt: string;
   ink: string;
   pages: CareerPage[];
@@ -43,23 +42,23 @@ export function paginateCareerCopy(lines: readonly string[]): CareerPage[] {
   return pages.filter(page => page.paragraphs.length > 0);
 }
 
-const artwork: Record<string, { id: string; image: string; imageAlt: string; ink: string }> = {
-  "xiamen-ruisheng": { id: "investment-research", image: "research", imageAlt: "研究档案、折叠图表与圆规组成的蓝色纸上拼贴", ink: "#2b5873" },
-  "green-dahua-futures": { id: "futures", image: "markets", imageAlt: "望远镜与海岸线组成的朱红色纸上拼贴", ink: "#935239" },
-  "fairylife-health": { id: "data-automation", image: "automation", imageAlt: "打字机与连续纸带组成的青绿色纸上拼贴", ink: "#37645e" },
-  "lanka-bio-techops": { id: "creative-automation", image: "creative", imageAlt: "摄影机、胶片与印刷图像组成的朱红色纸上拼贴", ink: "#954d40" },
-  "fjsbws-ai-pm": { id: "ai-product", image: "product", imageAlt: "声音波形、麦克风与模块结构组成的蓝色纸上拼贴", ink: "#435984" },
+const artwork: Record<string, { id: string; imageAlt: string; ink: string }> = {
+  "xiamen-ruisheng": { id: "investment-research", imageAlt: "全景书房线稿中，地球仪、台灯与研究笔记逐一落位", ink: "#2b5873" },
+  "green-dahua-futures": { id: "futures", imageAlt: "全景海港线稿中，灯塔、望远镜与近景礁石逐一落位", ink: "#935239" },
+  "fairylife-health": { id: "data-automation", imageAlt: "全景工坊线稿中，打字机、卷纸装置与纸带逐一落位", ink: "#37645e" },
+  "lanka-bio-techops": { id: "creative-automation", imageAlt: "全景影像工作室线稿中，摄影机、灯具与照片胶片逐一落位", ink: "#954d40" },
+  "fjsbws-ai-pm": { id: "ai-product", imageAlt: "全景声音工作室线稿中，麦克风、录音机与调音台逐一落位", ink: "#435984" },
 };
 
 export const experience: CareerEntry[] = [
   {
     id: "university", years: "大学 · 本科", title: education.title, role: education.role,
-    image: "/career-zine/university.webp", imageAlt: "厦门理工学院校园、山脊与湖面组成的蓝色印刷拼贴",
+    imageAlt: "全景校园线稿中，教学楼、高楼与湖畔植物逐一飞入，组成彩色校园拼贴",
     ink: "#335f80", pages: paginateCareerCopy(education.description), technologies: [],
   },
   ...[...careerArchive].reverse().map(entry => ({
     id: artwork[entry.id].id, years: `${entry.startDate}—${entry.endDate}`, title: entry.company,
-    role: entry.title, location: entry.location, image: `/career-zine/${artwork[entry.id].image}.webp`,
+    role: entry.title, location: entry.location,
     imageAlt: artwork[entry.id].imageAlt, ink: artwork[entry.id].ink,
     pages: [...paginateCareerCopy(entry.description),
       { heading: "技术与工具", paragraphs: [entry.technologies.join(" · ")] }],
@@ -67,7 +66,7 @@ export const experience: CareerEntry[] = [
   })),
   {
     id: "ai-finance-venture", years: "2026.03—今", title: "AI 金融创业", role: "产品与全栈开发",
-    image: "/career-zine/venture.webp", imageAlt: "观测装置与策略曲线组成的深绿色纸上拼贴",
+    imageAlt: "全景海岸线稿中，天文台、望远镜与前景花园逐一落位",
     ink: "#385e57",
     pages: [
       { heading: "从策略研究，到日常可用的产品。", paragraphs: ["围绕投资研究与辅助决策开展 AI 金融创业，将策略研究、数据工程和产品开发连接起来。", "落地多资产投资组合系统，实盘规模 120 万元；独立设计开发 TrendML 期货量化平台，模型策略用于 100 万元实盘，模型与因子组合用于 1500 万元模拟盘。覆盖策略计算、交易执行、异常恢复、监控与 Web 前端。"] },

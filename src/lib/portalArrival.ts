@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { createTextDetailTexture } from "./textDetailTexture";
-import { careerCollagePaths } from "./career/collage";
 
 /** Reuse the displayed career image URL; map its live DOM rectangle to the portal. */
 export function createPortalArrival(canvas: HTMLCanvasElement) {
@@ -9,21 +8,11 @@ export function createPortalArrival(canvas: HTMLCanvasElement) {
   const text = createTextDetailTexture(stage, ".career-intro,.career-story", ".career-visual");
   const empty = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
   empty.needsUpdate = true;
-  // The first chapter enters as an incomplete paper background. Sample only
-  // that complement, so the portal cannot echo pieces still below the screen.
-  const maskCanvas = document.createElement("canvas");
-  maskCanvas.width = 384; maskCanvas.height = 512;
-  const context = maskCanvas.getContext("2d")!;
-  context.scale(maskCanvas.width, maskCanvas.height);
-  context.fillStyle = "white"; context.fillRect(0, 0, 1, 1);
-  const cuts = careerCollagePaths(0);
-  context.fillStyle = "black";
-  context.fill(new Path2D(cuts.cutout));
-  const mask = new THREE.CanvasTexture(maskCanvas);
-  mask.generateMipmaps = false; mask.minFilter = THREE.LinearFilter;
+  // The portal arrives before assembly: the full pencil drawing is visible,
+  // including its guides. No colored object is sampled ahead of its entrance.
   const uniforms = {
     uArrival: { value: empty as THREE.Texture },
-    uArrivalMask: { value: mask },
+    uArrivalMask: { value: empty },
     uArrivalText: { value: text.texture },
     uArrivalRect: { value: new THREE.Vector4(0, 0, 1, 1) },
     uArrivalReady: { value: 0 },
@@ -51,7 +40,7 @@ export function createPortalArrival(canvas: HTMLCanvasElement) {
     dispose() {
       disposed = true;
       text.dispose();
-      texture?.dispose(); empty.dispose(); mask.dispose();
+      texture?.dispose(); empty.dispose();
     },
   };
 }

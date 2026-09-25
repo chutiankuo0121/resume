@@ -1,26 +1,27 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { CAREER_ENTRY, CAREER_PAGE, careerPose, careerPageOpacity, careerRunway, clamp } from "./career/choreography";
+import { CAREER_ENTRY, CAREER_PAGE, careerPose, careerPageOpacity, careerRunway, clamp, smooth } from "./career/choreography";
 
-/** Scroll owns assembly, reading and departure. Only pointer drift uses time. */
+/** Scroll owns assembly, reading and departure; landed pieces stay registered. */
 export function createCareerTimeline(root: HTMLElement, scrollTo: (position: number) => void) {
   gsap.registerPlugin(ScrollTrigger);
   const media = gsap.matchMedia();
   media.add("(min-height: 640px) and (prefers-reduced-motion: no-preference)", () => {
     root.dataset.careerMotion = "";
-    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     const saved = new Map<HTMLElement, string | null>();
     const remember = <T extends HTMLElement>(node: T) => { saved.set(node, node.getAttribute("style")); return node; };
     const entries = [...root.querySelectorAll<HTMLElement>(".career-period")].map((period, index, periods) => {
       const query = (selector: string) => remember(period.querySelector<HTMLElement>(selector)!);
       const stage = query(".career-stage"), scene = query(".career-scene");
       const paper = query(".career-paper"), background = query(".career-background");
-      const middle = query(".career-piece--middle"), front = query(".career-piece--front");
+      const pieces = ["middle", "subject", "front"].map(name => query(`.career-piece--${name}`));
+      const guides = ["middle", "subject", "front"].map(name => query(`[data-guide='${name}']`));
       const layout = query(".career-layout");
+      const story = query(".career-story");
       const pages = [...period.querySelectorAll<HTMLElement>(".career-copy-page")].map(remember);
       const buttons = [...period.querySelectorAll<HTMLButtonElement>("[data-career-page]")];
       const number = period.querySelector<HTMLElement>(".career-page-number")!;
-      const entry = { period, stage, scene, paper, background, middle, front, layout, pages, buttons, number,
+      const entry = { period, stage, scene, paper, background, pieces, guides, layout, story, pages, buttons, number,
         first: index === 0, last: index === periods.length - 1, time: 0, height: 1, start: 0,
         runway: careerRunway(pages.length), activePage: -1, trigger: undefined as ScrollTrigger | undefined };
       entry.trigger = ScrollTrigger.create({
@@ -30,6 +31,19 @@ export function createCareerTimeline(root: HTMLElement, scrollTo: (position: num
           entry.height = Math.max(1, stage.clientHeight);
           entry.start = self.start;
           entry.time = (self.scroll() - self.start) / entry.height;
+          const tallest = Math.max(...pages.map(page => {
+            const display = page.style.display;
+            page.style.display = "block";
+            const height = page.offsetHeight;
+            page.style.display = display;
+            return height;
+          }));
+          const css = getComputedStyle(layout);
+          const reading = period.querySelector<HTMLElement>(".career-reading")!;
+          const cardHeight = period.querySelector<HTMLElement>(".career-intro")!.offsetHeight + tallest +
+            reading.offsetHeight + parseFloat(getComputedStyle(reading).marginTop) +
+            parseFloat(getComputedStyle(story).marginTop) + parseFloat(css.paddingTop) + parseFloat(css.paddingBottom) + 8;
+          layout.style.setProperty("--career-card-height", `${Math.ceil(cardHeight)}px`);
           draw(entry);
         },
       });
@@ -44,27 +58,26 @@ export function createCareerTimeline(root: HTMLElement, scrollTo: (position: num
       gsap.set(entry.scene, { opacity: pose.opacity, visibility: visible ? "visible" : "hidden" });
       entry.stage.inert = !visible || pose.text < .02;
       gsap.set([entry.paper, entry.background], { opacity: pose.background });
-      const drift = Math.sin(pose.reading * Math.PI);
-      const hover = Math.sin(pose.assembly * Math.PI / 2) * drift;
-      gsap.set(entry.middle, {
-        y: (1 - pose.assembly) * height * 1.08 - drift * 10 + pointer.y * hover * 7,
-        x: (1 - pose.assembly) * height * .035 + pointer.x * hover * 8,
-        rotation: (1 - pose.assembly) * -5, opacity: clamp(pose.assembly * 4),
+      [pose.assembly, pose.subject, pose.foreground].forEach((progress, layer) => {
+        gsap.set(entry.pieces[layer], {
+          y: (1 - progress) * height * (1.05 + layer * .12),
+          x: (1 - progress) * height * (layer % 2 ? -.035 : .03),
+          rotation: (1 - progress) * (layer % 2 ? 4 : -3), opacity: clamp(progress * 5),
+        });
+        // Replace the matching sketch guide as the painted piece lands.
+        // At progress 1 every transform is zero, matching the background exactly.
+        gsap.set(entry.guides[layer], { opacity: pose.background * (1 - smooth(.25, .9, progress)) });
       });
-      gsap.set(entry.front, {
-        y: (1 - pose.foreground) * height * 1.32 - drift * 25 + pointer.y * hover * 14,
-        x: (1 - pose.foreground) * height * -.028 + pointer.x * hover * 17,
-        rotation: (1 - pose.foreground) * 4, opacity: clamp(pose.foreground * 4),
-      });
-      gsap.set(entry.layout, { opacity: pose.text, y: (1 - Math.min(1, time / CAREER_ENTRY)) * 22 });
+      gsap.set(entry.layout, { opacity: pose.text, y: (1 - clamp(time / CAREER_ENTRY)) * 35 });
       pages.forEach((page, index) => {
         const alpha = careerPageOpacity(time, index, pages.length, last);
-        gsap.set(page, { opacity: alpha, visibility: alpha < .005 ? "hidden" : "visible", y: (1 - alpha) * 12 });
+        gsap.set(page, { opacity: alpha, visibility: alpha < .005 ? "hidden" : "visible", display: alpha < .005 ? "none" : "block", y: (1 - alpha) * 12 });
         page.inert = alpha < .05;
         page.setAttribute("aria-hidden", String(alpha < .05));
       });
       if (entry.activePage !== pose.page) {
         entry.activePage = pose.page;
+        entry.story.scrollTop = 0;
         entry.buttons.forEach((button, index) => {
           if (index === pose.page) button.setAttribute("aria-current", "step");
           else button.removeAttribute("aria-current");
@@ -72,21 +85,18 @@ export function createCareerTimeline(root: HTMLElement, scrollTo: (position: num
         entry.number.textContent = `${String(pose.page + 1).padStart(2, "0")} / ${String(pages.length).padStart(2, "0")}`;
       }
     }
-    function move(event: PointerEvent) {
-      if (event.pointerType === "touch") { leave(); return; }
-      pointer.tx = (event.clientX / innerWidth - .5) * 2;
-      pointer.ty = (event.clientY / innerHeight - .5) * 2;
-    }
-    function leave() { pointer.tx = pointer.ty = 0; }
-    let lastTime = gsap.ticker.time;
-    function tick(time: number) {
-      const dt = Math.min(.05, Math.max(0, time - lastTime)); lastTime = time;
-      if (document.hidden) return;
-      const distance = Math.abs(pointer.tx - pointer.x) + Math.abs(pointer.ty - pointer.y);
-      if (distance < .001) return;
-      const follow = 1 - Math.exp(-dt * 6);
-      pointer.x += (pointer.tx - pointer.x) * follow; pointer.y += (pointer.ty - pointer.y) * follow;
-      entries.forEach(entry => { if (entry.time >= 0 && entry.time <= entry.runway) draw(entry); });
+    // A short viewport may need to scroll a long original paragraph inside the
+    // card. Consume only that part; at its edges normal chapter scrolling resumes.
+    function readWheel(event: WheelEvent) {
+      const story = (event.target as Element).closest<HTMLElement>(".career-story");
+      if (!story || !event.deltaY) return;
+      const page = story.querySelector<HTMLElement>('.career-copy-page[aria-hidden="false"]');
+      const max = Math.max(0, (page?.offsetHeight ?? 0) - story.clientHeight);
+      if ((event.deltaY > 0 && story.scrollTop < max - 1) || (event.deltaY < 0 && story.scrollTop > 1)) {
+        event.preventDefault(); event.stopPropagation();
+        const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? story.clientHeight : 1);
+        story.scrollTop = Math.max(0, Math.min(max, story.scrollTop + delta));
+      }
     }
     function navigate(event: Event) {
       const button = (event.target as Element).closest<HTMLButtonElement>("[data-career-page]");
@@ -96,15 +106,14 @@ export function createCareerTimeline(root: HTMLElement, scrollTo: (position: num
       const page = Number(button.dataset.careerPage);
       scrollTo(entry.start + (CAREER_ENTRY + page * CAREER_PAGE + .2) * entry.height);
     }
-    root.addEventListener("pointermove", move, { passive: true });
-    root.addEventListener("pointerleave", leave);
     root.addEventListener("click", navigate);
-    window.addEventListener("blur", leave);
-    gsap.ticker.add(tick);
+    root.addEventListener("wheel", readWheel, { passive: false });
+    const refreshFonts = () => ScrollTrigger.refresh();
+    document.fonts.addEventListener("loadingdone", refreshFonts);
     return () => {
-      gsap.ticker.remove(tick);
-      root.removeEventListener("pointermove", move); root.removeEventListener("pointerleave", leave);
-      root.removeEventListener("click", navigate); window.removeEventListener("blur", leave);
+      document.fonts.removeEventListener("loadingdone", refreshFonts);
+      root.removeEventListener("click", navigate);
+      root.removeEventListener("wheel", readWheel);
       entries.forEach(entry => {
         entry.trigger?.kill(); entry.stage.inert = false;
         entry.pages.forEach(page => { page.inert = false; page.removeAttribute("aria-hidden"); });

@@ -1,4 +1,4 @@
-export const CAREER_ENTRY = 1.4;
+export const CAREER_ENTRY = 1.65;
 export const CAREER_PAGE = 1.05;
 export const CAREER_EXIT = .9;
 
@@ -16,11 +16,11 @@ export function careerPose(time: number, pages: number, first: boolean, last: bo
   const exit = last ? 0 : smooth(readingEnd, readingEnd + CAREER_EXIT, time);
   return {
     background: first ? 1 : smooth(0, .55, time),
-    assembly: smooth(.55, 1.32, time),
-    foreground: smooth(.72, 1.4, time),
-    text: smooth(.95, 1.32, time) * (1 - (last ? 0 : smooth(readingEnd - .12, readingEnd + .28, time))),
+    assembly: smooth(.30, 1.18, time),
+    subject: smooth(.48, 1.36, time),
+    foreground: smooth(.68, 1.54, time),
+    text: smooth(1.22, 1.62, time) * (1 - (last ? 0 : smooth(readingEnd - .12, readingEnd + .28, time))),
     opacity: 1 - exit,
-    reading: clamp((time - CAREER_ENTRY) / Math.max(.01, pages * CAREER_PAGE)),
     page: Math.max(0, Math.min(pages - 1, Math.floor((time - CAREER_ENTRY) / CAREER_PAGE))),
   };
 }

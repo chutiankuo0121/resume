@@ -1,5 +1,7 @@
 # Career collage generation prompts
 
+> Historical prompts for the earlier half-page collage (baseline `be929a5`). Those runtime images have been removed. The current full-screen panorama assets and prompts are documented in [career-panorama-prompts.md](career-panorama-prompts.md).
+
 Generated with the built-in image generation tool. Visual direction follows the user-selected [Gathered Scenes Zine skill](https://github.com/Zeejay0/gathered-scenes-zine-skill). University uses the supplied old-project campus photo; employment images are conceptual illustrations, not employer photos. No text is baked into the artwork. The generated image is reused through complementary DOM masks, not duplicated behind its pieces.
 
 Visual Skill by @Zeejay0.

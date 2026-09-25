@@ -2,6 +2,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCareerTimeline } from "./createCareerTimeline";
+import { CAREER_ENTRY } from "./career/choreography";
 import { addOpeningTitles, OPENING } from "./openingTitles";
 import { createChapterHandoffs } from "./chapters/createHandoffs";
 import { axisChapters, createChapterAxis } from "./chapters/createChapterAxis";
@@ -262,7 +263,7 @@ export function createTransitionTimeline(
           start +
             (media.matches || window.innerHeight < 640
               ? 0
-              : window.innerHeight * 1.6),
+              : window.innerHeight * (CAREER_ENTRY + .2)),
           { duration: 2.4, lerp: 0, immediate },
         );
         return;

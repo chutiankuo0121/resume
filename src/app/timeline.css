@@ -1,4 +1,4 @@
-/* One paper scene per chapter. Complementary masks assemble a single picture. */
+/* Full-bleed pencil panoramas with registered painted objects and a paper card. */
 .resume-timeline {
   --career-paper: #f1eadc;
   --timeline-reveal: 0;
@@ -9,87 +9,104 @@
 .career-ruler { position: sticky; top: 0; height: 100svh; pointer-events: none; }
 .career-periods { margin-top: -100svh; }
 .career-period { position: relative; }
-.career-stage { position: relative; min-height: 100svh; }
-.career-scene { position: relative; overflow: hidden; min-height: 100svh; }
+.career-stage, .career-scene { position: relative; min-height: 100svh; }
+.career-scene { overflow: clip; }
 .career-paper { position: absolute; inset: 0; background: var(--career-paper); pointer-events: none; }
-.career-visual { position: absolute; margin: 0; right: -1%; top: 0; width: 54%; height: 100%; pointer-events: none; }
+.career-visual { position: absolute; inset: 0; margin: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
 .career-defs { position: absolute; width: 0; height: 0; }
-.career-artboard { position: absolute; width: 100%; aspect-ratio: 3 / 4; top: 50%; transform: translateY(-50%); }
-.career-background, .career-piece, .career-cutout { position: absolute; inset: 0; }
-.career-background img, .career-cutout img { object-fit: fill; }
-.career-piece { transform-origin: 50% 65%; }
-.career-visual::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--career-paper), transparent 16%); }
-.career-layout { position: relative; z-index: 1; width: 42%; margin-left: max(88px, 8.8%); padding: 90px 0; }
-.career-dateline { display: flex; align-items: baseline; gap: 24px; color: var(--career-ink); font: 14px/1.5 var(--font-body); letter-spacing: .06em; }
+.career-artboard {
+  position: absolute; left: 50%; top: 50%;
+  width: max(100%, 177.778svh); height: max(100svh, 56.25vw);
+  transform: translate(-50%, -50%);
+}
+.career-background, .career-layer, .career-guide, .career-piece, .career-cutout { position: absolute; inset: 0; }
+.career-background img, .career-guide img, .career-cutout img { object-fit: fill; }
+.career-guide { mask-size: 100% 100%; mask-repeat: no-repeat; opacity: 0; }
+.career-piece { transform-origin: 68% 80%; }
+.career-layout {
+  position: relative; z-index: 2; isolation: isolate;
+  width: min(39%, 630px); margin: 9svh 0 9svh max(80px, 7.5%);
+  padding: clamp(24px, 2.8vw, 48px);
+  background: #f8f3e8; border: 1px solid #b4a58d50;
+  box-shadow: 2px 5px 0 #d6cbb63d, 0 18px 45px #3e342016;
+}
+.career-layout::before {
+  content: ''; position: absolute; z-index: -1; inset: 0; pointer-events: none; opacity: .075;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath filter='url(%23p)' opacity='.5' d='M0 0h160v160H0z'/%3E%3C/svg%3E");
+}
+.career-dateline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 20px; color: var(--career-ink); font: 13px/1.5 var(--font-body); letter-spacing: .06em; }
 .career-dateline > span { font-variant-numeric: tabular-nums; opacity: .65; }
 .career-years { margin: 0; }
-.career-company { margin: 32px 0 12px; font: 17px/1.65 var(--font-body); }
+.career-company { margin: 23px 0 10px; font: 16px/1.65 var(--font-body); }
 .career-company span { white-space: nowrap; color: #75766c; font-size: .82em; }
-.career-intro h2 { max-width: 640px; margin: 0; color: #2e3938; font: 400 clamp(32px, 3.3vw, 58px)/1.38 var(--font-heading); letter-spacing: -.035em; text-wrap: balance; }
-.career-story { position: relative; max-width: 570px; margin-top: 34px; }
-.career-copy-page { margin-bottom: 40px; }
-.career-copy-page h3 { margin: 0 0 20px; color: var(--career-ink); font: 400 clamp(17px, 1.5vw, 23px)/1.65 var(--font-heading); text-wrap: pretty; }
-.career-copy-page p { margin: 0 0 16px; max-width: 540px; font: clamp(15px, 1.08vw, 18px)/1.95 var(--font-body); color: #51584f; text-wrap: pretty; overflow-wrap: anywhere; }
-.career-projects { display: flex; flex-wrap: wrap; gap: 12px 26px; margin-top: 24px; }
-.career-projects a { padding: 0 0 7px; border-bottom: 1px solid currentColor; color: var(--career-ink); font: 15px/1.7 var(--font-body); text-decoration: none; }
-.career-reading { display: none; }
-.career-layout :is(a,button):focus-visible { outline: 2px solid var(--career-ink); outline-offset: 5px; }
-/* Short screens and reduced motion keep every paragraph in normal flow. */
-.resume-timeline:not([data-career-motion]) .career-visual { height: min(100svh, 1100px); opacity: .65; }
-.resume-timeline:not([data-career-motion]) .career-period + .career-period { border-top: 1px solid #77745c22; }
+.career-intro h2 { margin: 0; color: #2e3938; font: 400 clamp(29px, 2.7vw, 48px)/1.32 var(--font-heading); letter-spacing: -.025em; text-wrap: balance; }
+.career-story { position: relative; min-height: 0; margin-top: 28px; }
+.career-copy-page { margin-bottom: 36px; }
+.career-copy-page h3 { margin: 0 0 15px; color: var(--career-ink); font: 400 clamp(17px, 1.3vw, 21px)/1.6 var(--font-heading); text-wrap: pretty; }
+.career-copy-page p { margin: 0 0 14px; font: clamp(15px, 1.05vw, 18px)/1.9 var(--font-body); color: #454d44; text-wrap: pretty; overflow-wrap: anywhere; }
+.career-projects { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 20px; }
+.career-projects a { padding: 0 0 5px; border-bottom: 1px solid currentColor; color: var(--career-ink); font: 14px/1.7 var(--font-body); text-decoration: none; }
+.career-reading { display: none; padding-top: 18px; margin-top: 16px; border-top: 1px solid #b4a58d55; }
+.career-layout :is(a, button):focus-visible { outline: 2px solid var(--career-ink); outline-offset: 4px; }
+.career-reading button { position: relative; display: grid; align-items: center; width: 30px; height: 32px; border: 0; padding: 0; color: var(--career-ink); background: transparent; cursor: pointer; }
+.career-reading button span { display: block; width: 100%; height: 2px; background: currentColor; opacity: .2; transition: opacity .2s; }
+.career-reading button[aria-current='step'] span { opacity: 1; }
+.career-reading button:hover span { opacity: .7; }
+.career-page-number { margin-left: 14px; white-space: nowrap; font: 13px/1 var(--font-body); color: #727369; font-variant-numeric: tabular-nums; }
 .resume-timeline[data-career-motion] .career-period { height: calc(var(--career-runway) * 100svh); }
 .resume-timeline[data-career-motion] .career-period + .career-period { margin-top: -190svh; }
 .resume-timeline[data-career-motion] .career-stage { position: sticky; top: 0; height: 100svh; }
 .resume-timeline[data-career-motion] .career-scene { height: 100%; }
-.resume-timeline[data-career-motion] .career-layout { position: absolute; top: 12%; bottom: 8%; margin-top: 0; padding: 0; }
-.resume-timeline[data-career-motion] .career-story { height: 50%; }
+.resume-timeline[data-career-motion] .career-layout {
+  position: absolute; top: max(9%, calc((100% - var(--career-card-height, 680px)) / 2)); height: min(82%, var(--career-card-height, 680px)); margin-top: 0; margin-bottom: 0;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.resume-timeline[data-career-motion] .career-story { overflow: auto; overscroll-behavior: auto; scrollbar-width: thin; scrollbar-color: #b8ad99 transparent; }
 .resume-timeline[data-career-motion] .career-copy-page { position: absolute; inset: 0 0 auto; margin: 0; }
 .resume-timeline[data-career-motion] .career-copy-page:not(:first-child) { visibility: hidden; }
-.resume-timeline[data-career-motion] .career-reading { position: absolute; bottom: 0; display: flex; align-items: center; gap: 7px; max-width: 100%; }
-.career-reading button { position: relative; display: grid; align-items: center; width: 30px; height: 32px; border: 0; padding: 0; color: var(--career-ink); background: transparent; cursor: pointer; }
-.career-reading button span { display: block; width: 100%; height: 2px; background: currentColor; opacity: .2; transition: opacity .2s; }
-.career-reading button[aria-current="step"] span { opacity: 1; }
-.career-reading button:hover span { opacity: .7; }
-.career-page-number { margin-left: 16px; white-space: nowrap; font: 13px/1 var(--font-body); color: #727369; font-variant-numeric: tabular-nums; }
+.resume-timeline[data-career-motion] .career-reading { display: flex; align-items: center; gap: 7px; }
+.resume-timeline:not([data-career-motion]) .career-period + .career-period { border-top: 1px solid #77745c22; }
+.resume-timeline:not([data-career-motion]) .career-artboard { top: 50svh; }
 @media (min-width: 800px) and (max-height: 760px) {
-  .resume-timeline[data-career-motion] .career-layout { top: 8%; bottom: 6%; }
-  .career-company { margin-top: 20px; }
-  .career-intro h2 { font-size: 34px; }
-  .career-story { margin-top: 24px; }
+  .resume-timeline[data-career-motion] .career-layout { top: max(5.5%, calc((100% - var(--career-card-height, 620px)) / 2)); height: min(89%, var(--career-card-height, 620px)); }
+  .career-layout { padding: 24px 30px; }
+  .career-company { margin: 15px 0 8px; font-size: 15px; }
+  .career-intro h2 { font-size: 31px; }
+  .career-story { margin-top: 20px; }
   .career-copy-page h3 { font-size: 17px; margin-bottom: 12px; }
   .career-copy-page p { font-size: 15px; line-height: 1.8; }
+  .career-reading { padding-top: 10px; margin-top: 10px; }
 }
 @media (min-width: 800px) and (max-width: 1199px) {
-  .career-layout { width: 44%; margin-left: 8%; }
-  .career-intro h2 { font-size: 34px; }
+  .career-layout { width: 45%; margin-left: 7%; padding: 24px; }
+  .career-intro h2 { font-size: 30px; }
   .career-company { font-size: 15px; }
   .career-copy-page p { font-size: 15px; }
 }
 @media (max-width: 799px) {
-  .career-visual { top: -9%; right: -8%; width: 88%; height: 56svh; }
-  .career-artboard { top: 42%; }
-  .career-visual::after { inset: -1px; background: linear-gradient(0deg, var(--career-paper) 2%, transparent 40%), linear-gradient(90deg, var(--career-paper), transparent 15%); }
-  .career-layout { width: auto; margin: 0 7%; padding-top: 44svh; padding-bottom: 54px; }
-  .career-dateline { font-size: 12px; gap: 18px; }
-  .career-company { margin: 17px 0 8px; font-size: 13px; line-height: 1.6; }
-  .career-intro h2 { font-size: clamp(25px, 6.8vw, 36px); line-height: 1.3; max-width: 370px; }
-  .career-story { margin-top: 22px; }
-  .career-copy-page h3 { font-size: 16px; line-height: 1.65; margin-bottom: 12px; }
+  .career-artboard { transform: translate(-71%, -50%); }
+  .career-layout { width: auto; margin: 36svh 5% 5svh max(48px, 5%); padding: 22px; }
+  .career-dateline { font-size: 11px; gap: 4px 12px; }
+  .career-company { margin: 12px 0 7px; font-size: 13px; line-height: 1.5; }
+  .career-intro h2 { font-size: clamp(25px, 6.5vw, 34px); line-height: 1.25; }
+  .career-story { margin-top: 18px; }
+  .career-copy-page h3 { font-size: 16px; line-height: 1.55; margin-bottom: 11px; }
   .career-copy-page p { font-size: 14px; line-height: 1.8; margin-bottom: 12px; }
-  .career-projects { gap: 10px 16px; margin-top: 14px; }
+  .career-projects { gap: 8px 14px; margin-top: 12px; }
   .career-projects a { font-size: 13px; }
-  .resume-timeline[data-career-motion] .career-layout { top: 36%; bottom: 4%; left: 7%; right: 7%; width: auto; margin: 0; padding: 0; }
-  .resume-timeline[data-career-motion] .career-story { height: auto; }
-  .career-reading { gap: 5px; }
-  .career-reading button { width: 24px; }
+  .resume-timeline[data-career-motion] .career-layout { top: 31%; bottom: 4%; height: auto; left: max(48px, 5%); right: 5%; width: auto; margin: 0; }
+  .career-reading { padding-top: 8px; margin-top: 10px; }
+  .resume-timeline[data-career-motion] .career-reading { gap: 5px; }
+  .career-reading button { width: 23px; }
   .career-page-number { margin-left: 8px; font-size: 12px; }
 }
 @media (max-width: 799px) and (max-height: 760px) {
-  .career-visual { top: -4%; height: 40svh; }
-  .resume-timeline[data-career-motion] .career-layout { top: 23%; }
-  .career-company { margin-top: 12px; }
-  .career-story { margin-top: 18px; }
+  .resume-timeline[data-career-motion] .career-layout { top: 23%; bottom: 3%; }
+  .career-layout { padding: 17px 19px; }
+  .career-story { margin-top: 14px; }
+  .career-copy-page p { font-size: 13px; line-height: 1.75; }
 }
 @media (prefers-reduced-motion: reduce) {
   .resume-timeline { margin-top: 0; opacity: 1; }
+  .career-reading button span { transition: none; }
 }

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { Ref, CSSProperties } from "react";
 import { experience } from "@/content/experience";
-import { careerCollagePaths } from "@/lib/career/collage";
+import { careerArtwork } from "@/lib/career/artwork";
 import { careerRunway } from "@/lib/career/choreography";
 
 export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
@@ -10,7 +10,7 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
       <div className="career-ruler" aria-hidden="true" />
       <div className="career-periods">
         {experience.map((period, index) => {
-          const paths = careerCollagePaths(index);
+          const art = careerArtwork(index);
           const prefix = `career-paper-${index}`;
           return (
             <article key={period.id} id={`career-${period.id}`} className="career-period"
@@ -20,30 +20,30 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                 <div className="career-scene">
                   <div className="career-paper" aria-hidden="true" />
                   <figure className="career-visual" role="img" aria-label={period.imageAlt}>
-                    <svg className="career-defs" aria-hidden="true">
+                    <svg className="career-defs" aria-hidden="true" focusable="false">
                       <defs>
+                        <filter id={`${prefix}-ink`} colorInterpolationFilters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" /></filter>
                         <mask id={`${prefix}-background`} maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox" x="0" y="0" width="1" height="1" style={{ maskType: "luminance" }}>
                           <rect width="1" height="1" fill="white" />
-                          <path d={paths.cutout} fill="black" />
+                          <image href={art.objects} width="1" height="1" preserveAspectRatio="none" filter={`url(#${prefix}-ink)`} />
                         </mask>
-                        <clipPath id={`${prefix}-middle`} clipPathUnits="objectBoundingBox"><path d={paths.middle} /></clipPath>
-                        <clipPath id={`${prefix}-front`} clipPathUnits="objectBoundingBox"><path d={paths.front} /></clipPath>
+                        {art.paths.map((path, layer) => <clipPath key={layer} id={`${prefix}-${layer}`} clipPathUnits="objectBoundingBox"><path d={path} clipRule="evenodd" /></clipPath>)}
                       </defs>
                     </svg>
                     <div className="career-artboard">
                       <div className="career-background" style={{ maskImage: `url(#${prefix}-background)` }}>
-                        <Image src={period.image} alt="" fill sizes="(max-width: 799px) 80vw, 60vw" loading={index === 0 ? "eager" : "lazy"} />
+                        <Image src={art.sketch} alt="" fill sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" loading={index === 0 ? "eager" : "lazy"} />
                       </div>
-                      <div className="career-piece career-piece--middle">
-                        <div className="career-cutout" style={{ clipPath: `url(#${prefix}-middle)` }}>
-                          <Image src={period.image} alt="" fill sizes="(max-width: 799px) 80vw, 60vw" />
+                      {["middle", "subject", "front"].map((layer, layerIndex) => <div className="career-layer" key={layer}>
+                        <div className="career-guide" data-guide={layer} style={{ clipPath: `url(#${prefix}-${layerIndex})`, maskImage: `url(${art.objects})` }}>
+                          <Image src={art.sketch} alt="" fill sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" />
                         </div>
-                      </div>
-                      <div className="career-piece career-piece--front">
-                        <div className="career-cutout" style={{ clipPath: `url(#${prefix}-front)` }}>
-                          <Image src={period.image} alt="" fill sizes="(max-width: 799px) 80vw, 60vw" />
+                        <div className={`career-piece career-piece--${layer}`}>
+                          <div className="career-cutout" style={{ clipPath: `url(#${prefix}-${layerIndex})` }}>
+                            <Image src={art.objects} alt="" fill sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" />
+                          </div>
                         </div>
-                      </div>
+                      </div>)}
                     </div>
                   </figure>
                   <div className="career-layout">
