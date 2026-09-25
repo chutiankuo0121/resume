@@ -1,7 +1,5 @@
 # 经历：纸上拼贴与滚动阅读
 
-> 拼贴版基线记录，对应提交 `87281b7`。地图分支的当前设计见 `career-map-design.md`。
-
 ## 内容与图片
 
 - 原始文案只读迁移自 `C:/Users/asus/Desktop/项目/Portfolio`。

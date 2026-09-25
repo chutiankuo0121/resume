@@ -141,9 +141,7 @@ export function createTransitionTimeline(
       onChapterChange(next);
     }
   }
-  const career = createCareerTimeline(careerRoot,
-    position => lenis.scrollTo(position, { duration: 1.35, lerp: 0 }),
-    paused => { if (paused) lenis.stop(); else lenis.start(); });
+  const career = createCareerTimeline(careerRoot, position => lenis.scrollTo(position, { duration: .8, lerp: 0 }));
   const handoffs = createChapterHandoffs(careerRoot, exploreRoot, contactRoot, chapterMasks);
   ScrollTrigger.addEventListener("refresh", handoffs.refresh);
   function configure() {
@@ -259,12 +257,12 @@ export function createTransitionTimeline(
       }
       if (chapter === "career") {
         const start = careerRoot.getBoundingClientRect().top + window.scrollY;
-        // 地图总览保留完整路线，访问者可滚动或直接选择地点。
+        // 章节导航落到校园拼贴归位后的第一段正文；自然滚动仍播放组装。
         lenis.scrollTo(
           start +
-            (media.matches || window.innerHeight < 620
+            (media.matches || window.innerHeight < 640
               ? 0
-              : window.innerHeight * .15),
+              : window.innerHeight * 1.6),
           { duration: 2.4, lerp: 0, immediate },
         );
         return;

@@ -1,115 +1,118 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { mapPose, mapStopTime, MAP_RUNWAY } from "./career/map/stops";
-import type { createMapScene } from "./career/map/createMapScene";
+import { CAREER_ENTRY, CAREER_PAGE, careerPose, careerPageOpacity, careerRunway, clamp } from "./career/choreography";
 
-export function createCareerTimeline(root: HTMLElement, scrollTo: (position: number) => void, pause: (paused: boolean) => void) {
+/** Scroll owns assembly, reading and departure. Only pointer drift uses time. */
+export function createCareerTimeline(root: HTMLElement, scrollTo: (position: number) => void) {
   gsap.registerPlugin(ScrollTrigger);
-  const stage=root.querySelector<HTMLElement>(".career-stage")!;
-  const period=root.querySelector<HTMLElement>(".career-period")!;
-  const canvas=root.querySelector<HTMLCanvasElement>(".atlas-canvas")!;
-  const intro=root.querySelector<HTMLElement>(".atlas-intro")!;
-  const panels=[...root.querySelectorAll<HTMLElement>(".atlas-reading")];
-  const markers=[...root.querySelectorAll<HTMLElement>(".atlas-marker")];
-  const links=[...root.querySelectorAll<HTMLElement>("[data-map-stop]")];
-  const dialog=root.querySelector<HTMLDialogElement>(".atlas-dialog")!;
-  const details=[...dialog.querySelectorAll<HTMLElement>("[data-map-detail]")];
-  const media=matchMedia("(prefers-reduced-motion: reduce)");
-  let units=0,start=0,height=innerHeight,disposed=false,scene:ReturnType<typeof createMapScene>|undefined;
-  let staticMode=false,lastTime=gsap.ticker.time,renderedOnce=false,focusBefore:HTMLElement|null=null;
-  const pointer={x:0,y:0,turn:0,tilt:0};
-  const drag={active:false,id:-1,x:0,y:0,turn:0,tilt:0};
-  function paint() {
-    const pose=mapPose(units);
-    root.dataset.mapIndex=String(pose.index);
-    intro.style.opacity=pose.index<0?String(pose.text):"0";
-    intro.style.visibility=pose.index<0?"visible":"hidden";
-    intro.inert=pose.index>=0;
-    panels.forEach((panel,index)=>{
-      const visible=index===pose.index;
-      panel.style.opacity=visible?String(pose.text):"0";
-      panel.style.visibility=visible?"visible":"hidden";
-      panel.style.transform="translateY("+(visible?(1-pose.text)*14:14)+"px)";
-      panel.inert=!visible||pose.text<.05;
-      panel.setAttribute("aria-hidden",String(!visible));
+  const media = gsap.matchMedia();
+  media.add("(min-height: 640px) and (prefers-reduced-motion: no-preference)", () => {
+    root.dataset.careerMotion = "";
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+    const saved = new Map<HTMLElement, string | null>();
+    const remember = <T extends HTMLElement>(node: T) => { saved.set(node, node.getAttribute("style")); return node; };
+    const entries = [...root.querySelectorAll<HTMLElement>(".career-period")].map((period, index, periods) => {
+      const query = (selector: string) => remember(period.querySelector<HTMLElement>(selector)!);
+      const stage = query(".career-stage"), scene = query(".career-scene");
+      const paper = query(".career-paper"), background = query(".career-background");
+      const middle = query(".career-piece--middle"), front = query(".career-piece--front");
+      const layout = query(".career-layout");
+      const pages = [...period.querySelectorAll<HTMLElement>(".career-copy-page")].map(remember);
+      const buttons = [...period.querySelectorAll<HTMLButtonElement>("[data-career-page]")];
+      const number = period.querySelector<HTMLElement>(".career-page-number")!;
+      const entry = { period, stage, scene, paper, background, middle, front, layout, pages, buttons, number,
+        first: index === 0, last: index === periods.length - 1, time: 0, height: 1, start: 0,
+        runway: careerRunway(pages.length), activePage: -1, trigger: undefined as ScrollTrigger | undefined };
+      entry.trigger = ScrollTrigger.create({
+        trigger: period, start: "top top", end: "bottom bottom", invalidateOnRefresh: true,
+        onUpdate: self => { entry.time = (self.scroll() - self.start) / entry.height; draw(entry); },
+        onRefresh: self => {
+          entry.height = Math.max(1, stage.clientHeight);
+          entry.start = self.start;
+          entry.time = (self.scroll() - self.start) / entry.height;
+          draw(entry);
+        },
+      });
+      return entry;
     });
-    links.forEach(link=>{
-      const active=Number(link.dataset.mapStop)===pose.index;
-      if(active)link.setAttribute("aria-current","step");else link.removeAttribute("aria-current");
-    });
-  }
-  function layout() {
-    const next=media.matches||innerHeight<620;
-    if(next!==staticMode){staticMode=next;if(next)units=0;}
-    root.toggleAttribute("data-map-static",staticMode);
-    height=stage.clientHeight||innerHeight;
-    paint();
-  }
-  layout();
-  const trigger=ScrollTrigger.create({trigger:period,start:"top top",end:"bottom bottom",invalidateOnRefresh:true,
-    onUpdate(self){if(!staticMode){units=Math.max(0,Math.min(MAP_RUNWAY,(self.scroll()-self.start)/height));paint();}},
-    onRefresh(self){start=self.start;height=stage.clientHeight||innerHeight;if(!staticMode)units=Math.max(0,Math.min(MAP_RUNWAY,(self.scroll()-start)/height));paint();}
-  });
-  function resize(){layout();ScrollTrigger.refresh();}
-  window.addEventListener("resize",resize);media.addEventListener("change",resize);
-  void import("./career/map/createMapScene").then(({createMapScene})=>{
-    if(disposed)return;
-    try{scene=createMapScene(canvas,markers);root.dataset.mapRenderer="ready";}
-    catch(error){root.dataset.mapRenderer="fallback";console.warn("经历地图使用平面导航回退:",error);}
-  }).catch(error=>{if(!disposed){root.dataset.mapRenderer="fallback";console.warn("经历地图载入失败:",error);}});
-  function tick(time:number){
-    const dt=Math.min(.05,Math.max(0,time-lastTime));lastTime=time;
-    if(!scene||document.hidden||dialog.open)return;
-    const box=stage.getBoundingClientRect();
-    if(renderedOnce&&(box.bottom<0||box.top>innerHeight*1.2))return;
-    scene.frame(units,time,dt,pointer,staticMode);renderedOnce=true;
-  }
-  gsap.ticker.add(tick);
-  function click(event:MouseEvent){
-    const target=event.target as Element;
-    const read=target.closest<HTMLElement>("[data-map-read]");
-    if(read){
-      const index=Number(read.dataset.mapRead);
-      details.forEach((detail,i)=>detail.hidden=i!==index);
-      focusBefore=read;dialog.showModal();pause(true);
-      dialog.querySelector<HTMLElement>(".atlas-dialog-scroll")!.scrollTop=0;
-      return;
+    type Entry = typeof entries[number];
+
+    function draw(entry: Entry) {
+      const { time, first, last, pages, height } = entry;
+      const pose = careerPose(time, pages.length, first, last);
+      const visible = (first || time >= 0) && (last || time <= entry.runway);
+      gsap.set(entry.scene, { opacity: pose.opacity, visibility: visible ? "visible" : "hidden" });
+      entry.stage.inert = !visible || pose.text < .02;
+      gsap.set([entry.paper, entry.background], { opacity: pose.background });
+      const drift = Math.sin(pose.reading * Math.PI);
+      const hover = Math.sin(pose.assembly * Math.PI / 2) * drift;
+      gsap.set(entry.middle, {
+        y: (1 - pose.assembly) * height * 1.08 - drift * 10 + pointer.y * hover * 7,
+        x: (1 - pose.assembly) * height * .035 + pointer.x * hover * 8,
+        rotation: (1 - pose.assembly) * -5, opacity: clamp(pose.assembly * 4),
+      });
+      gsap.set(entry.front, {
+        y: (1 - pose.foreground) * height * 1.32 - drift * 25 + pointer.y * hover * 14,
+        x: (1 - pose.foreground) * height * -.028 + pointer.x * hover * 17,
+        rotation: (1 - pose.foreground) * 4, opacity: clamp(pose.foreground * 4),
+      });
+      gsap.set(entry.layout, { opacity: pose.text, y: (1 - Math.min(1, time / CAREER_ENTRY)) * 22 });
+      pages.forEach((page, index) => {
+        const alpha = careerPageOpacity(time, index, pages.length, last);
+        gsap.set(page, { opacity: alpha, visibility: alpha < .005 ? "hidden" : "visible", y: (1 - alpha) * 12 });
+        page.inert = alpha < .05;
+        page.setAttribute("aria-hidden", String(alpha < .05));
+      });
+      if (entry.activePage !== pose.page) {
+        entry.activePage = pose.page;
+        entry.buttons.forEach((button, index) => {
+          if (index === pose.page) button.setAttribute("aria-current", "step");
+          else button.removeAttribute("aria-current");
+        });
+        entry.number.textContent = `${String(pose.page + 1).padStart(2, "0")} / ${String(pages.length).padStart(2, "0")}`;
+      }
     }
-    const stop=target.closest<HTMLElement>("[data-map-stop]");
-    if(!stop)return;
-    pointer.turn=pointer.tilt=0;
-    const time=mapStopTime(Number(stop.dataset.mapStop));
-    if(staticMode){units=time;paint();}else scrollTo(start+time*height);
-  }
-  function close(){if(!disposed){pause(false);focusBefore?.focus({preventScroll:true});}}
-  function backdrop(event:MouseEvent){if(event.target===dialog)dialog.close();}
-  function pointerMove(event:PointerEvent){
-    if(event.pointerType==="touch")return;
-    pointer.x=(event.clientX/innerWidth-.5)*2;pointer.y=(event.clientY/innerHeight-.5)*2;
-    if(!drag.active||event.pointerId!==drag.id)return;
-    pointer.turn=Math.max(-.7,Math.min(.7,drag.turn+(event.clientX-drag.x)*.003));
-    pointer.tilt=Math.max(-.22,Math.min(.2,drag.tilt+(event.clientY-drag.y)*.0015));
-  }
-  function down(event:PointerEvent){
-    if(event.button!==0||event.pointerType==="touch"||staticMode)return;
-    drag.active=true;drag.id=event.pointerId;drag.x=event.clientX;drag.y=event.clientY;drag.turn=pointer.turn;drag.tilt=pointer.tilt;
-    canvas.setPointerCapture(event.pointerId);canvas.dataset.dragging="";
-  }
-  function up(event:PointerEvent){if(drag.id!==event.pointerId)return;drag.active=false;if(canvas.hasPointerCapture(event.pointerId))canvas.releasePointerCapture(event.pointerId);delete canvas.dataset.dragging;}
-  function leave(){if(!drag.active){pointer.x=pointer.y=0;}}
-  root.addEventListener("click",click);dialog.addEventListener("click",backdrop);dialog.addEventListener("close",close);
-  root.addEventListener("pointermove",pointerMove,{passive:true});root.addEventListener("pointerleave",leave);
-  canvas.addEventListener("pointerdown",down);canvas.addEventListener("pointerup",up);canvas.addEventListener("pointercancel",up);
-  return {dispose(){
-    disposed=true;gsap.ticker.remove(tick);trigger.kill();scene?.dispose();
-    if(dialog.open)dialog.close();
-    root.removeEventListener("click",click);dialog.removeEventListener("click",backdrop);dialog.removeEventListener("close",close);
-    root.removeEventListener("pointermove",pointerMove);root.removeEventListener("pointerleave",leave);
-    canvas.removeEventListener("pointerdown",down);canvas.removeEventListener("pointerup",up);canvas.removeEventListener("pointercancel",up);
-    window.removeEventListener("resize",resize);media.removeEventListener("change",resize);
-    panels.forEach(panel=>{panel.inert=false;panel.removeAttribute("aria-hidden");panel.removeAttribute("style");});
-    intro.inert=false;intro.removeAttribute("style");
-    links.forEach(link=>link.removeAttribute("aria-current"));
-    delete root.dataset.mapRenderer;delete root.dataset.mapIndex;delete root.dataset.mapStatic;
-  }};
+    function move(event: PointerEvent) {
+      if (event.pointerType === "touch") { leave(); return; }
+      pointer.tx = (event.clientX / innerWidth - .5) * 2;
+      pointer.ty = (event.clientY / innerHeight - .5) * 2;
+    }
+    function leave() { pointer.tx = pointer.ty = 0; }
+    let lastTime = gsap.ticker.time;
+    function tick(time: number) {
+      const dt = Math.min(.05, Math.max(0, time - lastTime)); lastTime = time;
+      if (document.hidden) return;
+      const distance = Math.abs(pointer.tx - pointer.x) + Math.abs(pointer.ty - pointer.y);
+      if (distance < .001) return;
+      const follow = 1 - Math.exp(-dt * 6);
+      pointer.x += (pointer.tx - pointer.x) * follow; pointer.y += (pointer.ty - pointer.y) * follow;
+      entries.forEach(entry => { if (entry.time >= 0 && entry.time <= entry.runway) draw(entry); });
+    }
+    function navigate(event: Event) {
+      const button = (event.target as Element).closest<HTMLButtonElement>("[data-career-page]");
+      if (!button) return;
+      const entry = entries.find(entry => entry.period.contains(button));
+      if (!entry) return;
+      const page = Number(button.dataset.careerPage);
+      scrollTo(entry.start + (CAREER_ENTRY + page * CAREER_PAGE + .2) * entry.height);
+    }
+    root.addEventListener("pointermove", move, { passive: true });
+    root.addEventListener("pointerleave", leave);
+    root.addEventListener("click", navigate);
+    window.addEventListener("blur", leave);
+    gsap.ticker.add(tick);
+    return () => {
+      gsap.ticker.remove(tick);
+      root.removeEventListener("pointermove", move); root.removeEventListener("pointerleave", leave);
+      root.removeEventListener("click", navigate); window.removeEventListener("blur", leave);
+      entries.forEach(entry => {
+        entry.trigger?.kill(); entry.stage.inert = false;
+        entry.pages.forEach(page => { page.inert = false; page.removeAttribute("aria-hidden"); });
+        entry.buttons.forEach(button => button.removeAttribute("aria-current"));
+      });
+      saved.forEach((style, node) => { if (style === null) node.removeAttribute("style"); else node.setAttribute("style", style); });
+      delete root.dataset.careerMotion;
+    };
+  });
+  return { dispose: () => media.revert() };
 }

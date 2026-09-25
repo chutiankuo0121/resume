@@ -1,3 +1,4 @@
+import { experience } from "@/content/experience";
 import { skills } from "@/content/skills";
 import { assetUrl } from "../assetUrl";
 
@@ -55,6 +56,7 @@ export async function preloadPreviews(onProgress: (progress: number) => void, si
   const { portfolioMedia } = await import("@/content/works/gallery");
   signal.throwIfAborted();
   const previews: Preview[] = [
+    ...experience.map(period => ({ src: period.image, cors: false })),
     ...skills.map(skill => ({ src: skill.image, cors: true })),
     ...["lunar-left", "lunar-right"].flatMap(name =>
       [true, false].map(cors => ({ src: `/contact-signal/${name}.webp`, cors }))),
