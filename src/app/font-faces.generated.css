@@ -1,14 +1,14 @@
-/* 由 scripts/build-fonts.py 生成；上传版本化字体后再发布代码。 */
+/* 由 scripts/build-fonts.py 生成；新增中文子集随 public/fonts 发布。 */
 @font-face {
   font-family: "Astra KingHwa";
-  src: url("/fonts/astra-kinghwa.d2af99208dcb.woff2") format("woff2");
+  src: url("/fonts/astra-kinghwa.f9496a6bd8c5.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "Astra Zhuque";
-  src: url("/fonts/astra-zhuque.52a3bdf75aaa.woff2") format("woff2");
+  src: url("/fonts/astra-zhuque.9c44de348884.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;

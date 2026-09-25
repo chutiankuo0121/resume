@@ -50,6 +50,9 @@ Thumbs.db
 
 # 联系页新增的拼接图层随代码保留，静态导出即可预览，无需额外上传。
 !/public/contact-signal/*.webp
+!/public/career-zine/*.webp
+!/public/fonts/astra-kinghwa.f9496a6bd8c5.woff2
+!/public/fonts/astra-zhuque.9c44de348884.woff2
 
 # Next.js 根据本机生成目录重建此文件，不提交 dev/build 路径差异。
 next-env.d.ts

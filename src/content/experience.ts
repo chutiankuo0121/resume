@@ -1,113 +1,81 @@
+import { careerArchive } from "./careerArchive";
+import { education } from "./education";
 import multiAssetPortfolio from "./works/multi-asset-portfolio";
 import trendml from "./works/trendml";
-import { assetUrl } from "@/lib/assetUrl";
 
-/** 按实际时间排列；任职与创业内容来自本人补充及项目介绍，配图逐项标明用途。 */
-const records = [
+export type CareerPage = { heading: string; paragraphs: string[] };
+export type CareerEntry = {
+  id: string;
+  years: string;
+  title: string;
+  role: string;
+  location?: string;
+  image: string;
+  imageAlt: string;
+  ink: string;
+  pages: CareerPage[];
+  technologies: readonly string[];
+  projects?: { label: string; href: string }[];
+};
+
+/** 按原有小标题分页，正文逐字保留；同一场景中留出完整阅读时间。 */
+export function paginateCareerCopy(lines: readonly string[]): CareerPage[] {
+  const pages: CareerPage[] = [];
+  let heading = "", page: CareerPage | undefined;
+  for (const line of lines) {
+    if (line.startsWith("**") && line.endsWith("**")) {
+      heading = line.slice(2, -2);
+      if (page && page.paragraphs.length === 0) {
+        page.heading += ` · ${heading}`;
+      } else {
+        page = { heading, paragraphs: [] };
+        pages.push(page);
+      }
+    } else {
+      if (!page || page.paragraphs.length >= 3 ||
+          page.paragraphs.join("").length + line.length > 210) {
+        page = { heading, paragraphs: [] };
+        pages.push(page);
+      }
+      page.paragraphs.push(line);
+    }
+  }
+  return pages.filter(page => page.paragraphs.length > 0);
+}
+
+const artwork: Record<string, { id: string; image: string; imageAlt: string; ink: string }> = {
+  "xiamen-ruisheng": { id: "investment-research", image: "research", imageAlt: "研究档案、折叠图表与圆规组成的蓝色纸上拼贴", ink: "#2b5873" },
+  "green-dahua-futures": { id: "futures", image: "markets", imageAlt: "望远镜与海岸线组成的朱红色纸上拼贴", ink: "#935239" },
+  "fairylife-health": { id: "data-automation", image: "automation", imageAlt: "打字机与连续纸带组成的青绿色纸上拼贴", ink: "#37645e" },
+  "lanka-bio-techops": { id: "creative-automation", image: "creative", imageAlt: "摄影机、胶片与印刷图像组成的朱红色纸上拼贴", ink: "#954d40" },
+  "fjsbws-ai-pm": { id: "ai-product", image: "product", imageAlt: "声音波形、麦克风与模块结构组成的蓝色纸上拼贴", ink: "#435984" },
+};
+
+export const experience: CareerEntry[] = [
   {
-    id: "investment-research",
-    years: "2021.10—2022.04",
-    title: "厦门瑞晟投资",
-    role: "数据分析师 · 厦门",
-    introduction: "从金融数据出发，整理净值、持仓与风险指标，为投研分析提供依据。",
-    statement: "在数据中，寻找规律。",
-    description: "跟踪 MOM 投资组合中的私募产品表现，使用 Python 进行数据采集、清洗与可视化，参与策略回测和信号研究。",
-    image: "/timeline/foundations.webp",
-    imageAlt: "细密的矿物枝条从晶石中生长的概念图",
-    caption: "01 / 数据与分析 · 概念配图",
-    background: "/timeline/archive-background.webp",
-    width: 1024,
-    height: 1536,
-    compact: true
+    id: "university", years: "大学 · 本科", title: education.title, role: education.role,
+    image: "/career-zine/university.webp", imageAlt: "厦门理工学院校园、山脊与湖面组成的蓝色印刷拼贴",
+    ink: "#335f80", pages: paginateCareerCopy(education.description), technologies: [],
   },
+  ...[...careerArchive].reverse().map(entry => ({
+    id: artwork[entry.id].id, years: `${entry.startDate}—${entry.endDate}`, title: entry.company,
+    role: entry.title, location: entry.location, image: `/career-zine/${artwork[entry.id].image}.webp`,
+    imageAlt: artwork[entry.id].imageAlt, ink: artwork[entry.id].ink,
+    pages: [...paginateCareerCopy(entry.description),
+      { heading: "技术与工具", paragraphs: [entry.technologies.join(" · ")] }],
+    technologies: entry.technologies,
+  })),
   {
-    id: "futures",
-    years: "2022.06—2023.02",
-    title: "格林大华期货 · 福建分公司",
-    role: "期货客户经理 · 厦门",
-    introduction: "连接业务与技术，在客户服务之外探索 Python 量化策略。",
-    statement: "把判断，变成可验证的过程。",
-    description: "负责客户维护与投教，在无限易平台编写策略，开展行情采集、指标计算和回测。任职期间取得期货从业资格证。",
-    image: "/timeline/systems.webp",
-    imageAlt: "银色丝线交织成环形结构的概念图",
-    caption: "02 / 策略与验证 · 概念配图",
-    background: "/timeline/archive-background.webp",
-    width: 1536,
-    height: 1024,
-    compact: true
-  },
-  {
-    id: "data-automation",
-    years: "2023.09—2024.09",
-    title: "厦门飞瑞来健康科技有限公司",
-    role: "数据专员 · 厦门",
-    introduction: "整合药品销售流向与费用数据，为商务、财务和销售提供统一报表。",
-    statement: "让重复工作，交给自动化。",
-    description: "使用 Python、Pandas 和 Excel 工具链，串联清洗、匹配、汇总与校验；将月度、季度报表整理成可重复执行的流程，并沉淀模板与 SOP。",
-    image: "/timeline/foundations.webp",
-    imageAlt: "矿物枝条汇聚成结构的概念图",
-    caption: "03 / Python · 数据处理 · 报表自动化",
-    background: "/timeline/laboratory-background.webp",
-    width: 1024,
-    height: 1536,
-    compact: false
-  },
-  {
-    id: "creative-automation",
-    years: "2024.11—2025.02",
-    title: "厦门蓝咖生物科技有限公司",
-    role: "新媒体技术运营 · 厦门",
-    introduction: "将生成式 AI 与运营流程结合，搭建图文、视频的内容生产与发布工作流。",
-    statement: "从一张图，到一套生产流程。",
-    description: "使用 Stable Diffusion、ComfyUI 生成视觉素材，以 Dify、扣子辅助文案生产，结合 Python、FFmpeg 与浏览器自动化完成素材处理、视频混剪和定时发布。",
-    image: "/timeline/systems.webp",
-    imageAlt: "交织的银色环形网络，作为工作流的概念配图",
-    caption: "04 / ComfyUI · Python · FFmpeg",
-    background: "/timeline/laboratory-background.webp",
-    width: 1536,
-    height: 1024,
-    compact: false
-  },
-  {
-    id: "ai-product",
-    years: "2025.03—2025.10",
-    title: "福建数版卫士数字科技有限公司",
-    role: "AI 产品经理 → AI 模型后端开发 · 厦门",
-    introduction: "从需求调研、PRD 与原型设计，到模型评估与工作流落地，随后转岗负责 AI 语音项目后端。",
-    statement: "把 AI 能力，做成可用的产品。",
-    description: "以 Go 构建 Web 服务、Python 承接 TTS 推理，整合 RabbitMQ、OSS 与 MySQL，完成用户管理、任务调度和音频存储；同时研发 RPA 工具与可复用的 AI 工作流。",
-    image: "/timeline/practice.webp",
-    imageAlt: "悬浮晶石从白色粒子雾中浮现的概念图",
-    caption: "05 / Go · Python · TTS · RabbitMQ",
-    background: "/timeline/observatory-background.webp",
-    width: 1024,
-    height: 1536,
-    compact: false
-  },
-  {
-    id: "ai-finance-venture",
-    years: "2026.03—今",
-    title: "AI 金融创业",
-    role: "创业 · 产品与全栈开发",
-    introduction: "围绕投资研究与辅助决策开展 AI 金融创业，将策略研究、数据工程和产品开发连接起来。",
-    statement: "从策略研究，到日常可用的产品。",
-    description: "落地多资产投资组合系统，实盘规模 120 万元；独立设计开发 TrendML 期货量化平台，模型策略用于 100 万元实盘，模型与因子组合用于 1500 万元模拟盘。覆盖策略计算、交易执行、异常恢复、监控与 Web 前端。",
-    image: "/portfolio/multi-asset-portfolio/net-value.webp",
-    imageAlt: "多资产量化投资组合系统的每日净值实机界面",
-    caption: "06 / 多资产量化投资组合 · 前端实机截图",
+    id: "ai-finance-venture", years: "2026.03—今", title: "AI 金融创业", role: "产品与全栈开发",
+    image: "/career-zine/venture.webp", imageAlt: "观测装置与策略曲线组成的深绿色纸上拼贴",
+    ink: "#385e57",
+    pages: [
+      { heading: "从策略研究，到日常可用的产品。", paragraphs: ["围绕投资研究与辅助决策开展 AI 金融创业，将策略研究、数据工程和产品开发连接起来。", "落地多资产投资组合系统，实盘规模 120 万元；独立设计开发 TrendML 期货量化平台，模型策略用于 100 万元实盘，模型与因子组合用于 1500 万元模拟盘。覆盖策略计算、交易执行、异常恢复、监控与 Web 前端。"] },
+    ],
+    technologies: [],
     projects: [
       { label: "多资产投资组合 ↗", href: multiAssetPortfolio.href },
       { label: "TrendML 期货量化 ↗", href: trendml.href },
     ],
-    background: "/timeline/observatory-background.webp",
-    width: 1920,
-    height: 1080,
-    compact: false
-  }
-] as const;
-
-export const experience = records.map((entry) => ({
-  ...entry,
-  image: assetUrl(entry.image),
-  background: assetUrl(entry.background),
-}));
+  },
+];

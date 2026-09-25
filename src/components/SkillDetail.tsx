@@ -38,7 +38,11 @@ export default function SkillDetail({ skill, origin, onClose, onWork }: {
           <article className="card-practice" key={period.id}>
             <div className="card-practice-meta"><span>相关实践</span><span>{period.years}</span></div>
             <h4>{period.title}</h4><p>{period.role}</p>
-            <details><summary>工作内容</summary><p>{period.description}</p></details>
+            <details><summary>工作内容</summary>{period.pages.map((page, index) => (
+              <div key={index}>{page.heading && <h5>{page.heading}</h5>}
+                {page.paragraphs.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+              </div>
+            ))}</details>
           </article>
         ))}</section>}
       </div>

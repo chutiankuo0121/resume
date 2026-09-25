@@ -97,8 +97,6 @@ export function createTransitionTimeline(
     careerRoot.classList.toggle("career-arriving", arriving);
     careerRoot.style.setProperty("--timeline-reveal", media.matches || portal ? "1" : "0");
     careerRoot.style.setProperty("--arrival-y", `${Math.min(0, window.scrollY - careerStart)}px`);
-    const settle = gsap.utils.clamp(0, 1, (state.portalReveal - .2) / .65);
-    careerRoot.style.setProperty("--arrival-focus", String(1 - settle * settle * (3 - 2 * settle)));
     careerRoot.inert = previousCareerInert || (!media.matches && state.portalReveal < 1);
     // 提示随入洞退场，晶石显露时回来；终点不再提示向下滚动。
     const hintVisibility =
@@ -143,7 +141,7 @@ export function createTransitionTimeline(
       onChapterChange(next);
     }
   }
-  const career = createCareerTimeline(careerRoot);
+  const career = createCareerTimeline(careerRoot, position => lenis.scrollTo(position, { duration: .8, lerp: 0 }));
   const handoffs = createChapterHandoffs(careerRoot, exploreRoot, contactRoot, chapterMasks);
   ScrollTrigger.addEventListener("refresh", handoffs.refresh);
   function configure() {
@@ -259,12 +257,12 @@ export function createTransitionTimeline(
       }
       if (chapter === "career") {
         const start = careerRoot.getBoundingClientRect().top + window.scrollY;
-        // 直接落到第一段已有内容的位置，保留正常滚动时的留白开场。
+        // 章节导航落到校园拼贴归位后的第一段正文；自然滚动仍播放组装。
         lenis.scrollTo(
           start +
-            (media.matches || window.innerWidth < 800
+            (media.matches || window.innerHeight < 640
               ? 0
-              : window.innerHeight * 0.75),
+              : window.innerHeight * 1.6),
           { duration: 2.4, lerp: 0, immediate },
         );
         return;
@@ -291,7 +289,6 @@ export function createTransitionTimeline(
       root.removeAttribute("data-crystal-exit");
       careerRoot.classList.remove("career-arriving");
       careerRoot.style.removeProperty("--arrival-y");
-      careerRoot.style.removeProperty("--arrival-focus");
       careerRoot.style.removeProperty("--timeline-reveal");
       careerRoot.inert = previousCareerInert;
       lenis.destroy();
