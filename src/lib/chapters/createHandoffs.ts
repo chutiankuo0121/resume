@@ -24,13 +24,14 @@ export function createChapterHandoffs(
   masks: SVGSVGElement,
 ) {
   const main = explore.closest<HTMLElement>(".astra")!;
-  const careerStage = career.querySelector<HTMLElement>(".career-period:last-child .career-stage")!;
+  const careerStage = career.querySelector<HTMLElement>(".career-stage")!;
+  const careerCopy = career.querySelector<HTMLElement>(".career-period:last-child .career-copy")!;
   const ruler = career.querySelector<HTMLElement>(".career-ruler")!;
   const hub = explore.querySelector<HTMLElement>(".hub-stage")!;
   const contactStage = contact.querySelector<HTMLElement>(".contact-stage")!;
   const contactContent = contactStage.querySelector<HTMLElement>(".signal-content")!;
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
-  const elements = [careerStage, ruler, hub, contactStage];
+  const elements = [careerStage, careerCopy, ruler, hub, contactStage];
   const collageMask = masks.querySelector<SVGPathElement>("[data-curtain='collage']")!;
   const sparkle = document.createElement("canvas");
   sparkle.className = "chapter-edge-sparkle";
@@ -115,6 +116,7 @@ export function createChapterHandoffs(
     if (entering) {
       // Two seams reveal work from the upper-left and skills from the lower-right.
       hold(careerStage, y - start);
+      hold(careerCopy, y - start);
       hold(ruler, y - start);
       hold(hub, y - end);
       hub.dataset.starGather = p.toFixed(5);

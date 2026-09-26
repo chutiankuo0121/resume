@@ -4,12 +4,12 @@
   pointer-events: none;
 }
 .journey[data-crystal-exit] .experience { background: transparent; }
-.career-arriving .career-period:first-child .career-stage,
+.career-arriving .career-stage,
+.career-arriving .career-period:first-child .career-layout,
 .career-arriving .career-ruler {
   transform: translate3d(0, var(--arrival-y, 0px), 0);
   will-change: transform;
 }
-.career-arriving .career-period:first-child .career-stage { background: #fff; }
 .chapter-gap { height: 0; background: #eeeee9; }
 .chapter-gap--entry { height: 15svh; background: #fff; }
 .chapter-gap--exit { height: 65svh; }
@@ -49,7 +49,7 @@
   transform-origin: center center;
   will-change: transform;
 }
-.career-stage.chapter-held { background: #fff; }
+.career-stage.chapter-held { background: var(--career-paper, #f1f2ef); }
 /* 两侧画面各沿同一对光边显露，光晕自身不被裁切。 */
 .hub-stage[data-star-gather] { background: transparent; }
 .hub-stage[data-star-gather] :is(.hub-pane, .hub-choices) { mask-image: url(#chapter-entry-mask); }

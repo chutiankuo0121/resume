@@ -32,7 +32,7 @@ const careerIds: Record<string, string> = {
 
 export const careerDetails = [
   {
-    id: "university", years: "大学 · 本科", title: education.title, role: education.role,
+    id: "university", years: `${education.startDate}—${education.endDate}`, title: education.title, role: education.role,
     pages: groupCopy(education.description),
   },
   ...[...careerArchive].reverse().map(entry => ({
