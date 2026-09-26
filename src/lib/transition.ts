@@ -2,7 +2,6 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCareerTimeline } from "./createCareerTimeline";
-import { CAREER_ENTRY } from "./career/choreography";
 import { addOpeningTitles, OPENING } from "./openingTitles";
 import { createChapterHandoffs } from "./chapters/createHandoffs";
 import { axisChapters, createChapterAxis } from "./chapters/createChapterAxis";
@@ -142,7 +141,7 @@ export function createTransitionTimeline(
       onChapterChange(next);
     }
   }
-  const career = createCareerTimeline(careerRoot, position => lenis.scrollTo(position, { duration: .8, lerp: 0 }));
+  const career = createCareerTimeline(careerRoot);
   const handoffs = createChapterHandoffs(careerRoot, exploreRoot, contactRoot, chapterMasks);
   ScrollTrigger.addEventListener("refresh", handoffs.refresh);
   function configure() {
@@ -258,14 +257,8 @@ export function createTransitionTimeline(
       }
       if (chapter === "career") {
         const start = careerRoot.getBoundingClientRect().top + window.scrollY;
-        // 章节导航落到校园拼贴归位后的第一段正文；自然滚动仍播放组装。
-        lenis.scrollTo(
-          start +
-            (media.matches || window.innerHeight < 640
-              ? 0
-              : window.innerHeight * (CAREER_ENTRY + .2)),
-          { duration: 2.4, lerp: 0, immediate },
-        );
+        // 全文采用自然文档流，定位到教育经历开头。
+        lenis.scrollTo(start, { duration: media.matches ? 0 : 2.4, lerp: 0, immediate });
         return;
       }
       if (media.matches) {

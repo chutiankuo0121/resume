@@ -47,6 +47,10 @@ export function createTextDetailTexture(
       if (!parent || !node.textContent?.trim() || (excludeSelector && parent.closest(excludeSelector))) continue;
       const style = getComputedStyle(parent);
       if (style.visibility === "hidden" || style.display === "none") continue;
+      // 完整经历现在直接铺在页面上；视口外的长段落不必逐字量取。
+      const parentBox = parent.getBoundingClientRect();
+      if (parentBox.bottom <= viewport.top || parentBox.top >= viewport.bottom ||
+          parentBox.right <= viewport.left || parentBox.left >= viewport.right) continue;
       let opacity = 1;
       for (let element: HTMLElement | null = parent; element; element = element.parentElement) {
         const ancestorStyle = getComputedStyle(element);

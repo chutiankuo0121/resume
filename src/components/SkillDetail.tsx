@@ -1,5 +1,5 @@
 import type { Skill } from "@/content/skills";
-import { experience } from "@/content/experience";
+import { careerDetails } from "@/content/careerDetails";
 import { workById, type WorkSummary } from "@/content/works/gallery";
 import { cardOrigin, type CardOrigin } from "@/lib/cardMotion";
 import { preloadWorkDetail } from "./works/useWorkDetail";
@@ -14,7 +14,7 @@ export default function SkillDetail({ skill, origin, onClose, onWork }: {
   onWork: (work: WorkSummary, origin: CardOrigin) => void;
 }) {
   const related = skill.works.map(id => workById.get(id)).filter(work => work !== undefined);
-  const practice = skill.experiences.map(id => experience.find(period => period.id === id)).filter(period => period !== undefined);
+  const practice = skill.experiences.map(id => careerDetails.find(period => period.id === id)).filter(period => period !== undefined);
   return (
     <DetailDialog className="skill-dialog" labelledBy="skill-detail-title" label="能力 / Skills" origin={origin} onClose={onClose}>
       <div className="skill-detail">

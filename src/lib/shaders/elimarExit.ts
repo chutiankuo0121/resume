@@ -3,7 +3,7 @@ import { pictureDetailGLSL } from "./pictureDetail";
 
 /** 圆形传送门：alpha 揭开真实 DOM；同一个场输出 HDR 亮边供独立 Bloom 使用。 */
 export const paperFragment = /* glsl */ `
-uniform sampler2D uScene, uArrival, uArrivalText, uArrivalMask;
+uniform sampler2D uScene, uArrival, uArrivalText;
 uniform vec4 uArrivalRect;
 uniform float uArrivalReady;
 uniform vec3 uGhostWake[6];
@@ -73,7 +73,6 @@ void main(){
     float arrivalDetail=pictureDetails(arriving);
     vec2 margin=min(arrivalUV,1.-arrivalUV)*uArrivalRect.zw;
     float valid=smoothstep(0.,5.,min(margin.x,margin.y))*uArrivalReady;
-    valid*=texture2D(uArrivalMask,clamp(vec2(arrivalUV.x,1.-arrivalUV.y),0.,1.)).r;
     float textDetail=pictureDetails(texture2D(uArrivalText,vUv).rgb);
     // Each side owns its source: career content must never leak onto the crystal.
     float outgoingDetail=pictureDetails(original)*.5;
