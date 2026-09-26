@@ -56,7 +56,6 @@ export async function preloadPreviews(onProgress: (progress: number) => void, si
   const { portfolioMedia } = await import("@/content/works/gallery");
   signal.throwIfAborted();
   const previews: Preview[] = [
-    ...experience.map(period => ({ src: period.background, cors: false })),
     ...experience.flatMap(period => "illustration" in period ? [{ src: period.illustration.src, cors: false }] : []),
     ...skills.map(skill => ({ src: skill.image, cors: true })),
     ...["lunar-left", "lunar-right"].flatMap(name =>

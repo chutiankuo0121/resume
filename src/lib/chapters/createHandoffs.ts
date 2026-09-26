@@ -25,13 +25,13 @@ export function createChapterHandoffs(
 ) {
   const main = explore.closest<HTMLElement>(".astra")!;
   const careerStage = career.querySelector<HTMLElement>(".career-stage")!;
-  const careerCopy = career.querySelector<HTMLElement>(".career-period:last-child .career-copy")!;
+  const careerLayout = career.querySelector<HTMLElement>(".career-period:last-child .career-layout")!;
   const ruler = career.querySelector<HTMLElement>(".career-ruler")!;
   const hub = explore.querySelector<HTMLElement>(".hub-stage")!;
   const contactStage = contact.querySelector<HTMLElement>(".contact-stage")!;
   const contactContent = contactStage.querySelector<HTMLElement>(".signal-content")!;
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
-  const elements = [careerStage, careerCopy, ruler, hub, contactStage];
+  const elements = [careerStage, careerLayout, ruler, hub, contactStage];
   const collageMask = masks.querySelector<SVGPathElement>("[data-curtain='collage']")!;
   const sparkle = document.createElement("canvas");
   sparkle.className = "chapter-edge-sparkle";
@@ -115,9 +115,15 @@ export function createChapterHandoffs(
     const p = clamp((y - start) / Math.max(1, end - start));
     if (entering) {
       // Two seams reveal work from the upper-left and skills from the lower-right.
-      hold(careerStage, y - start);
-      hold(careerCopy, y - start);
-      hold(ruler, y - start);
+      // These sticky layers have a negative bottom margin. Translating them by
+      // scroll distance double-counts their pin and pushes the scenery away.
+      // Their held CSS instead pins the original layers to the viewport.
+      hold(careerStage, 0);
+      hold(ruler, 0);
+      // Transform the existing containing block, not .career-copy: introducing
+      // a transform on the copy changes the absolute illustration's container
+      // and collapses its computed width to zero on desktop.
+      hold(careerLayout, y - start);
       hold(hub, y - end);
       hub.dataset.starGather = p.toFixed(5);
     } else {
@@ -131,6 +137,7 @@ export function createChapterHandoffs(
   }
 
   function refresh() {
+    main.style.setProperty("--chapter-entry-background", getComputedStyle(career).backgroundColor);
     if (screenWidth !== innerWidth || screenHeight !== innerHeight) {
       screenWidth = innerWidth; screenHeight = innerHeight;
       particles?.resize(screenWidth, screenHeight);
@@ -169,6 +176,7 @@ export function createChapterHandoffs(
     },
     dispose() {
       clear();
+      main.style.removeProperty("--chapter-entry-background");
       observer.disconnect();
       window.removeEventListener("resize", refresh);
       window.removeEventListener("pointermove", pointerMove, true);

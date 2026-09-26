@@ -44,6 +44,9 @@ const original = careerDetails.flatMap(chapter => chapter.pages.flatMap(page => 
 assert.deepEqual(paragraphs, original, "Every original paragraph must remain in the same order in the exported page.");
 assert.equal([...html.matchAll(/class="career-stage"/g)].length, 1);
 assert.equal([...html.matchAll(/class="career-years"/g)].length, 1, "The UI must have exactly one date slot.");
+const entryDates = [...html.matchAll(/class="career-entry-date">([^<]+)</g)].map(match => decode(match[1]));
+assert.deepEqual(entryDates, careerDetails.map(chapter => chapter.years), "Each mobile chapter must carry its own correct date.");
+assert.ok(!/class="career-(?:era|reading|current|total)"/.test(html), "The original left ruler must not retain the corner date / progress UI.");
 assert.equal([...html.matchAll(/class="career-period"/g)].length, careerDetails.length);
 for (const name of ["academy", "markets", "computation"]) {
   assert.ok(existsSync(fileURLToPath(new URL(`../out/career-scenes/${name}.webp`, import.meta.url))), `${name} must be included in the deployable output.`);

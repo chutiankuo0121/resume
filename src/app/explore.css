@@ -1,6 +1,9 @@
 /* 主线只经过这一屏目录。作品与技能共用预览实例，展开后独立接管输入。 */
 .explore-hub {
   position: relative;
+  /* Match the preceding career stacking context. Its sticky scenery can still
+     extend below the section when the temporary handoff z-index is removed. */
+  z-index: 1;
   height: 250svh;
   background: #e9e9e7;
 }

@@ -3,7 +3,7 @@
   position: absolute;
   inset: 0;
   height: 100%;
-  color: #f3f3f1;
+  color: var(--text-on-dark);
   font-family: var(--font-body);
 }
 .skills-stage {
@@ -56,7 +56,7 @@
   outline: 1px solid #ffffff80;
   outline-offset: 12px;
 }
-/* 沿用参考站的 24 列位置；暖白字配柔和暗影，避免反色后与彩色云雾混在一起。 */
+/* 实白文字配窄暗影，在彩色云雾前保持清晰轮廓。 */
 .skills-index {
   position: absolute;
   z-index: 2;
@@ -66,8 +66,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
-  color: #f8f3ea;
-  text-shadow: 0 1px 12px #0008;
+  color: var(--text-on-dark);
+  text-shadow: 0 1px 2px #000c;
 }
 .skills-index button {
   display: block;
@@ -79,14 +79,14 @@
     400 21px/1.35 var(--font-heading);
   letter-spacing: -0.03em;
   text-align: left;
-  opacity: 0.6;
+  opacity: 1;
   cursor: pointer;
-  transition: opacity 0.3s linear;
+  text-underline-offset: .2em;
 }
 .skills-index button:hover,
 .skills-index button[aria-current="true"],
 .skills-index button:focus-visible {
-  opacity: 1;
+  text-decoration: underline;
 }
 .skills-index button:focus-visible {
   outline: 1px solid currentColor;

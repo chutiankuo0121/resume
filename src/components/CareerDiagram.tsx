@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-const ink = "#304f61";
-const blue = "#598dab";
-const gold = "#ac8752";
+const ink = "var(--diagram-ink, #304f61)";
+const blue = "var(--diagram-blue, #598dab)";
+const gold = "var(--diagram-gold, #ac8752)";
 
 const descriptions = {
   research: ["投资研究", "净值曲线、持仓结构与风险分析汇入研究视图。所有曲线均为概念示意，不代表实际业绩。"],
@@ -303,7 +303,7 @@ export default function CareerDiagram({ kind }: { kind: Kind }) {
       <linearGradient id={`${prefix}-edge`} x2="1" y2="1"><stop stopColor="#dce7ec" /><stop offset="1" stopColor="#9eb3bf" /></linearGradient>
       <linearGradient id={`${prefix}-blue`} x1="0" y1="0" x2=".8" y2="1"><stop stopColor="#9ebfce" /><stop offset=".55" stopColor="#5d859d" /><stop offset="1" stopColor="#2f4f63" /></linearGradient>
       <linearGradient id={`${prefix}-area`} x1="0" y1="0" x2="0" y2="1"><stop stopColor="#78a5bf" stopOpacity=".5" /><stop offset="1" stopColor="#b9d5e4" stopOpacity=".06" /></linearGradient>
-      <radialGradient id={`${prefix}-light`}><stop offset=".4" stopColor="#f0f4f4" stopOpacity=".98" /><stop offset=".7" stopColor="#eef3f4" stopOpacity=".88" /><stop offset="1" stopColor="#eef3f4" stopOpacity="0" /></radialGradient>
+      <radialGradient id={`${prefix}-light`}><stop offset=".4" stopColor="var(--diagram-haze, #f0f4f4)" stopOpacity=".98" /><stop offset=".7" stopColor="var(--diagram-haze, #eef3f4)" stopOpacity=".88" /><stop offset="1" stopColor="var(--diagram-haze, #eef3f4)" stopOpacity="0" /></radialGradient>
     </defs>
     <ellipse cx="320" cy="270" rx="320" ry="270" fill={`url(#${prefix}-light)`} aria-hidden="true" />
     <g aria-hidden="true"><Diagram prefix={prefix} /></g>

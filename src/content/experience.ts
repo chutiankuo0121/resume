@@ -54,5 +54,5 @@ export const experience = careerDetails.map((entry, index) => {
     if (previous?.heading === page.heading) previous.paragraphs.push(...page.paragraphs);
     else sections.push({ heading: page.heading, paragraphs: [...page.paragraphs] });
   }
-  return { ...entry, ...art, sections, background: `/career-scenes/${art.scene}.webp` };
+  return { ...entry, ...art, sections };
 });

@@ -10,6 +10,8 @@
   --axis-font-size: 16px;
   --axis-bar-height: 41px;
   --scroll-font-size: 18px;
+  --text-on-dark: #fff;
+  --text-on-dark-secondary: #f2f4f6;
 }
 * {
   box-sizing: border-box;
@@ -134,7 +136,7 @@ button:focus-visible {
   display: flex;
   width: 100%;
   height: var(--axis-bar-height);
-  color: #eee;
+  color: var(--text-on-dark);
   border-bottom: 1px solid currentColor;
   pointer-events: auto;
 }
@@ -213,7 +215,7 @@ button:focus-visible {
   inset: 0;
   width: 100%;
   color: #171717;
-  background: #eee;
+  background: var(--text-on-dark);
   opacity: var(--axis-open);
   pointer-events: none;
   mask-image: linear-gradient(
@@ -236,7 +238,7 @@ button:focus-visible {
   z-index: 1;
   width: 18px;
   height: 134px;
-  color: #eee;
+  color: var(--text-on-dark);
   mix-blend-mode: difference;
   pointer-events: none;
   opacity: 0;

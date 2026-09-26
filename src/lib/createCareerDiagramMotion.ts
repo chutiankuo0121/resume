@@ -15,7 +15,8 @@ export function createCareerDiagramMotion(root: HTMLElement) {
     const entrance = gsap.timeline({ scrollTrigger: {
       trigger: track, start: "top 92%", end: "top 36%", scrub: true, invalidateOnRefresh: true,
     } });
-    entrance.fromTo(parts, { opacity: .18, y: 16 }, { opacity: 1, y: 0, duration: .65, stagger: .13, ease: "power1.out" }, 0);
+    // Labels share these groups, so keep their opacity solid during the entrance.
+    entrance.fromTo(parts, { y: 16 }, { y: 0, duration: .65, stagger: .13, ease: "power1.out" }, 0);
     if (drawn.length) entrance.fromTo(drawn, { strokeDasharray: "1 1", strokeDashoffset: 1 }, {
       strokeDashoffset: 0, duration: .8, stagger: .09, ease: "none",
     }, .18);

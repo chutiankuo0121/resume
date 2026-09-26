@@ -6,11 +6,14 @@ import { createCareerDiagramMotion } from "./createCareerDiagramMotion";
 /** Pin only the scenery with CSS; real text height determines each chapter's duration. */
 export function createCareerTimeline(root: HTMLElement) {
   const periods = [...root.querySelectorAll<HTMLElement>(".career-period")];
-  const layers = [...root.querySelectorAll<HTMLElement>(".career-backdrop")];
   const date = root.querySelector<HTMLElement>(".career-years")!;
-  const era = root.querySelector<HTMLElement>(".career-era")!;
-  const current = root.querySelector<HTMLElement>(".career-current")!;
+  const dateSlot = root.querySelector<HTMLElement>(".career-date")!;
   const media = gsap.matchMedia();
+  let dustDisposed = false;
+  let stopDust: (() => void) | undefined;
+  void import("./career/createCareerFlight").then(({ createCareerFlight }) => {
+    if (!dustDisposed) stopDust = createCareerFlight(root);
+  }).catch(() => { /* The dark CSS backdrop remains readable without WebGL. */ });
 
   media.add({ animated: "(prefers-reduced-motion: no-preference)", reduced: "(prefers-reduced-motion: reduce)" }, context => {
     const animated = Boolean(context.conditions?.animated);
@@ -20,27 +23,17 @@ export function createCareerTimeline(root: HTMLElement) {
     let height = 1;
     let dateTween: gsap.core.Tween | undefined;
     const stopDiagramMotion = animated ? createCareerDiagramMotion(root) : undefined;
-    gsap.set(layers, { autoAlpha: 0 });
-    gsap.set(layers[0], { autoAlpha: 1 });
 
     function sync(instant = false) {
       const state = careerReadingState(window.scrollY, starts, end, height);
-      root.style.setProperty("--career-progress", state.progress.toFixed(4));
       if (state.index === active || !periods[state.index]) return;
-      if (!animated) {
-        if (active >= 0) layers[active].style.visibility = "hidden";
-        layers[state.index].style.visibility = "visible";
-        layers[state.index].style.opacity = "1";
-      }
       active = state.index;
-      root.dataset.careerScene = layers[active].dataset.scene;
       dateTween?.kill();
       date.textContent = periods[active].dataset.years!;
-      era.textContent = periods[active].dataset.era!;
-      current.textContent = String(active + 1).padStart(2, "0");
       // One text node is replaced, never two dates painted on top of each other.
-      if (animated && !instant) dateTween = gsap.fromTo(date, { opacity: 0, y: 9 }, { opacity: 1, y: 0, duration: .24, ease: "power2.out" });
-      else gsap.set(date, { clearProps: "opacity,transform" });
+      // Animate the outer slot so the original CSS rotation remains untouched.
+      if (animated && !instant) dateTween = gsap.fromTo(dateSlot, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: .24, ease: "power2.out" });
+      else gsap.set(dateSlot, { clearProps: "opacity,transform" });
     }
 
     function measure() {
@@ -52,26 +45,15 @@ export function createCareerTimeline(root: HTMLElement) {
     }
 
     if (animated) {
-      periods.slice(1).forEach((period, i) => {
-        const next = layers[i + 1];
-        // Fade the next opaque scene over the previous one. Its remaining
-        // contribution is 1 - opacity, keeping the blend free of white flashes.
-        gsap.fromTo(next, { autoAlpha: 0 }, {
-          autoAlpha: 1, ease: "sine.inOut", immediateRender: false,
-          scrollTrigger: {
-            trigger: period, start: "top 72%", end: "top 12%",
-            scrub: true, invalidateOnRefresh: true,
-          },
-        });
-      });
       periods.forEach((period, index) => {
         // The first heading must already be readable through the incoming crystal portal.
         const parts = period.querySelectorAll<HTMLElement>(
           index === 0 ? ".career-copy-section:not(:first-child)" : ".career-intro,.career-statement,.career-copy-section,.career-projects",
         );
         parts.forEach(part => {
-          gsap.fromTo(part, { y: 18, opacity: .15 }, {
-            y: 0, opacity: 1, ease: "none",
+          // Keep long paragraphs fully readable even if scrolling stops mid-entry.
+          gsap.fromTo(part, { y: 18 }, {
+            y: 0, ease: "none",
             scrollTrigger: { trigger: part, start: "top 97%", end: "top 80%", scrub: true, invalidateOnRefresh: true },
           });
         });
@@ -86,9 +68,7 @@ export function createCareerTimeline(root: HTMLElement) {
     return () => {
       stopDiagramMotion?.();
       dateTween?.kill();
-      gsap.set(date, { clearProps: "opacity,transform" });
-      delete root.dataset.careerScene;
-      root.style.removeProperty("--career-progress");
+      gsap.set(dateSlot, { clearProps: "opacity,transform" });
     };
   });
 
@@ -105,6 +85,8 @@ export function createCareerTimeline(root: HTMLElement) {
   return {
     dispose() {
       disposed = true;
+      dustDisposed = true;
+      stopDust?.();
       cancelAnimationFrame(refreshFrame);
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", refresh);

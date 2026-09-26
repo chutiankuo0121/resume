@@ -29,7 +29,7 @@ export function addOpeningTitles(timeline: gsap.core.Timeline, stage: HTMLElemen
       timeline.fromTo(phrase, { autoAlpha: 0 },
         { autoAlpha: 1, duration: 0.08, ease: "sine.out" }, start);
       timeline.fromTo(subtitle, { opacity: 0, y: 12 },
-        { opacity: 0.8, y: 0, duration: 0.09, ease: "sine.out" }, start + 0.12);
+        { opacity: 1, y: 0, duration: 0.09, ease: "sine.out" }, start + 0.12);
 
       const distance = index === 1 ? 0.48 : index === 2 ? 0.16 : 0.04;
       letters.forEach((letter, position) => {

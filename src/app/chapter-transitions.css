@@ -11,9 +11,9 @@
   will-change: transform;
 }
 .chapter-gap { height: 0; background: #eeeee9; }
-.chapter-gap--entry { height: 15svh; background: #fff; }
+.chapter-gap--entry { height: 15svh; background: var(--chapter-entry-background, #080b0f); }
 .chapter-gap--exit { height: 65svh; }
-/* 固定纸底遮住文档流；内容保持原尺寸，裁切路径与视口粒子严格重合。 */
+/* The fallback follows the outgoing scene; it must not flash the former white theme. */
 .astra[data-chapter-transition]::after {
   content: "";
   position: fixed;
@@ -22,7 +22,7 @@
   background: #eeeee9;
   pointer-events: none;
 }
-.astra[data-chapter-transition="entry"]::after { background: #fff; }
+.astra[data-chapter-transition="entry"]::after { background: var(--chapter-entry-background, #080b0f); }
 .astra[data-chapter-transition="exit"]::after { background: #e4e3d7; }
 .explore-hub:has(.chapter-held) { z-index: 2; background: transparent; }
 /* Transparent chapter boxes must let the visible chapter underneath receive input. */
@@ -49,7 +49,15 @@
   transform-origin: center center;
   will-change: transform;
 }
-.career-stage.chapter-held { background: var(--career-paper, #f1f2ef); }
+.career-stage.chapter-held { background: var(--career-paper, #080b0f); }
+.career-stage.chapter-held,
+.career-ruler.chapter-held {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  transform: none;
+}
 /* 两侧画面各沿同一对光边显露，光晕自身不被裁切。 */
 .hub-stage[data-star-gather] { background: transparent; }
 .hub-stage[data-star-gather] :is(.hub-pane, .hub-choices) { mask-image: url(#chapter-entry-mask); }
