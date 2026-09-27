@@ -38,11 +38,10 @@
 .game-player { position: fixed; inset: 0; margin: 0; padding: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; border: 0; overflow: hidden; background: var(--card-paper); color: var(--card-ink); color-scheme: light; overscroll-behavior: none; }
 .game-player::backdrop { background: var(--card-paper); }
 .game-player iframe { display: block; width: 100%; height: 100%; border: 0; }
-.game-return { position: absolute; z-index: 2; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); border: 0; border-radius: 999px; min-height: 44px; padding: 12px 20px; background: var(--card-paper); box-shadow: 0 4px 18px #0002; color: var(--card-ink); font: 14px var(--font-body); cursor: pointer; }
+.game-return { position: absolute; z-index: 2; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); }
 .game-player[data-locked="true"] .game-return { visibility: hidden; }
 .game-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: var(--card-paper); text-align: center; padding: 32px; }
 .game-loading p { margin: 0; font: 28px/1.5 var(--font-heading); }
-.game-loading button { border: 0; border-radius: 999px; background: var(--card-accent); color: #fff; padding: 14px 24px; font: 15px var(--font-body); }
 
 @media (max-width: 799px) {
   .work-hero, .work-hero[data-portrait="true"] { grid-template-columns: minmax(0, 1fr); gap: 20px; }

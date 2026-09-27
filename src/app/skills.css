@@ -106,14 +106,11 @@
 .skill-detail .card-tags { margin: 22px 0 28px; }
 .skill-related { margin-top: 30px; }
 .skill-evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-.skill-evidence button { min-width: 0; border: 0; border-radius: 24px; padding: 10px; text-align: left; background: var(--card-fill); color: var(--card-ink); transition: transform .24s ease, background .24s ease; }
-.skill-evidence img { display: block; width: 100%; height: 150px; object-fit: cover; border-radius: 16px; }
+.skill-evidence .line-button { display: block; width: 100%; min-width: 0; padding: 10px; text-align: left; }
+.skill-evidence img { display: block; width: 100%; height: 150px; object-fit: cover; }
 .skill-evidence button > span { display: flex; justify-content: space-between; gap: 10px; padding: 12px 6px 4px; font: 15px/1.6 var(--font-body); }
 .skill-evidence button > span > span { flex-shrink: 0; }
 .skill-practice { margin-top: 24px; }
-@media (hover: hover) {
-  .skill-evidence button:hover { transform: translateY(-3px); background: #e7eadf; }
-}
 
 /* 减少动态效果时显示静态图像，点击图像仍可阅读详情。 */
 .skills--static {
@@ -140,14 +137,11 @@
   gap: 30px;
 }
 .skill-static-card {
-  border: 0;
+  display: block;
+  width: 100%;
   padding: 12px;
-  border-radius: var(--card-radius);
-  background: var(--card-paper);
-  box-shadow: var(--card-shadow);
 }
 .skill-static-card img {
-  border-radius: var(--card-inner-radius);
   display: block;
   width: 100%;
   aspect-ratio: 1.5;

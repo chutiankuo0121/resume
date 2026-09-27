@@ -11,6 +11,7 @@ import { gsap } from "gsap";
 import Portfolio from "./Portfolio";
 import Skills from "./Skills";
 import SoundToggle from "./sound/SoundToggle";
+import LineIcon from "./LineIcon";
 import { WorkPlaybackContext } from "./works/WorkPlaybackContext";
 import { createPresentation } from "@/lib/hub/presentation";
 import {
@@ -105,6 +106,7 @@ export default function ExploreHub({
     let current: HubDestination | null = null;
     let animation: gsap.core.Timeline | undefined;
     let busy = false;
+    let closing = false;
     let cancelPreparation: (() => void) | undefined;
     const previousOverflow = document.documentElement.style.overflow;
     const notify = () => {
@@ -122,6 +124,9 @@ export default function ExploreHub({
       });
     }
     function expand(target: HubDestination, updateHistory: boolean) {
+      element.inert = false;
+      back.current!.disabled = false;
+      gsap.set(back.current, { clearProps: "opacity,visibility,transform" });
       const y = element.getBoundingClientRect().top;
       onOpenChange(true);
       document.documentElement.style.overflow = "hidden";
@@ -153,7 +158,7 @@ export default function ExploreHub({
         .to(presentations.current[target], { expansion: 1 }, 0);
     }
     function close() {
-      if (!current) return;
+      if (!current || closing) return;
       if (cancelPreparation) {
         cancelPreparation();
         cancelPreparation = undefined;
@@ -163,19 +168,17 @@ export default function ExploreHub({
         return;
       }
       const target = current;
+      closing = true;
+      element.inert = true;
+      element.dataset.closing = "true";
+      back.current!.disabled = true;
       element
         .querySelectorAll<HTMLDialogElement>("dialog[open]")
         .forEach((dialog) => dialog.close());
       busy = true;
       work.interactive = skills.interactive = false;
-      work.visible = skills.visible = true;
-      setInteractive(false);
-      notify();
       animation?.kill();
-      // Rebase the paused document while this fixed view still covers it.
-      // The closing animation always lands on the complete directory.
-      onReturnToExplore();
-      state.gather = 1;
+      const buttonExit = reduced.matches ? 0 : .16;
       animation = gsap.timeline({
         defaults: {
           duration: reduced.matches ? 0 : 1.05,
@@ -185,8 +188,13 @@ export default function ExploreHub({
         onComplete: () => {
           current = null;
           busy = false;
+          closing = false;
           setOpened(null);
           element.classList.remove("is-open");
+          delete element.dataset.closing;
+          element.inert = false;
+          back.current!.disabled = false;
+          gsap.set(back.current, { clearProps: "opacity,visibility,transform" });
           gsap.set(element, { clearProps: "transform" });
           document.documentElement.style.overflow = previousOverflow;
           onOpenChange(false);
@@ -197,9 +205,20 @@ export default function ExploreHub({
         },
       });
       animation
-        .to(state, { expansion: 0 }, 0)
-        .to(presentations.current[target], { expansion: 0 }, 0)
-        .to(element, { y: 0 }, 0);
+        .fromTo(back.current, { opacity: 1 }, {
+          autoAlpha: 0, y: -4, duration: buttonExit, ease: "power2.in",
+        }, 0)
+        .call(() => {
+          // Keep the selected scene intact until its return control has disappeared.
+          work.visible = skills.visible = true;
+          setInteractive(false);
+          onReturnToExplore();
+          state.gather = 1;
+          notify();
+        }, [], buttonExit)
+        .to(state, { expansion: 0 }, buttonExit)
+        .to(presentations.current[target], { expansion: 0 }, buttonExit)
+        .to(element, { y: 0 }, buttonExit);
     }
     function keyboard(event: KeyboardEvent) {
       if (!current || document.querySelector("dialog[open]")) return;
@@ -261,6 +280,8 @@ export default function ExploreHub({
       cancelAnimationFrame(initial);
       cancelPreparation?.();
       animation?.kill();
+      element.inert = false;
+      delete element.dataset.closing;
       gsap.killTweensOf(state);
       disposeBoundary();
       controls.current = null;
@@ -358,11 +379,12 @@ export default function ExploreHub({
           </div>
           <button
             ref={back}
-            className="hub-back"
+            className="hub-back line-button line-button--solid"
+            type="button"
             onClick={() => controls.current?.close()}
             tabIndex={opened ? 0 : -1}
           >
-            ← <span>Explore</span>
+            <LineIcon name="back" /><span>返回探索</span>
           </button>
           {opened && <SoundToggle floating />}
         </div>

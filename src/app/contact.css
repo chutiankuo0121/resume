@@ -21,14 +21,11 @@
 .signal-copy h2 span { display: block; white-space: nowrap; }
 .signal-description { margin: 0; font: clamp(14px, 1.45vw, 24px)/1.8 var(--font-body); color: var(--text-on-dark); text-wrap: balance; }
 .signal-actions { display: flex; margin-top: clamp(22px, 2.8vh, 30px); }
-.signal-actions button { display: flex; align-items: center; justify-content: space-between; gap: 30px; min-height: 48px; padding: 11px 32px; border: 1px solid #d7d0c1; border-radius: 100px; background: transparent; color: var(--text-on-dark); font: clamp(15px, 1.15vw, 19px)/1.5 var(--font-body); cursor: pointer; transition: background-color .25s, color .25s; }
-.signal-actions button span:last-child { transition: transform .3s; }
-.signal-actions button:hover { background: var(--text-on-dark); color: #171614; }
-.signal-actions button:hover span:last-child { transform: rotate(90deg); }
-.contact :is(button,a):focus-visible { outline: 2px solid var(--text-on-dark); outline-offset: 6px; }
-.signal-dialog { position: fixed; inset: 0; margin: auto; width: min(390px, calc(100vw - 48px)); padding: 42px 30px 30px; border: 1px solid #c4b38c44; background: #1c1b18; color: var(--text-on-dark); text-align: center; box-shadow: 0 20px 100px #0008; }
+.signal-actions .line-button { justify-content: space-between; gap: 32px; min-height: 48px; padding: 11px 22px; font-size: clamp(15px, 1.15vw, 19px); }
+.contact :is(button,a):focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
+.signal-dialog { position: fixed; inset: 0; margin: auto; width: min(390px, calc(100vw - 48px)); padding: 72px 30px 30px; border: 1px solid #ffffff80; background: #101010; color: var(--text-on-dark); text-align: center; box-shadow: 0 20px 100px #0008; }
 .signal-dialog::backdrop { background: #0b0b0bcc; backdrop-filter: blur(12px); }
-.signal-dialog-close { position: absolute; top: 6px; right: 12px; padding: 6px; font: 24px/1.5 var(--font-body); color: var(--text-on-dark); border: 0; background: none; cursor: pointer; }
+.signal-dialog-close { position: absolute; top: 12px; right: 12px; }
 .signal-dialog h3 { font: 28px/1.4 var(--font-heading); margin: 0 0 24px; }
 .signal-dialog img { display: block; width: 240px; height: 240px; max-width: 100%; object-fit: contain; margin: auto; }
 .signal-dialog > p, .signal-dialog a { font: 12px/1.8 var(--font-body); color: var(--text-on-dark-secondary); }
@@ -39,7 +36,7 @@
   .contact .signal-copy h2 { font-size: clamp(32px, 7.7vw, 52px); margin-bottom: 20px; }
   .signal-description { font-size: 13px; line-height: 1.8; }
   .signal-actions { margin-top: 22px; }
-  .signal-actions button { font-size: 14px; padding: 9px 24px; gap: 24px; }
+  .signal-actions .line-button { font-size: 15px; padding: 9px 18px; gap: 28px; }
   .signal-shade { background: none; }
   .signal-lens { left: 57%; top: 63%; width: min(60vw, 31vh); }
   .signal-rock--left { width: 146%; bottom: -4%; }
@@ -61,5 +58,4 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .contact { height: 100svh; }
-  .signal-actions button, .signal-actions button span:last-child { transition: none; }
 }

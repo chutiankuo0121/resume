@@ -49,13 +49,13 @@ export default function ProjectDetail({ work, origin, onClose }: {
           {(images.length > 1 || zoomed) && (
             <div className="work-gallery-controls">
               {images.length > 1 && <>
-                <button type="button" className="card-close" aria-label="上一张图片"
+                <button type="button" className="line-button line-button--icon" aria-label="上一张图片"
                   onClick={() => setImageIndex(i => (i - 1 + images.length) % images.length)}>←</button>
                 <span aria-live="polite">{imageIndex + 1} / {images.length}</span>
-                <button type="button" className="card-close" aria-label="下一张图片"
+                <button type="button" className="line-button line-button--icon" aria-label="下一张图片"
                   onClick={() => setImageIndex(i => (i + 1) % images.length)}>→</button>
               </>}
-              {zoomed && <button type="button" className="card-button" onClick={() => {
+              {zoomed && <button type="button" className="line-button" onClick={() => {
                 setZoomed(false);
                 imageButton.current?.focus({ preventScroll: true });
               }}>返回作品介绍</button>}
@@ -73,12 +73,12 @@ export default function ProjectDetail({ work, origin, onClose }: {
           <div className="work-detail-description">
             <p>{work.description}</p>
             <div className="work-actions">
-              <button type="button" className="card-button" onClick={() => {
+              <button type="button" className="line-button" onClick={() => {
                 setZoomed(true);
                 imageButton.current?.focus({ preventScroll: true });
               }}>查看完整图片 ↗</button>
               {work.href && (
-                <a className="card-button" href={work.href} target="_blank" rel="noopener noreferrer">访问项目 ↗</a>
+                <a className="line-button" href={work.href} target="_blank" rel="noopener noreferrer">访问项目 ↗</a>
               )}
             </div>
           </div>

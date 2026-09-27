@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { GameWork } from "@/content/works";
 import { WorkPlaybackContext } from "./WorkPlaybackContext";
+import LineIcon from "../LineIcon";
 
 /**
  * 一个 iframe 对应一次试玩。关闭时同步通知子页面清理，再销毁整个运行环境。
@@ -139,11 +140,11 @@ export default function GamePlayer({
         onError={() => setStatus("error")}
       />
       <button
-        className="game-return"
+        className="game-return line-button line-button--solid"
         type="button"
         onClick={() => dialog.current?.close()}
       >
-        ← 返回作品集
+        <LineIcon name="back" /><span>返回作品集</span>
       </button>
       {status !== "ready" && (
         <div
@@ -155,7 +156,7 @@ export default function GamePlayer({
               ? `正在加载…${progress > 0 ? ` ${Math.round(progress * 100)}%` : ""}`
               : "游戏加载失败。"}
           </p>
-          {status === "error" && <button onClick={retry}>重新加载 ↗</button>}
+          {status === "error" && <button className="line-button" onClick={retry}>重新加载 ↗</button>}
         </div>
       )}
     </dialog>

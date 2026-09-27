@@ -3,6 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import Image from "next/image";
 import { profile } from "@/content/profile";
+import LineIcon from "./LineIcon";
 
 export default function Contact({
   ref,
@@ -44,7 +45,7 @@ export default function Contact({
             <h2 id="contact-title"><span>下一段探索，</span><span>从对话开始。</span></h2>
             <p className="signal-description">一个想法，一次合作，或一句你好。</p>
             <div className="signal-actions">
-              <button type="button" onClick={() => dialog.current?.showModal()}><span>微信聊聊</span><span aria-hidden="true">＋</span></button>
+            <button className="line-button line-button--dark" type="button" onClick={() => dialog.current?.showModal()}><span>微信聊聊</span><LineIcon name="plus" /></button>
             </div>
           </div>
         </div>
@@ -52,7 +53,7 @@ export default function Contact({
       <dialog ref={dialog} className="signal-dialog" onClick={event => {
         if (event.target === event.currentTarget) dialog.current?.close();
       }}>
-        <button className="signal-dialog-close" type="button" aria-label="关闭微信二维码" onClick={() => dialog.current?.close()}>×</button>
+        <button className="signal-dialog-close line-button line-button--icon line-button--dark" type="button" aria-label="关闭微信二维码" onClick={() => dialog.current?.close()}><LineIcon name="close" /></button>
         <h3>让我们保持联系。</h3>
         <Image src={profile.wechat} alt="褚天阔的微信二维码" width={870} height={870} sizes="240px" unoptimized />
         <p>微信扫一扫 · {profile.name}</p>

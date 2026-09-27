@@ -1,0 +1,37 @@
+/* Shared action controls. Image hit areas and chapter navigation keep their own layout. */
+.line-button {
+  --button-ink: #171717;
+  --button-paper: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: fit-content;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--button-ink);
+  border-radius: 0;
+  background: var(--button-surface, transparent);
+  color: var(--button-ink);
+  font: 15px/1.5 var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.line-button--dark { --button-ink: #fff; --button-paper: #080808; }
+.line-button--solid { --button-surface: var(--button-paper); }
+.line-button--icon { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; }
+.line-button__icon { display: block; flex: 0 0 18px; width: 18px; height: 18px; }
+.line-button:disabled { cursor: default; opacity: .45; }
+.line-button:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
+@media (hover: hover) {
+  .line-button:not(:disabled):hover {
+    background: color-mix(in srgb, var(--button-ink) 9%, var(--button-paper));
+  }
+}
+.line-button:not(:disabled):active {
+  background: color-mix(in srgb, var(--button-ink) 16%, var(--button-paper));
+}
+@media (prefers-reduced-motion: reduce) {
+  .line-button { transition: none; }
+}

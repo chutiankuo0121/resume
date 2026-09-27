@@ -155,7 +155,7 @@ export default function Skills({
           <div className="skills-static-grid">
             {skills.map((skill) => (
               <button
-                className="skill-static-card"
+                className="skill-static-card line-button line-button--solid"
                 data-skill={skill.id}
                 key={skill.id}
                 onClick={event => {

@@ -29,18 +29,7 @@
   position: absolute;
   top: max(14px, env(safe-area-inset-top));
   right: max(18px, env(safe-area-inset-right));
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  padding: 0;
-  border-radius: 50%;
-  background: #ffffff0d;
-  color: #fff;
-  transition: background .2s ease;
 }
-.media-viewer-close:hover { background: #ffffff20; }
 .media-viewer-content { max-width: 100%; cursor: zoom-out; }
 .media-viewer-image { display: block; border: 0; padding: 0; background: none; cursor: zoom-out; }
 .media-viewer-image img,
@@ -85,5 +74,4 @@
   .media-progressive-full { transition: none; filter: none; }
   .media-progressive[data-ready="true"] .media-progressive-preview { transition: none; }
   .media-viewer::backdrop, .media-viewer[data-closing]::backdrop { animation: none; }
-  .media-viewer-close { transition: none; }
 }

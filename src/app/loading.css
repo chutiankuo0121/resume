@@ -63,11 +63,6 @@ html:has(.astra[data-loading="true"]) { overflow: hidden; }
   text-align: center;
   font: 17px/1.8 var(--font-body);
 }
-.prelude-error button {
-  border: 1px solid #25252360;
-  padding: 8px 28px;
-  background: transparent;
-}
 .loading-prelude[data-failed="true"] .prelude-copy { visibility: hidden; }
 /* 揭幕完成才让身份文字入场，雾场先到，文字后到。 */
 .experience.is-ready .opening-titles { animation: opening-after-loading 1s ease-out both; }

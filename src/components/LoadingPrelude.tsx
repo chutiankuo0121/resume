@@ -26,7 +26,7 @@ export default function LoadingPrelude({ ref, error, onRetry }: {
       {error && (
         <div className="prelude-error" role="alert">
           <p>{error}</p>
-          <button type="button" onClick={onRetry}>重新加载</button>
+          <button className="line-button" type="button" onClick={onRetry}>重新加载</button>
         </div>
       )}
     </section>

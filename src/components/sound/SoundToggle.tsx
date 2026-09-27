@@ -37,8 +37,8 @@ export default function SoundToggle({ floating = false }: { floating?: boolean }
     <p className="sound-prompt-title">{failed ? "再听一次？" : "开启声音？"}</p>
     <p>{failed ? "音乐暂时未能播放，可以点击重试。" : "让声音陪你走过这段旅程。"}</p>
     <div className="sound-prompt-actions">
-      <button type="button" onClick={() => choose(false)}>保持安静</button>
-      <button type="button" onClick={() => choose(true)}>{failed ? "重试" : "开启音乐"}</button>
+      <button className="line-button" type="button" onClick={() => choose(false)}>保持安静</button>
+      <button className="line-button" type="button" onClick={() => choose(true)}>{failed ? "重试" : "开启音乐"}</button>
     </div>
     {soundtrack?.credit && <small className="sound-credit">
       <a href={soundtrack.credit.href} target="_blank" rel="noreferrer">{soundtrack.title} · {soundtrack.credit.name}</a>
@@ -47,7 +47,7 @@ export default function SoundToggle({ floating = false }: { floating?: boolean }
   </div>;
 
   return <>
-    <button ref={button} type="button" className={`sound-toggle${floating ? " sound-toggle--floating" : ""}`}
+    <button ref={button} type="button" className={floating ? "sound-toggle--floating line-button line-button--icon line-button--dark" : "sound-toggle"}
       onClick={() => sound.choose(!sound.enabled)} aria-label={label} title={label}
       aria-pressed={sound.enabled} aria-busy={sound.loading} data-playing={sound.playing}>
       <span className="sound-bars" aria-hidden="true">

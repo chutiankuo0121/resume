@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import type { CardOrigin } from "@/lib/cardMotion";
+import LineIcon from "../LineIcon";
 
 /** 统一详情外壳；原生 dialog 保留焦点隔离、Esc 与多层播放器的正确顺序。 */
 export default function DetailDialog({
@@ -82,8 +83,8 @@ export default function DetailDialog({
       <div className="detail-shell">
         <header className="detail-header">
           <span className="card-eyebrow">{label}</span>
-          <button type="button" className="card-close" onClick={close} aria-label="关闭详情" autoFocus>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          <button type="button" className="line-button line-button--icon" onClick={close} aria-label="关闭详情" autoFocus>
+            <LineIcon name="close" />
           </button>
         </header>
         {children}

@@ -64,11 +64,6 @@
 @keyframes detail-facet-blink { 0%, 100% { opacity: .15; } 48% { opacity: .8; } 60% { opacity: .3; } }
 .detail-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 6px 16px 14px; }
 .card-eyebrow { margin: 0; font: 12px/1.6 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--card-muted); }
-.card-close { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--card-fill); color: var(--card-ink); }
-.card-button { display: inline-flex; justify-content: center; align-items: center; gap: 10px; width: fit-content; min-height: 44px; padding: 12px 22px; border: 0; border-radius: 999px; background: var(--card-accent); color: #fff; text-decoration: none; font: 15px/1.5 var(--font-body); }
-.card-button:disabled { background: var(--card-fill); color: var(--card-muted); cursor: default; }
-.card-button, .card-close { transition: transform .22s ease, background .22s ease; }
-.card-button:not(:disabled):active, .card-close:active { transform: scale(.96); }
 .card-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 22px 0; list-style: none; }
 .card-tags li, .card-chip { display: inline-block; padding: 7px 13px; border-radius: 999px; background: #e9ede4; color: #465843; font: 13px/1.5 var(--font-body); }
 .card-artwork { min-width: 0; transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform .3s ease-out; }
@@ -82,11 +77,7 @@
 .card-practice summary::-webkit-details-marker { display: none; }
 .card-practice summary::after { content: "↓"; transition: transform .2s ease; }
 .card-practice details[open] summary::after { transform: rotate(180deg); }
-.detail-dialog :is(a, button, summary):focus-visible { outline: 2px solid var(--card-accent); outline-offset: 3px; }
-@media (hover: hover) {
-  .card-button:not(:disabled):hover { background: #49604b; transform: translateY(-2px); }
-  .card-close:hover { background: #e0e4d8; transform: rotate(8deg); }
-}
+.detail-dialog :is(a, button, summary):focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
 @media (max-width: 799px) {
   .detail-dialog { width: calc(100vw - 24px); max-height: calc(100svh - 24px); border-radius: 26px; }
   .detail-shell { padding: 12px; }
@@ -96,5 +87,5 @@
 @media (prefers-reduced-motion: reduce) {
   .detail-dialog::backdrop { animation: none; }
   .detail-shell::before, .detail-shell::after { animation: none; }
-  .card-artwork, .card-button, .card-close { transition: none; transform: none; }
+  .card-artwork { transition: none; transform: none; }
 }

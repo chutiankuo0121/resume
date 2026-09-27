@@ -27,7 +27,7 @@ export default function SkillDetail({ skill, origin, onClose, onWork }: {
         {related.length > 0 && <section className="skill-related" aria-label="关联作品">
           <p className="card-eyebrow">关联作品 / Selected work</p>
           <div className="skill-evidence">{related.map(work => (
-            <button key={work.id} type="button" onPointerEnter={preloadWorkDetail} onFocus={preloadWorkDetail}
+            <button className="line-button" key={work.id} type="button" onPointerEnter={preloadWorkDetail} onFocus={preloadWorkDetail}
               onClick={event => onWork(work, cardOrigin(event.currentTarget))}>
               <img src={work.cover} alt={work.alt} loading="lazy" />
               <span>{work.title}<span aria-hidden="true">↗</span></span>

@@ -4,6 +4,7 @@ import { assetUrl, ASSET_ORIGIN } from "@/lib/assetUrl";
 import fonts from "@/content/fonts.generated.json";
 import MouseDot from "@/components/MouseDot";
 import "./globals.css";
+import "./buttons.css";
 import "./opening.css";
 import "./loading.css";
 import "@/components/cards/cards.css";

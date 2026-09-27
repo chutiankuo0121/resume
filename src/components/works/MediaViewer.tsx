@@ -3,6 +3,7 @@ import type { Work } from "@/content/works";
 import AudioPlayer from "./AudioPlayer";
 import ProgressiveImage from "./ProgressiveImage";
 import { portfolioMedia } from "@/content/works/gallery";
+import LineIcon from "../LineIcon";
 
 type MediaWork = Extract<Work, { kind: "image" | "video" | "audio" }>;
 
@@ -54,8 +55,8 @@ export default function MediaViewer({ work, onClose }: { work: MediaWork; onClos
       onCancel={event => { event.preventDefault(); close(); }}
       onClose={event => { if (!event.currentTarget.open) onClose(); }}
       onClick={event => { if (event.target === event.currentTarget) close(); }}>
-      <button className="media-viewer-close" type="button" aria-label="关闭预览" onClick={close} autoFocus>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      <button className="media-viewer-close line-button line-button--icon line-button--dark" type="button" aria-label="关闭预览" onClick={close} autoFocus>
+        <LineIcon name="close" />
       </button>
       <div ref={surface} className="media-viewer-content" data-kind={work.kind}>
         {work.kind === "image" ? (
