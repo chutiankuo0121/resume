@@ -66,6 +66,7 @@ void main() {
   gl_FragColor=boundaryPicture(boundaryGrain(layer.rgb,vUv,boundary.y),detail,vUv,boundaryPictureDistance(vUv,false),
     boundaryPictureCoverage(vUv,false));
   gl_FragColor.rgb=departureDetails(gl_FragColor.rgb,detail,vUv);
+  gl_FragColor.rgb=hubColorLens(gl_FragColor.rgb,vUv);
   #include <colorspace_fragment>
   #include <premultiplied_alpha_fragment>
 }`;

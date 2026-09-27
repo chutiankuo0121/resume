@@ -129,7 +129,19 @@ ASTRA 封面来自本站实机截图，旧简历迁入的项目、作品图片�
 
 技能区保留以 Cloudflare、Python、Figma 标识为题材的 gpt-image-2 图像；ComfyUI、n8n 与语音插画迁移自用户旧简历，转为黑白并柔化边缘。商标属于各自权利人，用于能力展示，不表示品牌合作或认证。运行图片保存在 `public/skills`。
 
+## 经历页排版与动效参考
+
+- 当前章节排版参考 1820 Productions 的黑白大字和线条动效：https://www.1820productions.com/ ，作者解析：https://tympanus.net/codrops/2026/02/13/1820-productions-minimal-design-maximal-motion/
+- 大标题缩成吸顶阅读栏、长文自然滚动及章节衔接为本项目独立设计，使用现有 GSAP 与 CSS sticky 实现；未复制参考站图片、字体或打包代码。
+- 以下为已移除的历史尺标实验来源：
+
+- Motiondrops Timeline：https://timelinecomponent.framer.website/
+- 组件介绍：https://www.framer.com/marketplace/components/timeline/
+- 2026-09-27 核对演示公开发布的浏览器代码，参考等距细线、当前线与两侧线条伸缩、停滚后显示标签的交互。曾使用独立 DOM、CSS 和现有 GSAP 滚动状态实现右侧竖轴，现已删除；未引入 Framer 组件或其打包代码。
+
 ## 简历中英文字体
+
+经历区与全站共用下述字体：公司名称、文艺标题及段落小标题使用标题字体，岗位和长正文使用正文字体，未新增字体资产。
 
 标题使用京华老宋 v2.002（王廷瑞 / TerryWang）与 Cinzel；正文使用朱雀仿宋 v0.212 与 Cormorant Garamond，全部固定为 Regular。`scripts/build-fonts.py` 生成 WOFF2 网页子集并保留版权元数据；网页族名加 `Astra` 前缀，与源字体区分。
 

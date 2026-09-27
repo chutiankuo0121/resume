@@ -1,6 +1,7 @@
 import { gsap } from "gsap";
-import { createChapterEdge, EDGE_SAMPLES } from "./createChapterEdge";
+import { createChapterEdge, EDGE_SAMPLES, type EdgePoint } from "./createChapterEdge";
 import { createLiquidContour } from "./liquidContour";
+import { createPortalContour } from "./portalContour";
 import { contactTransitionField, updateContactTransition } from "../contact/transitionField";
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
@@ -39,9 +40,13 @@ export function createChapterHandoffs(
   main.appendChild(sparkle);
   let particles: ReturnType<typeof createChapterEdge> | undefined;
   try { particles = createChapterEdge(sparkle); } catch { /* The image reveal still works without the decorative glow. */ }
-  let screenWidth = 0, screenHeight = 0, revealProgress = 0;
+  let screenWidth = 0, screenHeight = 0, hubHeight = 0, revealProgress = 0;
+  let previousY = NaN;
   const pointer = { x: -1000, y: -1000, targetX: -1000, targetY: -1000, strength: 0, targetStrength: 0 };
   const liquid = createLiquidContour(EDGE_SAMPLES);
+  const portal = createPortalContour(EDGE_SAMPLES);
+  let portalPoints: EdgePoint[] = [], portalStrength = 0;
+  const portalMotion = { x: -1000, y: -1000, strength: 0, flow: 0 };
   let lastFrame = 0;
   function pointerMove(event: PointerEvent) {
     if (event.pointerType === "touch") { pointer.targetStrength = 0; return; }
@@ -50,10 +55,15 @@ export function createChapterHandoffs(
     pointer.targetStrength = 1;
   }
   function pointerLeave() { pointer.targetStrength = 0; }
-  let suspended = false, active = "";
+  let suspended = false, active = "", careerHeaderOffset = 0;
   const positions = { career: 0, entryStart: 0, explore: 0, exitStart: 0, contact: 0 };
-  function drawCollage(time: number) {
-    if (active !== "exit" || document.hidden) return;
+  function drawEdges(time: number) {
+    if (!active || document.hidden) return;
+    if (active === "entry") {
+      if (portalPoints.length) particles?.render(portalPoints, time, portalStrength,
+        portalMotion, true);
+      return;
+    }
     const dt = Math.min(.05, Math.max(0, time - lastFrame));
     lastFrame = time;
     const follow = 1 - Math.exp(-dt * 9);
@@ -72,7 +82,7 @@ export function createChapterHandoffs(
     contactStage.style.clipPath = contactStage.dataset.art === "ready" ? "none" : clip;
     const strength = smooth(0, .08, revealProgress) * (1 - smooth(.92, 1, revealProgress));
     updateContactTransition(contactStage, points, screenWidth, screenHeight, time, strength, dt, pointer);
-    particles?.render(points, null, time, strength,
+    particles?.render(points, time, strength,
       { x: pointer.x, y: pointer.y, strength: pointer.strength, flow, velocities });
   }
 
@@ -83,9 +93,12 @@ export function createChapterHandoffs(
     contactTransitionField(contactStage).active = false;
     contactContent.style.removeProperty("clip-path");
     contactStage.style.removeProperty("clip-path");
-    delete hub.dataset.starGather;
+    delete hub.dataset.portalReveal;
+    hub.style.removeProperty("clip-path");
+    portalPoints = [];
     particles?.clear();
     delete main.dataset.chapterTransition;
+    careerLayout.style.removeProperty("--career-held-header-top");
     for (const element of elements) {
       element.classList.remove("chapter-held");
       element.style.removeProperty("--chapter-y");
@@ -99,6 +112,8 @@ export function createChapterHandoffs(
 
   function update(y = window.scrollY) {
     if (suspended || motion.matches) { clear(); return; }
+    if (previousY === y) return;
+    previousY = y;
     const entering = y > positions.entryStart && y < positions.explore;
     const exiting = y > positions.exitStart && y < positions.contact;
     if (!entering && !exiting) { clear(); return; }
@@ -109,38 +124,46 @@ export function createChapterHandoffs(
       lastFrame = gsap.ticker.time;
       liquid.reset(clamp((y - positions.exitStart) / Math.max(1, positions.contact - positions.exitStart)));
       main.dataset.chapterTransition = phase;
+      // svh and the visible viewport can differ when mobile browser chrome moves.
+      const height = entering ? hubHeight : screenHeight;
+      sparkle.style.height = `${height}px`;
+      particles?.resize(screenWidth, height);
     }
     const start = entering ? positions.entryStart : positions.exitStart;
     const end = entering ? positions.explore : positions.contact;
     const p = clamp((y - start) / Math.max(1, end - start));
     if (entering) {
-      // Two seams reveal work from the upper-left and skills from the lower-right.
-      // These sticky layers have a negative bottom margin. Translating them by
-      // scroll distance double-counts their pin and pushes the scenery away.
-      // Their held CSS instead pins the original layers to the viewport.
+      // Keep the outgoing chapter in place while a single hole reveals the
+      // complete directory, including its white mat, frame and labels.
       hold(careerStage, 0);
       hold(ruler, 0);
-      // Transform the existing containing block, not .career-copy: introducing
-      // a transform on the copy changes the absolute illustration's container
-      // and collapses its computed width to zero on desktop.
+      // Lock the compact header at its entry-boundary position before freezing
+      // the entire chapter. CSS preserves the header's original flow height.
+      careerLayout.style.setProperty("--career-held-header-top", `${careerHeaderOffset}px`);
       hold(careerLayout, y - start);
       hold(hub, y - end);
-      hub.dataset.starGather = p.toFixed(5);
+      hub.dataset.portalReveal = p.toFixed(5);
+      const points = portalPoints = portal.update(p, screenWidth, hubHeight);
+      hub.style.clipPath = `polygon(${points.map(({ x, y }) => `${x.toFixed(2)}px ${y.toFixed(2)}px`).join(",")})`;
+      portalStrength = smooth(0, .075, p) * (1 - smooth(.88, 1, p));
     } else {
       // 保留完整目录作为上一幕，联系页从下向上直接覆盖它。
       hold(hub, y - start);
       hold(contactStage, y - end);
       contactStage.dataset.collageReveal = p.toFixed(5);
       revealProgress = p;
-      drawCollage(gsap.ticker.time);
     }
   }
 
   function refresh() {
+    previousY = NaN;
+    hubHeight = hub.offsetHeight;
     main.style.setProperty("--chapter-entry-background", getComputedStyle(career).backgroundColor);
     if (screenWidth !== innerWidth || screenHeight !== innerHeight) {
       screenWidth = innerWidth; screenHeight = innerHeight;
-      particles?.resize(screenWidth, screenHeight);
+      const height = active === "entry" ? hubHeight : screenHeight;
+      sparkle.style.height = `${height}px`;
+      particles?.resize(screenWidth, height);
       liquid.reset(revealProgress);
       const mask = masks.querySelector("#contact-collage-mask")!;
       mask.setAttribute("width", String(screenWidth + 256));
@@ -149,8 +172,10 @@ export function createChapterHandoffs(
     positions.career = documentTop(career);
     positions.explore = documentTop(explore);
     positions.contact = documentTop(contact);
-    positions.entryStart = positions.career + career.offsetHeight - hub.offsetHeight;
-    positions.exitStart = positions.explore + explore.offsetHeight - hub.offsetHeight;
+    positions.entryStart = positions.career + career.offsetHeight - hubHeight;
+    const headerGuide = career.querySelector<HTMLElement>(".career-intro")!;
+    careerHeaderOffset = positions.entryStart - documentTop(careerLayout) + parseFloat(getComputedStyle(headerGuide).top);
+    positions.exitStart = positions.explore + explore.offsetHeight - hubHeight;
     update();
   }
   const observer = new ResizeObserver(refresh);
@@ -163,7 +188,7 @@ export function createChapterHandoffs(
   document.documentElement.addEventListener("pointerleave", pointerLeave);
   window.addEventListener("blur", pointerLeave);
   motion.addEventListener("change", refresh);
-  gsap.ticker.add(drawCollage);
+  gsap.ticker.add(drawEdges);
   refresh();
   return {
     positions,
@@ -171,6 +196,7 @@ export function createChapterHandoffs(
     refresh,
     suspend(value: boolean) {
       suspended = value;
+      previousY = NaN;
       if (value) clear();
       else update();
     },
@@ -183,7 +209,7 @@ export function createChapterHandoffs(
       document.documentElement.removeEventListener("pointerleave", pointerLeave);
       window.removeEventListener("blur", pointerLeave);
       motion.removeEventListener("change", refresh);
-      gsap.ticker.remove(drawCollage);
+      gsap.ticker.remove(drawEdges);
       particles?.dispose();
       sparkle.remove();
     },

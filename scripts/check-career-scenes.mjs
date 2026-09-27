@@ -12,29 +12,6 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(outputText, filename);
 };
 const { careerDetails } = require("../src/content/careerDetails.ts");
-const { careerReadingState: state } = require("../src/lib/careerReadingState.ts");
-
-const starts = [5000, 8000, 9700, 14000, 16000, 19800, 22300];
-const end = 24400, height = 900;
-assert.deepEqual(state(0, starts, end, height), { index: 0, progress: 0 });
-// A long chapter remains selected and readable beyond its first viewport.
-assert.equal(state(6700, starts, end, height).index, 0);
-assert.ok(state(6700, starts, end, height).progress < 1);
-// The next background starts moving only after the reading range; the date stays
-// with the outgoing scene until the incoming scene occupies most of the screen.
-assert.deepEqual(state(7352, starts, end, height), { index: 0, progress: 1 });
-assert.equal(state(7670, starts, end, height).index, 0);
-assert.deepEqual(state(7700, starts, end, height), { index: 1, progress: 0 });
-// Fast jumps / browser restoration do not depend on intermediate onEnter callbacks.
-assert.equal(state(23000, starts, end, height).index, 6);
-assert.equal(state(8400, starts, end, height).index, 1);
-assert.equal(state(6000, starts, end, height).index, 0);
-assert.deepEqual(state(end + 3000, starts, end, height), { index: 6, progress: 1 });
-// Resize changes the transition threshold, without changing the content order.
-assert.equal(state(7770, starts, end, 500).index, 0);
-assert.equal(state(7860, starts, end, 500).index, 1);
-assert.deepEqual(state(200, [], 0, 0), { index: 0, progress: 0 });
-
 const htmlPath = fileURLToPath(new URL("../out/index.html", import.meta.url));
 assert.ok(existsSync(htmlPath), "Run npm run build before this check.");
 const html = readFileSync(htmlPath, "utf8");
@@ -43,28 +20,16 @@ const paragraphs = [...html.matchAll(/<p class="career-paragraph(?: career-parag
 const original = careerDetails.flatMap(chapter => chapter.pages.flatMap(page => page.paragraphs));
 assert.deepEqual(paragraphs, original, "Every original paragraph must remain in the same order in the exported page.");
 assert.equal([...html.matchAll(/class="career-stage"/g)].length, 1);
-assert.equal([...html.matchAll(/class="career-years"/g)].length, 1, "The UI must have exactly one date slot.");
+assert.ok(html.includes('<div class="career-stage" aria-hidden="true"><canvas class="career-particles"></canvas></div>'), "The decorative particles must stay inside the existing background/handoff layer.");
+for (const name of ["intro", "headline", "rule", "opening"]) {
+  assert.equal([...html.matchAll(new RegExp(`class="career-${name}"`, "g"))].length, careerDetails.length, `Every chapter needs its own ${name}.`);
+}
+assert.ok(!/class="career-(?:years|ruler-ticks|milestone|ruler-track)/.test(html), "The retired shared timeline must not be rendered.");
 const entryDates = [...html.matchAll(/class="career-entry-date">([^<]+)</g)].map(match => decode(match[1]));
-assert.deepEqual(entryDates, careerDetails.map(chapter => chapter.years), "Each mobile chapter must carry its own correct date.");
-assert.ok(!/class="career-(?:era|reading|current|total)"/.test(html), "The original left ruler must not retain the corner date / progress UI.");
+assert.deepEqual(entryDates, careerDetails.map(chapter => chapter.years), "Each article must carry its own accessible date.");
+assert.ok(!/class="career-(?:era|reading|current|total)"/.test(html), "The shared ruler must not retain the corner date / progress UI.");
 assert.equal([...html.matchAll(/class="career-period"/g)].length, careerDetails.length);
-for (const name of ["academy", "markets", "computation"]) {
-  assert.ok(existsSync(fileURLToPath(new URL(`../out/career-scenes/${name}.webp`, import.meta.url))), `${name} must be included in the deployable output.`);
-}
-// Gradients and accessible names must resolve inside their own illustration.
-// Duplicate SVG IDs can silently repaint another chapter's image in a browser.
-const diagrams = [...html.matchAll(/<svg\b[^>]*data-career-diagram="([^"]+)"[^>]*>[\s\S]*?<\/svg>/g)];
-assert.equal(diagrams.length, careerDetails.length - 1, "Every work chapter needs its illustration; the university keeps its photo.");
-const seenIds = new Set();
-for (const [svg, kind] of diagrams) {
-  const ids = new Set([...svg.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
-  for (const id of ids) {
-    assert.ok(!seenIds.has(id), `SVG ID collision: ${id}`);
-    seenIds.add(id);
-  }
-  for (const [, id] of svg.matchAll(/url\(#([^\)]+)\)/g)) assert.ok(ids.has(id), `${kind}: missing gradient ${id}`);
-  const accessibleName = svg.match(/aria-labelledby="([^"]+)"/);
-  assert.ok(accessibleName, `${kind}: missing accessible description`);
-  for (const id of accessibleName[1].split(" ")) assert.ok(ids.has(id), `${kind}: missing label ${id}`);
-}
-console.log(`Career checks passed: ${careerDetails.length} chapters, ${original.length} original paragraphs, one date, three bundled backgrounds, ${diagrams.length} isolated accessible SVGs; long-copy, jump, reverse and resize boundaries.`);
+assert.ok(html.includes("/career-scenes/xmut-sanjian-digital.webp"), "The university illustration must remain in the page.");
+assert.ok(existsSync(fileURLToPath(new URL("../out/career-scenes/xmut-sanjian-digital.webp", import.meta.url))), "The university illustration must be included in the deployable output.");
+assert.ok(!html.includes("data-career-diagram"), "The retired career SVG illustrations must not be rendered.");
+console.log(`Career checks passed: ${careerDetails.length} chapters and headers, ${original.length} original paragraphs in order, correct dates, decorative particle stage, no retired ruler or SVG illustrations.`);

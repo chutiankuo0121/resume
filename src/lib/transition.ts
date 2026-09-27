@@ -2,6 +2,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCareerTimeline } from "./createCareerTimeline";
+import { createCareerParticles } from "./career/createCareerParticles";
 import { addOpeningTitles, OPENING } from "./openingTitles";
 import { createChapterHandoffs } from "./chapters/createHandoffs";
 import { axisChapters, createChapterAxis } from "./chapters/createChapterAxis";
@@ -38,6 +39,9 @@ export function createTransitionTimeline(
   onChapterChange: (chapter: Chapter) => void,
 ) {
   gsap.registerPlugin(ScrollTrigger);
+  // Lenis requires wall-time ticks; GSAP's default long-frame compensation can
+  // otherwise stretch navigation after shader compilation or a slow frame.
+  gsap.ticker.lagSmoothing(0);
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
   const previousCareerInert = careerRoot.inert;
   const state: TransitionState = {
@@ -87,8 +91,12 @@ export function createTransitionTimeline(
   const disposeTitles = addOpeningTitles(timeline, stage);
   let chapter: Chapter | undefined;
   let trigger: ScrollTrigger | undefined;
+  let publishedY = NaN, publishedProgress = -1;
   const chapterAxis = createChapterAxis(axis);
   function publish() {
+    if (publishedY === window.scrollY && publishedProgress === state.progress) return;
+    publishedY = window.scrollY; publishedProgress = state.progress;
+    const contactHeight = contactRoot.offsetHeight;
     handoffs.update();
     const portal = !media.matches && state.exit > 0;
     const careerStart = handoffs.positions.career;
@@ -132,7 +140,7 @@ export function createTransitionTimeline(
       state.progress,
       range(careerStart, entryStart),
       range(exploreStart, exitStart),
-      range(contactStart, contactStart + contactRoot.offsetHeight - window.innerHeight),
+      range(contactStart, contactStart + contactHeight - window.innerHeight),
     ]);
     // aria-current follows the dominant chapter; it no longer triggers animation.
     const next = axisChapters[openness.indexOf(Math.max(...openness))];
@@ -143,8 +151,14 @@ export function createTransitionTimeline(
   }
   const career = createCareerTimeline(careerRoot);
   const handoffs = createChapterHandoffs(careerRoot, exploreRoot, contactRoot, chapterMasks);
-  ScrollTrigger.addEventListener("refresh", handoffs.refresh);
+  function refreshHandoffs() {
+    handoffs.refresh();
+    publishedY = NaN;
+    publish();
+  }
+  ScrollTrigger.addEventListener("refresh", refreshHandoffs);
   function configure() {
+    publishedY = NaN;
     trigger?.kill();
     root.classList.toggle("reduced-journey", media.matches);
     if (media.matches) {
@@ -184,7 +198,8 @@ export function createTransitionTimeline(
     lenis.raf(seconds * 1000);
     callbacks.forEach((callback) => callback(seconds * 1000));
   };
-  gsap.ticker.add(tick);
+  // Scroll positions must settle before contour, lens and scene renderers run.
+  gsap.ticker.add(tick, false, true);
   let prepareOpening: gsap.core.Tween | undefined;
   const clock: FrameClock = {
     subscribe(callback) {
@@ -194,6 +209,7 @@ export function createTransitionTimeline(
       };
     },
   };
+  const careerParticles = createCareerParticles(careerRoot, clock);
   return {
     state,
     clock,
@@ -205,7 +221,7 @@ export function createTransitionTimeline(
       const entering = y > entryStart && y < explore;
       if (media.matches || (!exiting && !entering)) { complete(); return; }
       // Drive the existing scroll-owned seam to its endpoint before suspending
-      // it. Contact retreats downward; an arriving directory finishes gathering.
+      // it. Contact retreats downward; the arriving directory's hole opens fully.
       lenis.stop();
       const position = { y };
       const destination = exiting ? Math.floor(exitStart) : Math.ceil(explore);
@@ -252,7 +268,7 @@ export function createTransitionTimeline(
       if (immediate) handoffs.refresh();
       if (chapter === "contact" || chapter === "explore") {
         const start = handoffs.positions[chapter];
-        lenis.scrollTo(start, { duration: media.matches ? 0 : 2.4, lerp: 0, immediate });
+        lenis.scrollTo(Math.ceil(start), { duration: media.matches ? 0 : 2.4, lerp: 0, immediate });
         return;
       }
       if (chapter === "career") {
@@ -270,6 +286,7 @@ export function createTransitionTimeline(
     },
     dispose() {
       prepareOpening?.kill();
+      careerParticles.dispose();
       gsap.ticker.remove(tick);
       callbacks.clear();
       media.removeEventListener("change", configure);
@@ -277,7 +294,7 @@ export function createTransitionTimeline(
       disposeTitles();
       timeline.kill();
       career.dispose();
-      ScrollTrigger.removeEventListener("refresh", handoffs.refresh);
+      ScrollTrigger.removeEventListener("refresh", refreshHandoffs);
       handoffs.dispose();
       chapterAxis.dispose();
       root.removeAttribute("data-crystal-exit");

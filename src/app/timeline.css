@@ -1,17 +1,15 @@
-/* Restore the left date / ticks / chapter nodes from 9934bb2, with one desktop date. */
+/* A chapter opens as a title composition, then settles into a quiet reading header. */
 .resume-timeline {
-  --timeline-margin: max(72px, calc((100vw - 1520px) / 2));
-  --date-column: 108px;
-  --timeline-gap: 54px;
-  --career-left: calc(var(--timeline-margin) + var(--date-column) + var(--timeline-gap));
-  --career-copy-width: min(40vw, 640px);
-  --career-ink: var(--text-on-dark);
-  --career-muted: var(--text-on-dark-secondary);
-  --career-paper: #07090b;
-  --diagram-ink: #d6e0e5;
-  --diagram-blue: #97b8cc;
-  --diagram-gold: #b5a385;
-  --diagram-haze: #0a0e14;
+  --career-gutter: 72px;
+  --career-stage-width: 1000px;
+  --career-copy-width: 760px;
+  --career-sticky-top: clamp(24px, 3.5svh, 36px);
+  --career-header-height: 84px;
+  --career-headline-rest-y: 0px;
+  --career-compact-title: 25px;
+  --career-ink: #111;
+  --career-muted: #424242;
+  --career-paper: #fff;
   --timeline-reveal: 0;
   position: relative;
   isolation: isolate;
@@ -19,6 +17,7 @@
   margin-top: -100svh;
   background: var(--career-paper);
   color: var(--career-ink);
+  color-scheme: light;
   opacity: var(--timeline-reveal);
 }
 .astra:not(.is-ready) .resume-timeline { visibility: hidden; }
@@ -31,16 +30,8 @@
   pointer-events: none;
   background: var(--career-paper);
 }
-.career-dust { position: absolute; inset: 0; z-index: 8; display: block; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
-.career-stage[data-particles="ready"] .career-dust { opacity: 1; }
-.career-stage::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 9;
-  /* Keep the flight visible around the copy, without a card or a hard mask edge. */
-  background: linear-gradient(90deg, rgba(7,9,11,.08), rgba(7,9,11,.43) 22%, rgba(7,9,11,.52) 44%, rgba(7,9,11,.15) 64%, transparent 82%);
-}
+.career-particles { display: block; width: 100%; height: 100%; pointer-events: none; }
+/* The original viewport layer stays available to the opening and explore handoffs. */
 .career-ruler {
   position: sticky;
   top: 0;
@@ -49,117 +40,127 @@
   margin-bottom: -100svh;
   pointer-events: none;
 }
-.career-ruler::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  left: calc(var(--timeline-margin) + var(--date-column) - 2px);
-  width: 4px;
-  background: repeating-linear-gradient(to bottom, transparent 0 10px, #778896 10px 11px);
-  mask-image: linear-gradient(to bottom, transparent 2%, #000 20%, #000 80%, transparent 98%);
+.career-periods { position: relative; z-index: 2; padding-top: clamp(96px, 14svh, 144px); }
+.career-period { position: relative; scroll-margin-top: var(--career-sticky-top); }
+.career-layout {
+  position: relative;
+  width: min(var(--career-stage-width), calc(100% - var(--career-gutter) * 2));
+  margin-inline: auto;
+  padding-bottom: 26svh;
 }
-.career-date { position: absolute; top: 13svh; left: var(--timeline-margin); }
-.career-years {
-  display: block;
-  width: max-content;
-  color: var(--career-ink);
-  font: 400 clamp(32px, 7svh, 64px)/1 var(--font-heading);
-  letter-spacing: -.03em;
-  white-space: nowrap;
-  transform: rotate(-90deg) translateX(-100%);
-  transform-origin: top left;
-}
-.career-periods { position: relative; z-index: 2; }
-.career-period { position: relative; scroll-margin-top: 0; }
-.career-layout { position: relative; padding: 25svh 0 42svh; margin-left: var(--career-left); margin-right: 7%; min-height: 150svh; }
 .career-period:last-child .career-layout { padding-bottom: 48svh; }
-.career-copy { width: var(--career-copy-width); min-width: 0; }
-.career-art-track {
-  position: absolute;
-  top: 25svh;
-  bottom: 42svh;
-  right: 0;
-  width: calc(100% - var(--career-copy-width) - clamp(32px, 4vw, 80px));
+.career-intro {
+  position: sticky;
+  top: var(--career-sticky-top);
+  height: var(--career-header-height);
+  z-index: 2;
 }
-.career-illustration { position: sticky; top: 25svh; margin: 0; }
-.career-illustration img { display: block; width: 100%; height: auto; }
-.career-illustration--diagram { top: 23svh; }
-.career-diagram { display: block; width: 100%; height: auto; overflow: hidden; }
-.career-diagram-label { fill: var(--career-ink); font: 25px/1.2 var(--font-body); letter-spacing: 1px; }
-/* Keep the vector's geometry stable. Only its internal paths animate. */
-.career-art-track--diagram { pointer-events: none; }
-.career-entry-date { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.career-intro, .career-story { position: relative; }
-.career-intro::before, .career-story::before {
+.career-intro::before {
   content: "";
   position: absolute;
-  left: calc(-1 * var(--timeline-gap) - 5px);
-  top: 9px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #d2dce1;
+  inset: calc(-1 * var(--career-sticky-top)) -24px 0;
+  background: var(--career-paper);
+  z-index: -1;
 }
-.career-role { margin: 0 0 23px; color: var(--career-muted); font: 16px/1.65 var(--font-body); letter-spacing: .045em; }
-.career-intro h2 { margin: 0; font: 400 clamp(30px, 3vw, 44px)/1.4 var(--font-heading); text-wrap: pretty; letter-spacing: -.015em; }
-.career-description { margin: 28px 0 0; color: var(--career-muted); font: 17px/1.9 var(--font-body); }
-.career-story { margin-top: 62px; }
-.career-statement { margin: 0 0 64px; font: 400 clamp(32px, 3.2vw, 48px)/1.5 var(--font-heading); letter-spacing: -.02em; }
-.career-statement span { display: block; max-width: 100%; }
-.career-copy-section + .career-copy-section { margin-top: 54px; }
-.career-copy-section h3 { margin: 0 0 22px; color: var(--career-ink); font: 400 23px/1.7 var(--font-heading); text-wrap: pretty; }
-.career-paragraph { margin: 0; color: var(--career-ink); font: 18px/1.95 var(--font-body); text-align: left; overflow-wrap: anywhere; }
+.career-entry-date {
+  margin: 0;
+  color: var(--career-ink);
+  font: 16px/22px var(--font-body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.career-intro .career-headline {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  color: var(--career-ink);
+  font: 400 clamp(54px, 5.5vw, 82px)/1.18 var(--font-heading);
+  letter-spacing: -.025em;
+  transform-origin: 0 0;
+  transform: translateY(72px);
+}
+.career-headline span { display: block; }
+.career-identity {
+  position: absolute;
+  right: 0;
+  bottom: 9px;
+  max-width: 64%;
+  text-align: right;
+  opacity: 0;
+  font-family: var(--font-body);
+}
+.career-affiliation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 6px 0 0;
+}
+.career-company { font: 400 clamp(16px, 1.55vw, 18px)/1.5 var(--font-heading); }
+.career-role { font-size: clamp(13px, 1.3vw, 15px); line-height: 1.5; color: var(--career-muted); }
+.career-rule {
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: var(--career-ink);
+  transform: translateY(220px) scaleX(.08);
+  transform-origin: 0 50%;
+}
+.career-opening { height: clamp(320px, 58svh, 560px); }
+.career-copy { position: relative; width: min(100%, var(--career-copy-width)); margin-inline: auto; }
+.career-description { margin: 0 0 56px; font: 400 22px/1.85 var(--font-body); text-wrap: pretty; }
+.career-art-track { margin: 0 0 64px; }
+.career-illustration { margin: 0; }
+.career-illustration img { display: block; width: 100%; height: auto; }
+.career-copy-section + .career-copy-section { margin-top: 56px; }
+.career-copy-section h3 { margin: 0 0 24px; font: 400 20px/1.7 var(--font-heading); text-wrap: pretty; }
+.career-paragraph { margin: 0; color: #202020; font: 400 17px/1.95 var(--font-body); text-align: left; overflow-wrap: anywhere; }
 .career-paragraph + .career-paragraph { margin-top: 24px; }
 .career-paragraph--numbered { padding-left: 1.45em; text-indent: -1.45em; }
-.career-projects { display: flex; flex-wrap: wrap; gap: 18px 30px; margin-top: 36px; }
-.career-project { color: var(--career-ink); font: 16px/1.8 var(--font-body); text-underline-offset: 7px; }
-.career-project:hover { color: #fff; }
+.career-projects { display: flex; flex-wrap: wrap; gap: 20px 32px; margin-top: 40px; }
+.career-project { color: var(--career-ink); font: 14px/1.8 var(--font-body); text-underline-offset: 7px; }
+.career-project:hover { text-decoration-thickness: 2px; }
 .career-project:focus-visible { outline: 1px solid currentColor; outline-offset: 6px; }
-@media (min-width: 800px) and (max-width: 1199px) {
-  .resume-timeline { --timeline-margin: 65px; --date-column: 70px; }
-  .career-years { font-size: min(48px, 7svh); }
-  .career-copy { width: 49vw; }
-  .career-stage::after { background: linear-gradient(90deg, rgba(7,9,11,.18), rgba(7,9,11,.62) 42%, rgba(7,9,11,.48) 57%, rgba(7,9,11,.08) 90%); }
-  .career-paragraph { font-size: 17px; }
-  .career-copy-section h3 { font-size: 21px; }
-}
-@media (max-width: 1199px) {
-  /* The image joins the text flow before the two desktop columns become cramped. */
-  .career-art-track { position: static; width: 100%; margin-top: 32px; }
-  .career-illustration { position: static; }
-  .career-art-track--diagram { margin-top: 24px; }
-  .career-illustration--diagram { max-width: 620px; margin-inline: auto; }
-}
+/* Freeze the compact sticky header with the outgoing chapter, preserving its flow space. */
+.career-layout.chapter-held::before { content: ""; display: block; height: var(--career-header-height); }
+.career-layout.chapter-held .career-intro { position: absolute; inset-inline: 0; top: var(--career-held-header-top); }
 @media (max-width: 799px) {
-  .resume-timeline { --timeline-margin: max(26px, env(safe-area-inset-left)); --date-column: 0px; --timeline-gap: 28px; }
-  .career-layout { padding-top: calc(var(--axis-bar-height) + 53px); padding-bottom: 38svh; margin-right: max(27px, env(safe-area-inset-right)); min-height: 130svh; }
-  .career-period:last-child .career-layout { padding-bottom: 48svh; }
-  .career-copy { width: 100%; }
-  .career-stage::after { background: linear-gradient(90deg, rgba(7,9,11,.38), rgba(7,9,11,.64) 55%, rgba(7,9,11,.36)); }
-  .career-date { display: none; }
-  .career-entry-date {
-    position: static;
-    width: auto;
-    height: auto;
-    margin: 0 0 38px;
-    overflow: visible;
-    clip-path: none;
-    color: var(--career-ink);
-    font: 400 clamp(21px, 5.4vw, 30px)/1.2 var(--font-heading);
-    letter-spacing: -.04em;
+  .resume-timeline {
+    --career-gutter: max(24px, env(safe-area-inset-left), env(safe-area-inset-right));
+    --career-sticky-top: calc(var(--axis-bar-height) + 16px);
+    --career-header-height: 152px;
+    --career-compact-title: 19px;
   }
-  .career-role { font-size: 14px; margin-bottom: 18px; }
-  .career-intro h2 { font-size: 29px; line-height: 1.5; }
-  .career-description { font-size: 16px; margin-top: 24px; }
-  .career-story { margin-top: 38px; }
-  .career-statement { font-size: 30px; margin-bottom: 42px; }
-  .career-copy-section + .career-copy-section { margin-top: 38px; }
-  .career-copy-section h3 { font-size: 21px; margin-bottom: 18px; }
-  .career-paragraph { font-size: 16px; line-height: 1.95; }
-  .career-paragraph + .career-paragraph { margin-top: 20px; }
-  .career-project { font-size: 15px; }
+  .career-ruler::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: var(--axis-bar-height);
+    background: var(--career-paper);
+  }
+  .career-periods { padding-top: calc(var(--axis-bar-height) + 64px); }
+  .career-layout { padding-bottom: 20svh; }
+  .career-entry-date { font-size: 14px; }
+  .career-intro .career-headline { top: 8px; font-size: clamp(30px, 8.2vw, 54px); }
+  .career-identity { left: 0; max-width: 100%; text-align: left; }
+  .career-affiliation { justify-content: flex-start; gap: 4px 8px; }
+  .career-company { font-size: 14px; }
+  .career-role { font-size: 13px; }
+  .career-opening { height: clamp(270px, 48svh, 440px); }
+  .career-description { font-size: 18px; margin-bottom: 40px; }
+  .career-art-track { margin-bottom: 40px; }
+  .career-copy-section + .career-copy-section { margin-top: 40px; }
+  .career-copy-section h3 { font-size: 18px; margin-bottom: 20px; }
+  .career-paragraph { font-size: 16px; line-height: 1.9; }
 }
 @media (prefers-reduced-motion: reduce) {
   .resume-timeline { margin-top: 0; opacity: 1; }
-  .career-layout { min-height: 100svh; padding-bottom: 22svh; }
+  .career-intro .career-headline { font-size: var(--career-compact-title); transform: translateY(var(--career-headline-rest-y)); }
+  .career-identity { opacity: 1; }
+  .career-rule { transform: none; }
+  .career-opening { height: 56px; }
 }

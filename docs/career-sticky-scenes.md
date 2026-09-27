@@ -1,66 +1,30 @@
-# 经历页：固定场景与完整正文
+# 经历页：大标题开场与吸顶阅读
 
-## 阅读与换章
+## 阅读与换章（2026-09-27 当前版本）
 
-- 一个全屏 sticky 背景舞台，七段正文保留自然高度，文字直接排在页面上。
-- 七段经历共用一个深色粒子空间；滚动驱动纵深推进，停下后保留缓慢聚散，具体实现见 `career-flight-background.md`。
-- 正文底部预留 42svh（手机 38svh），背景连续穿过章节，不再逐章加载和叠化图片。
-- 标题、正文、日期采用亮白色；正文与图内标签入场保留位移，取消压低透明度，滚动停住时保持清晰。
-- 时间轴恢复首版 `9934bb2` 的左侧竖排大日期、贯穿刻度和正文圆点；移除右上日期 / 经历类型与右下进度栏。
-- 桌面共用一个日期文本节点，切章时替换，避免多段旋转日期重叠；日期动效作用于外层容器，保留内层的旋转排版。
-- 手机按首版把日期放在各段经历开头，随正文滚动；目录下方留出间距，没有覆盖正文的固定日期条。
-- 阅读中不使用 snap，不创建嵌套滚动区；现有校园 / SVG 配图保持完整。
-- 移动端保留正文滚动，增加与当前主题一致的连续背景遮罩；减少动态效果时切换静态背景。
-- 入口破洞显露深色背景与文字，退出到探索时同时保持背景、末章正文和日期。
+- 七段经历共用白底黑色粒子背景，原始 45 段正文按原顺序完整保留；不使用卡片、嵌套滚动或强制吸附。
+- 每章开场只展示大标题。已有工作经历短句作为大标题，学校和创业章节使用原有名称；日期放入公司 / 岗位的同一个动画容器，随标题收拢后一起出现。
+- 大标题在滚动中从 54–82px 缩至 25px，并上移至吸顶阅读栏；手机从 30–54px 缩至 19px。保留文艺短句与现有动画；公司名称和段落小标题恢复京华老宋 / Cinzel，岗位与正文恢复朱雀仿宋 / Cormorant Garamond，字重均为 Regular。
+- 标题下的一条 1px 黑线从短线展开至 1000px 舞台宽度；标题缩放与线条展开先完成，随后日期、公司和岗位用同一段透明度 / 10px 位移动画显示，反向滚动时一起隐藏。正文最大宽度 760px，左对齐；学校图片进入同一阅读顺序。
+- 电脑章头按每章实际内容测量高度，离屏幕顶部保留 24–36px；左右两组文字底部对齐，距离 1px 横线约 8px。单行标题不预留第二行的位置，双行标题按第二行对齐。右侧第一行显示日期，第二行显示“学校 + 专业”或“公司 + 岗位”；日期 16px、公司 16–18px、岗位 13–15px，保持原字体。
+- 测量使用标题未变换高度与最终字号的比例，并取其与信息组高度的较大值；字体加载、窗口尺寸和 ScrollTrigger 刷新时重算。每章高度存放在自身 layout 的 CSS 变量，出口冻结占位复用同一高度。
+- 手机信息组放在收拢标题下方，与标题间隔 12px，底部距横线约 8px；章头同样随实际行数自动收紧。日期、公司和岗位字号分别为 14px、14px、13px，避开 41px 章节导航并再留 16px。公司与岗位优先同排，极长内容在窄屏完整换行。每章日期只渲染一处，并随自身吸顶章头进入和离场。
+- 每章开场留出约半屏的滚动空间，正文继续自然向上滚。标题在所属章节结束时一起离场，下一章从下面接入；不同长度的经历不限制成一屏。
+- 正文、简介和段落小标题使用滚动驱动的流式输出：按浏览器实际换行，从上到下、从左到右，每批三个完整字形快速显示。使用 Range 测量字形边界，每行使用独立透明度蒙版；新的一批字从 14% 浓度出现，再继续滚动 26px 平滑变为实字。渐变进度按每批字分别计算，已完成的字保持清晰，不对整段施加模糊或位移。
+- 每段顶部到视口 96% 处开始输出，底部触发留白由 12% 缩为 4%；每滚动约一个行高输出一行，最后一批字再用 26px 完成实体化，跟随缓冲 0.1 秒。停止滚动后随即停住，向上回滚时按原进度从实字变为字影、再倒序收回。已经读到顶部的正文保持清晰，随自然滚动进入吸顶栏底幕。学校图片与项目链接保持正常显示。
+- 原始文本节点与段落高度始终保留，避免打字时挤动后文；字体加载和视口变化后重新测量行数。经历到作品的冻结期间保留文本当前外观。减少动态效果模式完整显示内容，卸载时通过 GSAP context 恢复原内联样式并移除测量监听。
+- 已移除上一版的右侧竖轴、密集刻度、多组浮动日期、长横向框线以及对应计算模块。
+- 使用 CSS sticky 管理布局、GSAP ScrollTrigger 管理标题缩放与线条展开；字体加载、内容高度和窗口尺寸变化后刷新测量。减少动态效果模式直接显示紧凑标题与正文。
+- 粒子 canvas 放在原有 viewport sticky 背景图层内，手机导航仍使用独立底幕。进入作品/技能时，背景与末章内容一起冻结，避免 sticky 和位移重复计算。
 
-## 经历到作品 / 技能的衔接修复（2026-09-26）
+### 白底粒子背景
 
-- 背景舞台与时间轴使用负下边距实现 sticky 叠层，不能再按滚动距离整体下移。过渡时将这两个原始图层固定在视口，保持屏幕坐标不变；结束或反向退出时恢复 sticky。
-- 冻结末章时移动 `.career-layout`，保持配图原有的绝对定位容器。之前对 `.career-copy` 加 transform，会将它变成新的定位容器，使桌面配图宽度从 572.25px 变为 0。
-- 过渡底幕与间隔底色从经历页读取，不再使用旧主题的白色。
-- 探索页常态保留与经历页同级的 stacking context，以文档顺序覆盖前一幕。否则移除临时过渡图层时，经历的 sticky 溢出画面会重新盖住探索页。
-- 浏览器实测视口 1625×884：正向按 40px 步长采集 26 帧；过渡中舞台 / 时间轴 top 恒为 0，末章配图宽 572.25px、top 30.296875px 恒定。反向检查 27 个位置，其中 25 个位于过渡内，位置与宽度均稳定。终点截图确认作品与技能完整显示。
+- 参考旧项目 `Portfolio/src/features/effects/particles-effect.tsx` 和 `src/components/client-effects.tsx`：桌面 100 个小点，漂移速度沿用每 60Hz 帧 ±0.1px，鼠标跟随沿用 staticity 50 / ease 50 的手感，边缘 20px 渐隐。
+- 颜色改为 `#111111`，透明度 0.1–0.7；两档半径 0.35 / 1.1px。手机 55 个点，保留轻量背景和触摸阅读空间。
+- 运动算法由 `src/lib/particles/createAmbientParticleField.ts` 与联系页共用，两页分别以黑色和白色渲染。
+- 与 Lenis / 开场共用时钟，运动按时间差计算；离开经历、标签页隐藏或打开作品时停止绘制。出口冻结时保留当前画面，减少动态效果时显示静态粒子。
+- Canvas 位于正文、图片、吸顶标题和导航下层，不参与点击。视口变化时缩放既有位置，DPR 上限 2；卸载时释放时钟订阅、事件和观察器。
 
-## 参考
+## 验证
 
-- GSAP pinned content: https://codepen.io/GreenSock/pen/YzyqVNe
-- Codrops sticky sections: https://tympanus.net/Development/StickySections/
-- 本项目没有复制参考图片或代码，采用相同的滚动阅读结构。
-
-## 素材
-
-当前使用序章晶石同款粒子，详见 `career-flight-background.md`。下面三张银色背景是之前版本的素材记录，当前经历页不再加载。
-
-使用内置 image_gen 生成三张概念环境图，统一银灰材质和柔和光照。全部为概念配图，不代表真实校园或工作场所。同主题章节通过不同取景比例与画面位置区分。
-
-仅将 PNG 转码为 WebP，没有修改画面内容。三个文件随仓库保存，首次预览不依赖外部图片服务。
-
-### academy
-
-路径：`public/career-scenes/academy.webp`
-
-最终提示词：
-
-```text
-Use case: stylized-concept. Create one production 16:9 landscape background asset for a sophisticated digital-art personal portfolio career chapter about university education and financial engineering. NOT a web mockup, no text or interface. Photoreal cinematic conceptual architecture: an immense ivory concrete academic atrium with razor-thin repeating vertical fins and one graceful sweeping staircase, tiny silver mathematical wire structures in distance, pale morning light with long sharply defined architectural shadows. The architecture occupies the right 55% and recedes into the far horizon, beautifully composed with tangible scale and realism, like a contemporary architecture magazine photograph meeting refined digital art. Leftmost 45% is very quiet pale ivory atmospheric open space with only extremely faint depth, reserved for black Chinese text. Full bleed environment, no framed object, no card, no collage. Restrained chalk white, silver grey, whisper of cool blue. Crisp edges, rich material microtexture on right, soft ambient illumination. Wide 16:9 composition. No people, no lettering, no logos, no numbers, no paper, no crystals, no mineral branches, no black hole. Not intended to depict any real named university.
-```
-
-### markets
-
-路径：`public/career-scenes/markets.webp`
-
-最终提示词：
-
-```text
-Use case: stylized-concept. Create one production 16:9 full-bleed cinematic digital-art background for a sophisticated personal portfolio career chapter about financial research and quantitative markets. NOT a web mockup, no UI/text. A vast silver liquid landscape subtly becoming ordered ridges and translucent rippling data-wave surfaces on the right half, frozen like a high-end Houdini scientific sculpture but occupying an entire environment, finely layered glass wavefronts, elegant horizon and enormous depth. Camera low and panoramic. Leftmost 45% must be very quiet pale silver/ivory mist fading naturally into the environment with minimal contrast, usable behind black Chinese paragraphs. Right side highly crafted detail with titanium grey, cold pewter and delicate ice blue refractions; warm-neutral left. Photoreal physically based materials, cinematic directional lighting, beautiful restrained tones. No isolated torus, no generic sci-fi rings, no mineral branches, no recognizable chart with fake values, no cards, no words, no glyphs, no buildings, no people, no neon. Wide 16:9.
-```
-
-### computation
-
-路径：`public/career-scenes/computation.webp`
-
-最终提示词：
-
-```text
-Use case: stylized-concept. Create one production 16:9 wide digital-art background for a sophisticated portfolio about automation, creative AI and AI software engineering. NOT a UI mockup. A monumental spatial tapestry of hundreds of hair-thin silver optical filaments, flowing from an orderly horizontal lattice in the distance into a graceful folded ribbon on the right, softly translucent layered surfaces with microscopic precision. It should resemble cutting-edge computational design photographed in a vast white studio environment, tangible complex textile geometry, rich sculptural depth and scale. Composition concentrates the sculptural forms between x=60% and x=100%, extending beyond frame, lower right foreground closer, distant lattice high right. Leftmost 45% is quiet ivory/pearl white negative space fading into the environment for black Chinese text. Unified chalk white, titanium silver, subtle pale blue/celadon highlights. Full bleed panoramic environment not a floating little object. Exquisite realistic material, soft cinematic directional light and contact shadows. No text, no logos, no people, no cards, no page framing, no paper collage, no generic torus, no purple neon, no crystal. 16:9 landscape.
-```
+`npm run typecheck`、`npm run build`、`node scripts/check-career-scenes.mjs`。运行时核对桌面 / 手机、正反向阅读、末章到探索的破洞，以及完整内容和项目链接。历史设计与试版素材可从 Git 历史查看。

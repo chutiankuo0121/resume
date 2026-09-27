@@ -1,117 +1,83 @@
 import * as THREE from "three";
-import { loadBuffer, createParticleGeometry } from "../assets";
-import { assetUrl } from "../assetUrl";
-import { simplex } from "../shaders/noise";
+import { createAmbientParticleField } from "../particles/createAmbientParticleField";
 
-/** The original ambient space, with a fixed one-in-five subset. Its camera is
- * independent of the black hole and mountains; only the original drift evolves. */
+/** The career dust in white, rendered under the existing hole/mountain coverage. */
 export function createBackgroundParticles() {
+  const field = createAmbientParticleField();
   const target = new THREE.WebGLRenderTarget(1, 1, {
     minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter,
     depthBuffer: false, stencilBuffer: false,
   });
-  target.texture.name = "Contact background particles (20%)";
+  target.texture.name = "Contact sparse white dust";
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(33, 1, .1, 100);
-  const bounds = new THREE.Box3(), point = new THREE.Vector3();
-  const center = new THREE.Vector3(), size = new THREE.Vector3();
-  let geometry: THREE.BufferGeometry | undefined;
-  let width = 1, height = 1, disposed = false;
+  const camera = new THREE.OrthographicCamera(0, 1, 0, 1, .1, 10);
+  camera.position.z = 1;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new THREE.BufferAttribute(new Float32Array(100 * 3), 3).setUsage(THREE.DynamicDrawUsage);
+  const radii = new THREE.BufferAttribute(new Float32Array(100), 1).setUsage(THREE.DynamicDrawUsage);
+  const alphas = new THREE.BufferAttribute(new Float32Array(100), 1).setUsage(THREE.DynamicDrawUsage);
+  geometry.setAttribute("position", positions);
+  geometry.setAttribute("aRadius", radii);
+  geometry.setAttribute("aAlpha", alphas);
+  geometry.setDrawRange(0, 0);
   const material = new THREE.ShaderMaterial({
-    name: "ContactWhiteBackgroundParticles", transparent: true,
+    name: "ContactWhiteAmbientDust", transparent: true,
     depthTest: false, depthWrite: false, toneMapped: false,
-    uniforms: {
-      uTime: { value: 0 }, uPixelRatio: { value: 1 },
-      uViewportScale: { value: .7 }, uMotionDepthOffset: { value: 1 },
-    },
+    uniforms: { uPixelRatio: { value: 1 } },
     vertexShader: /* glsl */`
-      attribute float aLight, aSize;
-      uniform float uTime, uPixelRatio, uViewportScale, uMotionDepthOffset;
-      varying float vLight, vFade;
-      ${simplex}
+      attribute float aRadius, aAlpha;
+      uniform float uPixelRatio;
+      varying float vRadius, vDiameter, vAlpha;
       void main() {
-        vec3 p = position;
-        vec4 view = modelViewMatrix * vec4(p, 1.);
-        float depth = clamp(abs(view.z + uMotionDepthOffset) * 2. / 1511., .0001, 120.);
-        vec3 q = position * 2., t = vec3(uTime * .045);
-        vec3 large = .5 * vec3(snoise(q * 2.8010136 + t * vec3(1., .7, .3)),
-          snoise(q * 2.8010136 + t * vec3(.3, 1., .7)), snoise(q * 2.8010136 + t * vec3(.7, .3, 1.)));
-        vec3 medium = .3 * vec3(snoise(q * 3.301 + t * vec3(1.2, .5, .8)),
-          snoise(q * 3.301 + t * vec3(.8, 1.2, .5)), snoise(q * 3.301 + t * vec3(.5, .8, 1.2)));
-        vec3 small = .2 * vec3(snoise(q * 4.54 + t * vec3(1.5, .9, .4)),
-          snoise(q * 4.54 + t * vec3(.4, 1.5, .9)), snoise(q * 4.54 + t * vec3(.9, .4, 1.5)));
-        p += (large + medium * depth + small) * depth * 125.5;
-        vec4 mv = modelViewMatrix * vec4(p, 1.);
-        gl_Position = projectionMatrix * mv;
-        float modulation = 1. + dot(large + medium + small, vec3(1.)) * .2 / 9.;
-        float diameter = (aSize / 128.) * modulation * (300. / max(-mv.z * 2., .08) + 26.);
-        gl_PointSize = clamp(diameter * uPixelRatio * uViewportScale, 1., 48. * uPixelRatio);
-        vFade = smoothstep(.10, .40, -mv.z);
-        vLight = .6 + .3 * aLight;
+        vRadius = aRadius * uPixelRatio;
+        vDiameter = vRadius * 2. + 2.;
+        vAlpha = aAlpha;
+        gl_PointSize = vDiameter;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
       }
     `,
     fragmentShader: /* glsl */`
-      varying float vLight, vFade;
+      varying float vRadius, vDiameter, vAlpha;
       void main() {
-        float radius = length(gl_PointCoord * 2. - 1.);
-        float edge = min(fwidth(radius), .25);
-        float alpha = (1. - smoothstep(.78 - edge * .5, .78 + edge * .5, radius)) * vFade;
+        float distance = length(gl_PointCoord - .5) * vDiameter;
+        float alpha = (1. - smoothstep(vRadius - .5, vRadius + .5, distance)) * vAlpha;
         if (alpha < .001) discard;
-        gl_FragColor = vec4(vec3(vLight), alpha);
+        gl_FragColor = vec4(vec3(1.), alpha);
       }
     `,
   });
-
-  function frameCamera() {
-    if (!geometry) return;
-    bounds.getCenter(center); bounds.getSize(size);
-    const mobile = width < 800 || width <= height;
-    const crystalHeight = mobile ? height * .52 : Math.min(height * .8, width * .64);
-    const distance = size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)))
-      * height / crystalHeight + Math.max(size.x, size.z) * .4;
-    camera.position.copy(center).add(point.set(Math.sin(1.16) * distance, .15, Math.cos(1.16) * distance));
-    camera.lookAt(center);
-    camera.aspect = width / height;
-    camera.setViewOffset(width, height, width * (mobile ? -.14 : -.23), height * (mobile ? -.18 : .03), width, height);
-    camera.updateProjectionMatrix();
-    material.uniforms.uMotionDepthOffset.value = distance;
-    material.uniforms.uViewportScale.value = mobile ? .55 : .7;
-  }
-
-  const ready = loadBuffer(assetUrl("/crystal/particles.bin")).then(data => {
-    if (disposed) return;
-    geometry = createParticleGeometry(data);
-    const ambient = geometry.getAttribute("aAmbient");
-    const positions = geometry.getAttribute("position");
-    const visible: number[] = [];
-    let ambientCount = 0;
-    for (let i = 0; i < ambient.count; i++) {
-      if (ambient.getX(i) > .5) {
-        if (++ambientCount % 5 === 0) visible.push(i);
-      } else {
-        bounds.expandByPoint(point.fromBufferAttribute(positions, i));
-      }
-    }
-    geometry.setIndex(visible);
-    const particles = new THREE.Points(geometry, material);
-    particles.frustumCulled = false;
-    scene.add(particles);
-    frameCamera();
-  });
+  const points = new THREE.Points(geometry, material);
+  points.frustumCulled = false;
+  scene.add(points);
+  let previousTime: number | undefined;
 
   return {
-    ready, texture: target.texture,
-    resize(w: number, h: number, dpr: number) {
-      width = w; height = h;
-      target.setSize(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)));
+    texture: target.texture,
+    resize(width: number, height: number, dpr: number) {
+      field.resize(width, height);
+      target.setSize(Math.max(1, Math.round(width * dpr)), Math.max(1, Math.round(height * dpr)));
       material.uniforms.uPixelRatio.value = dpr;
-      frameCamera();
+      // Match Canvas screen coordinates; this field has no perspective size changes.
+      camera.right = width; camera.bottom = height;
+      camera.updateProjectionMatrix();
     },
-    render(renderer: THREE.WebGLRenderer, time: number) {
-      material.uniforms.uTime.value = time;
+    render(renderer: THREE.WebGLRenderer, time: number, pointerX: number, pointerY: number, reduced: boolean) {
+      const dt = previousTime === undefined ? 1 / 60 : time - previousTime;
+      previousTime = time;
+      field.update(dt, pointerX, pointerY, reduced ? "static" : "animate");
+      field.particles.forEach((particle, index) => {
+        positions.setXYZ(index, particle.x + particle.offsetX, particle.y + particle.offsetY, 0);
+        radii.setX(index, particle.radius);
+        alphas.setX(index, particle.alpha);
+      });
+      positions.needsUpdate = radii.needsUpdate = alphas.needsUpdate = true;
+      geometry.setDrawRange(0, field.particles.length);
       renderer.setRenderTarget(target);
       renderer.render(scene, camera);
     },
-    dispose() { disposed = true; geometry?.dispose(); material.dispose(); target.dispose(); },
+    dispose() {
+      field.particles.length = 0;
+      geometry.dispose(); material.dispose(); target.dispose();
+    },
   };
 }

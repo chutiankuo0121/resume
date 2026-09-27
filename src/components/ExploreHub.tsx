@@ -31,7 +31,8 @@ export default function ExploreHub({
   onPrepareOpen: (complete: () => void) => (() => void) | undefined;
 }) {
   const stage = useRef<HTMLDivElement>(null);
-  const chain = useRef<HTMLCanvasElement>(null);
+  const seam = useRef<HTMLCanvasElement>(null);
+  const frameGuide = useRef<HTMLDivElement>(null);
   const workPane = useRef<HTMLDivElement>(null);
   const skillsPane = useRef<HTMLDivElement>(null);
   const workButton = useRef<HTMLButtonElement>(null);
@@ -39,7 +40,6 @@ export default function ExploreHub({
   const back = useRef<HTMLButtonElement>(null);
   const boundary = useRef<BoundaryState>({
     expansion: 0,
-    hover: 0,
     destination: "work",
     time: 0,
     width: 1,
@@ -48,6 +48,7 @@ export default function ExploreHub({
     pointerY: 0.5,
     pointerStrength: 0,
     gather: 1,
+    ink: true,
   });
   const presentations = useRef({
     work: createPresentation(boundary.current),
@@ -93,7 +94,8 @@ export default function ExploreHub({
     const state = boundary.current;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const disposeBoundary = createBoundary(
-      chain.current!,
+      seam.current!,
+      frameGuide.current!,
       workPane.current!,
       skillsPane.current!,
       workButton.current!,
@@ -147,7 +149,7 @@ export default function ExploreHub({
       });
       animation
         .fromTo(element, { y }, { y: 0 }, 0)
-        .to(state, { expansion: 1, hover: 0 }, 0)
+        .to(state, { expansion: 1 }, 0)
         .to(presentations.current[target], { expansion: 1 }, 0);
     }
     function close() {
@@ -270,16 +272,6 @@ export default function ExploreHub({
     };
   }, [root, onOpenChange, onReturnToExplore, onPrepareOpen]);
 
-  function hover(value: number) {
-    if (!opened)
-      gsap.to(boundary.current, {
-        hover: value,
-        duration: 0.7,
-        overwrite: "auto",
-        ease: "sine.out",
-      });
-  }
-
   return (
     <WorkPlaybackContext value={setPlaying}>
       <section
@@ -323,8 +315,12 @@ export default function ExploreHub({
               active={opened === "skills" && interactive}
             />
           </div>
-          <canvas ref={chain} className="hub-chain" aria-hidden="true" />
-          <div className="hub-choices" inert={Boolean(opened)}>
+          <div ref={frameGuide} className="hub-frame-guide" aria-hidden="true" />
+          <canvas ref={seam} className="hub-boundary-canvas" aria-hidden="true" />
+          <div className="hub-lens-overlay" aria-hidden="true">
+            <div className="hub-color-lens" />
+          </div>
+          <div className="hub-choices hub-choices--work" inert={Boolean(opened)}>
             <button
               ref={workButton}
               className="hub-choice hub-choice--work"
@@ -333,8 +329,6 @@ export default function ExploreHub({
               onPointerDown={beginChoice}
               onPointerMove={moveChoice}
               onPointerCancel={() => { press.current.moved = true; }}
-              onPointerEnter={() => hover(1)}
-              onPointerLeave={() => hover(0)}
             >
               <span className="hub-label">
                 <span className="hub-label-title">
@@ -343,6 +337,8 @@ export default function ExploreHub({
                 <span className="hub-label-rule" aria-hidden="true" />
               </span>
             </button>
+          </div>
+          <div className="hub-choices hub-choices--skills" inert={Boolean(opened)}>
             <button
               ref={skillsButton}
               className="hub-choice hub-choice--skills"
@@ -351,8 +347,6 @@ export default function ExploreHub({
               onPointerDown={beginChoice}
               onPointerMove={moveChoice}
               onPointerCancel={() => { press.current.moved = true; }}
-              onPointerEnter={() => hover(-1)}
-              onPointerLeave={() => hover(0)}
             >
               <span className="hub-label">
                 <span className="hub-label-title">

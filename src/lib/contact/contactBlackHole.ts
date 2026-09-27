@@ -127,8 +127,9 @@ export function createContactBlackHole() {
     renderer.render(passScene, camera);
   }
   return {
-    material, resize, ready: background.ready,
-    render(renderer: THREE.WebGLRenderer, time: number, x: number, y: number, progress: number) {
+    material, resize,
+    render(renderer: THREE.WebGLRenderer, time: number, x: number, y: number, progress: number,
+      dust: { x: number; y: number; reduced: boolean }) {
       if (!floatChecked) {
         floatChecked = true;
         if (!renderer.extensions.has("EXT_color_buffer_float")) {
@@ -142,7 +143,7 @@ export function createContactBlackHole() {
       renderer.autoClear = true;
       renderer.setClearColor(0x000000, 0);
       try {
-        background.render(renderer, time);
+        background.render(renderer, time, dust.x * width / 2, -dust.y * height / 2, dust.reduced);
         ray.uniforms.uTime.value = time;
         ray.uniforms.uOrbit.value.set(x * .052, y * .025);
         ray.uniforms.uApproach.value = progress;

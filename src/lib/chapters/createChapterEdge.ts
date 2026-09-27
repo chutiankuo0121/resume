@@ -5,7 +5,7 @@ import { portalLightGLSL, portalDustFragment } from "../shaders/portalLight";
 
 export const EDGE_SAMPLES = 513;
 export type EdgePoint = { x: number; y: number };
-type EdgeMotion = { x: number; y: number; strength: number; flow: number; velocities?: Float32Array; lowerVelocities?: Float32Array };
+type EdgeMotion = { x: number; y: number; strength: number; flow: number; velocities?: Float32Array };
 const noiseGLSL = /* glsl */ `
   ${portalLightGLSL}
   vec4 contour(sampler2D curve,float x){
@@ -41,23 +41,27 @@ export function createChapterEdge(canvas: HTMLCanvasElement) {
     uniforms: {
       uCurve: { value: curve }, uSize: { value: new THREE.Vector2(1, 1) },
       uResolution: { value: new THREE.Vector2(1, 1) },
-      uTime: { value: 0 }, uStrength: { value: 0 }, uDouble: { value: 0 },
-      uFlow: { value: 0 },
+      uTime: { value: 0 }, uStrength: { value: 0 },
+      uFlow: { value: 0 }, uRadial: { value: 0 },
     },
     vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`,
     fragmentShader: /* glsl */ `
       uniform sampler2D uCurve;
       uniform vec2 uSize;
       uniform vec2 uResolution;
-      uniform float uTime,uStrength,uDouble,uFlow;
+      uniform float uTime,uStrength,uFlow,uRadial;
       varying vec2 vUv;
       ${noiseGLSL}
       void main(){
         vec2 pixel=vec2(vUv.x,1.-vUv.y)*uSize;
         vec4 line=contour(uCurve,vUv.x);
         float d=(pixel.y-line.x)/sqrt(1.+line.z*line.z);
-        float other=(pixel.y-line.y)/sqrt(1.+line.w*line.w);
-        if(uDouble>.5 && abs(other)<abs(d))d=other;
+        if(uRadial>.5){
+          vec2 delta=pixel-uSize*.5;
+          float angle=fract(atan(delta.y,delta.x)/6.2831853+1.);
+          vec2 rim=contour(uCurve,angle).xy;
+          d=length(delta)-length(rim-uSize*.5);
+        }
         if(abs(d)>uSize.y*.14 || uStrength<=0.) { gl_FragColor=vec4(0.); return; }
         vec2 q=(vUv-.5)*vec2(uSize.x/uSize.y,1.);
         // Same light kernel as the circular portal; only the distance field differs.
@@ -87,7 +91,7 @@ export function createChapterEdge(canvas: HTMLCanvasElement) {
       uVelocity: { value: velocityMap },
       uResolution: material.uniforms.uResolution,
       uTime: material.uniforms.uTime, uStrength: material.uniforms.uStrength,
-      uDouble: material.uniforms.uDouble,
+      uRadial: material.uniforms.uRadial,
       uFlow: material.uniforms.uFlow, uDpr: { value: 1 },
       uPointer: { value: new THREE.Vector3(-1000, -1000, 0) },
     },
@@ -96,7 +100,7 @@ export function createChapterEdge(canvas: HTMLCanvasElement) {
       uniform vec2 uSize;
       uniform vec2 uResolution;
       uniform vec3 uPointer;
-      uniform float uTime,uStrength,uFlow,uDpr,uDouble;
+      uniform float uTime,uStrength,uFlow,uDpr,uRadial;
       attribute vec4 aSeed;
       varying float vAlpha,vFlash;
       ${noiseGLSL}
@@ -105,14 +109,19 @@ export function createChapterEdge(canvas: HTMLCanvasElement) {
         float side=aSeed.w>.43?1.:-1.;
         float x=fract(aSeed.x+sin(uTime*.19+aSeed.z*20.)*.006)*uSize.x;
         vec4 line=contour(uCurve,x/uSize.x);
-        if(uDouble>.5 && aSeed.y>.5) line.xz=line.yw;
         vec2 normal=normalize(vec2(-line.z,1.));
         vec2 tangent=vec2(normal.y,-normal.x);
-        vec2 velocities=contour(uVelocity,x/uSize.x).xy;
-        float velocity=uDouble>.5 && aSeed.y>.5 ? velocities.y : velocities.x;
+        float velocity=contour(uVelocity,x/uSize.x).x;
         float moving=smoothstep(25.,650.,abs(velocity));
         float spread=(10.+pow(aSeed.z,2.)*98.)*(1.+uFlow*.42);
         vec2 pos=vec2(x,line.x)+normal*side*(3.+life*spread);
+        if(uRadial>.5){
+          vec2 rim=contour(uCurve,aSeed.x).xy;
+          normal=normalize(rim-uSize*.5+vec2(.0001));
+          tangent=vec2(-normal.y,normal.x);
+          pos=rim+normal*side*(3.+life*spread);
+          velocity=0.; moving=0.;
+        }
         pos+=tangent*(sin(uTime*.7+aSeed.y*30.)*7.+(noise(vec2(aSeed.x*40.,uTime*.4))-.5)*24.)*life;
         // The local moving edge sheds a short wake, with stronger sideways
         // drift at steep lobes. Reversing the scroll reverses this wake.
@@ -159,20 +168,26 @@ export function createChapterEdge(canvas: HTMLCanvasElement) {
       dustMaterial.uniforms.uDpr.value = dpr * .5;
       dustGeometry.setDrawRange(0, width < 600 ? 420 : count);
     },
-    render(upper: EdgePoint[], lower: EdgePoint[] | null, time: number, strength: number, motion: EdgeMotion) {
+    render(points: EdgePoint[], time: number, strength: number, motion: EdgeMotion, radial = false) {
+      let curveChanged = curve.version === 0, velocityChanged = velocityMap.version === 0;
       for (let i = 0; i < EDGE_SAMPLES; i++) {
         // 法线取较宽邻域，避免逐像素锯齿把粒子带拉成竖直条纹。
         const before = Math.max(0, i - 8), after = Math.min(EDGE_SAMPLES - 1, i + 8);
-        const slope = (points: EdgePoint[]) => (points[after].y - points[before].y) / Math.max(.001, points[after].x - points[before].x);
-        data.set([upper[i].y, lower?.[i].y ?? upper[i].y, slope(upper), slope(lower ?? upper)], i * 4);
-        speeds[i * 4] = motion.velocities?.[i] ?? 0;
-        speeds[i * 4 + 1] = motion.lowerVelocities?.[i] ?? speeds[i * 4];
+        const slope = radial ? 0 : (points[after].y - points[before].y) / Math.max(.001, points[after].x - points[before].x);
+        const offset = i * 4;
+        const x = Math.fround(radial ? points[i].x : points[i].y);
+        const y = Math.fround(radial ? points[i].y : 0), z = Math.fround(slope);
+        const speed = Math.fround(motion.velocities?.[i] ?? 0);
+        curveChanged ||= data[offset] !== x || data[offset + 1] !== y || data[offset + 2] !== z;
+        velocityChanged ||= speeds[offset] !== speed;
+        data[offset] = x; data[offset + 1] = y; data[offset + 2] = z;
+        speeds[offset] = speed;
       }
-      curve.needsUpdate = true;
-      velocityMap.needsUpdate = true;
+      if (curveChanged) curve.needsUpdate = true;
+      if (velocityChanged) velocityMap.needsUpdate = true;
       material.uniforms.uTime.value = time;
       material.uniforms.uStrength.value = strength;
-      material.uniforms.uDouble.value = lower ? 1 : 0;
+      material.uniforms.uRadial.value = radial ? 1 : 0;
       material.uniforms.uFlow.value = motion.flow;
       dustMaterial.uniforms.uPointer.value.set(motion.x, motion.y, motion.strength);
       renderer.setRenderTarget(emission);

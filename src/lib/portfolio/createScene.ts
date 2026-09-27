@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { gsap } from "gsap";
 import { portfolioLayout, type PortfolioMedia, type WorkSummary } from "@/content/works/gallery";
 import { createPortfolioCamera } from "./camera";
 import { createPortfolioTiles } from "./tiles";
@@ -126,15 +127,17 @@ export function createPortfolioScene({
       !document.hidden &&
       !frame
     )
-      frame = requestAnimationFrame(draw);
+      frame = 1;
   }
 
-  function draw(timestamp: number) {
+  function draw(seconds: number) {
+    if (!frame) return;
     frame = 0;
-    if (presentation.suspended) {
+    if (disposed || !visible || !presentation.visible || presentation.suspended || document.hidden) {
       lastTime = 0;
       return;
     }
+    const timestamp = seconds * 1000;
     const dt = Math.min(
       (timestamp - (lastTime || timestamp - 16)) / 1000,
       0.04,
@@ -186,7 +189,7 @@ export function createPortfolioScene({
     renderer.render(scene, rig.camera);
     renderer.setRenderTarget(null);
     renderer.render(post, postCamera);
-    canvas.dataset.boundaryReady = "true";
+    if (canvas.dataset.boundaryReady !== "true") canvas.dataset.boundaryReady = "true";
     if (!ready && (mediaView.visible.length === 0 || mediaView.visible.some(loader.ready))) {
       ready = true;
       onReady();
@@ -439,7 +442,6 @@ export function createPortfolioScene({
     visible = entries[entries.length - 1].isIntersecting;
     if (visible) wake();
     else {
-      cancelAnimationFrame(frame);
       frame = 0;
       lastTime = 0;
     }
@@ -479,6 +481,8 @@ export function createPortfolioScene({
   canvas.addEventListener("keydown", keyboard);
   document.addEventListener("visibilitychange", refresh);
   motion.addEventListener("change", refresh);
+  // The outline, skills and gallery sample the same lens position in one tick.
+  gsap.ticker.add(draw);
   resize();
   updatePresentation();
 
@@ -492,7 +496,7 @@ export function createPortfolioScene({
     dispose() {
       disposed = true;
       delete canvas.dataset.boundaryReady;
-      cancelAnimationFrame(frame);
+      gsap.ticker.remove(draw);
       loader.dispose();
       root.removeEventListener("portal-update", updatePresentation);
       canvas.removeEventListener("wheel", wheel);

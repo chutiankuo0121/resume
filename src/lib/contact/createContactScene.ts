@@ -59,14 +59,14 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
 
   if (renderer) {
     const loader = new THREE.TextureLoader();
-    Promise.all([blackHole.ready, Promise.all(["lunar-left", "lunar-right"].map(name =>
+    Promise.all(["lunar-left", "lunar-right"].map(name =>
       loader.loadAsync(`/contact-signal/${name}.webp`).then(texture => {
         if (disposed) { texture.dispose(); return texture; }
         texture.colorSpace = THREE.SRGBColorSpace;
         textures.push(texture);
         return texture;
       }),
-    ))]).then(([, maps]) => {
+    )).then(maps => {
       if (disposed) return;
       maps.forEach((texture, index) => {
         const material = new THREE.ShaderMaterial({
@@ -83,9 +83,6 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
       render(0);
       if (!lost) stage.dataset.art = "ready";
     }).catch(() => { delete stage.dataset.art; });
-  } else {
-    // A failed WebGL setup already uses the static fallback.
-    void blackHole.ready.catch(() => {});
   }
 
   function render(dt: number) {
@@ -95,7 +92,8 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
     pointer.y += (pointer.ty - pointer.y) * settle;
     if (!ready || !renderer || lost) return;
 
-    blackHole.render(renderer, reduced.matches ? 0 : clock, pointer.x, pointer.y, p);
+    blackHole.render(renderer, reduced.matches ? 0 : clock, pointer.x, pointer.y, p,
+      { x: pointer.tx, y: pointer.ty, reduced: reduced.matches });
 
     // Each image contains one mountain on transparent pixels. Anchor the outer
     // and bottom edges beyond the viewport, so parallax cannot expose a seam.
@@ -146,7 +144,9 @@ export function createContactScene(root: HTMLElement, stage: HTMLElement, canvas
   const tween = gsap.to(scroll, { p: 1, ease: "none", scrollTrigger: {
     trigger: root, start: "top top", end: "bottom bottom", scrub: .75, invalidateOnRefresh: true,
   } });
-  const observer = new IntersectionObserver(entries => { active = entries[0].isIntersecting; }, { rootMargin: "100% 0px" });
+  // Assets already warm on load; the expensive hole only animates when visible
+  // or explicitly held by the chapter reveal, never behind the directory.
+  const observer = new IntersectionObserver(entries => { active = entries.at(-1)!.isIntersecting; });
   observer.observe(root);
   const sizeObserver = new ResizeObserver(resize); sizeObserver.observe(stage);
   stage.addEventListener("pointermove", move); stage.addEventListener("pointerleave", leave);

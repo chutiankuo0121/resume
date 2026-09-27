@@ -11,9 +11,9 @@
   will-change: transform;
 }
 .chapter-gap { height: 0; background: #eeeee9; }
-.chapter-gap--entry { height: 15svh; background: var(--chapter-entry-background, #080b0f); }
+.chapter-gap--entry { height: 15svh; background: var(--chapter-entry-background, #fff); }
 .chapter-gap--exit { height: 65svh; }
-/* The fallback follows the outgoing scene; it must not flash the former white theme. */
+/* The fallback follows the outgoing chapter's active background color. */
 .astra[data-chapter-transition]::after {
   content: "";
   position: fixed;
@@ -22,7 +22,7 @@
   background: #eeeee9;
   pointer-events: none;
 }
-.astra[data-chapter-transition="entry"]::after { background: var(--chapter-entry-background, #080b0f); }
+.astra[data-chapter-transition="entry"]::after { background: var(--chapter-entry-background, #fff); }
 .astra[data-chapter-transition="exit"]::after { background: #e4e3d7; }
 .explore-hub:has(.chapter-held) { z-index: 2; background: transparent; }
 /* Transparent chapter boxes must let the visible chapter underneath receive input. */
@@ -49,7 +49,7 @@
   transform-origin: center center;
   will-change: transform;
 }
-.career-stage.chapter-held { background: var(--career-paper, #080b0f); }
+.career-stage.chapter-held { background: var(--career-paper, #fff); }
 .career-stage.chapter-held,
 .career-ruler.chapter-held {
   position: fixed;
@@ -58,18 +58,9 @@
   margin: 0;
   transform: none;
 }
-/* 两侧画面各沿同一对光边显露，光晕自身不被裁切。 */
-.hub-stage[data-star-gather] { background: transparent; }
-.hub-stage[data-star-gather] :is(.hub-pane, .hub-choices) { mask-image: url(#chapter-entry-mask); }
+/* One clip on the stage includes artwork, labels, white mat and frame. The
+   portal's separate light layer can extend gently beyond the torn edge. */
+.hub-stage[data-portal-reveal] { will-change: transform, clip-path; }
 @media (prefers-reduced-motion: reduce) {
   .chapter-gap { display: none; }
 }
-
-/* GPU picture masks clip each picture and its details to their own side.
-   Keep DOM labels and static fallbacks under the original SVG mask. */
-.hub-stage[data-star-gather] .hub-pane:has(canvas[data-boundary-ready]) {
-  mask-image: none;
-  background: transparent;
-}
-.hub-stage[data-star-gather] .portfolio:has(canvas[data-boundary-ready]) { background: transparent; }
-.hub-stage[data-star-gather] :is(.work-status, .skills-loading, .skills-index) { mask-image: url(#chapter-entry-mask); }

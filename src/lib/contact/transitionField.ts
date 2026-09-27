@@ -8,7 +8,7 @@ const fields = new WeakMap<HTMLElement, ContactField>();
 export function contactTransitionField(stage: HTMLElement): ContactField {
   let field = fields.get(stage);
   if (!field) {
-    field = { active: false, expansion: 0, hover: 0, destination: "skills",
+    field = { active: false, expansion: 0, destination: "skills",
       time: 0, width: 1, height: 1, pointerX: -2, pointerY: -2,
       pointerStrength: 0, gather: .5 };
     fields.set(stage, field);

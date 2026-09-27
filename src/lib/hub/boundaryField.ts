@@ -1,11 +1,10 @@
 import { pictureDetailGLSL } from "../shaders/pictureDetail";
-import { DataTexture, FloatType, NearestFilter, RGBAFormat, Vector2, Vector3 } from "three";
+import { DataTexture, FloatType, NearestFilter, RGBAFormat, Vector2, Vector3, Vector4 } from "three";
 import { EDGE_SAMPLES } from "../chapters/createChapterEdge";
 
 export type HubDestination = "work" | "skills";
 export type BoundaryState = {
   expansion: number;
-  hover: number;
   destination: HubDestination;
   time: number;
   width: number;
@@ -15,6 +14,12 @@ export type BoundaryState = {
   pointerStrength: number;
   /** 0..1 convergence; 1 is the persistent merged seam. */
   gather: number;
+  /** Crisp ink seam for the framed directory; contact retains its light reveal. */
+  ink?: boolean;
+  /** Normalized straight-line endpoints; no sampled texture is needed for ink. */
+  inkLine?: { left: number; right: number };
+  /** CSS-pixel lens shared by the two final color passes and its DOM outline. */
+  colorLens?: { x: number; y: number; radius: number; strength: number; enabled: boolean };
 };
 
 // Each renderer owns its GPU texture, but all read the same CPU contour samples.
@@ -50,11 +55,6 @@ export function updateBoundaryWake(state: BoundaryState, dt: number) {
   wake[0].set(state.pointerX, state.pointerY, state.pointerStrength);
 }
 
-export function starSeparation(gather: number, height: number) {
-  const t = Math.max(0, Math.min(1, gather));
-  return (1 - t * t * (3 - 2 * t)) * (height + 120);
-}
-
 /** 三个 WebGL 上下文读取同一份状态，避免雾层、裁剪与高光各自漂移。 */
 export function createBoundaryUniforms(state: BoundaryState) {
   const curve = new DataTexture(boundarySamples(state), EDGE_SAMPLES, 1, RGBAFormat, FloatType);
@@ -64,13 +64,22 @@ export function createBoundaryUniforms(state: BoundaryState) {
     uBoundary: { value: new Vector2() },
     uBoundarySize: { value: new Vector2(1, 1) },
     uBoundaryGather: { value: state.gather },
+    uBoundaryInk: { value: state.ink ? 1 : 0 },
+    uBoundaryInkLine: { value: new Vector2(.91, .09) },
     uBoundaryWake: { value: pointerWake(state) },
+    uHubColorLens: { value: new Vector4() },
+    uHubMonochrome: { value: 0 },
   };
   function update() {
-    curve.needsUpdate = true;
+    // Only the contact contour moves continuously. The directory is analytic.
+    if (!state.ink) curve.needsUpdate = true;
+    if (state.inkLine) uniforms.uBoundaryInkLine.value.set(state.inkLine.left, state.inkLine.right);
     uniforms.uBoundary.value.set(state.time, state.expansion);
     uniforms.uBoundarySize.value.set(state.width, state.height);
     uniforms.uBoundaryGather.value = state.gather;
+    const lens = state.colorLens;
+    uniforms.uHubMonochrome.value = lens?.enabled ? 1 : 0;
+    uniforms.uHubColorLens.value.set(lens?.x ?? 0, lens?.y ?? 0, lens?.radius ?? 1, lens?.strength ?? 0);
   }
   update();
   return { uniforms, update, dispose() { curve.dispose(); } };
@@ -81,9 +90,23 @@ uniform vec2 uBoundary;
 uniform vec2 uBoundarySize;
 uniform sampler2D uBoundaryCurve;
 uniform float uBoundaryGather;
+uniform float uBoundaryInk;
+uniform vec2 uBoundaryInkLine;
 uniform vec3 uBoundaryWake[6];
+uniform vec4 uHubColorLens;
+uniform float uHubMonochrome;
 ${pictureDetailGLSL}
+// Work and skills use the same screen-space circle, without resampling geometry.
+vec3 hubColorLens(vec3 color,vec2 uv){
+  float monochrome=uHubMonochrome*(1.-smoothstep(0.,.85,uBoundary.y));
+  vec2 pixel=vec2(uv.x,1.-uv.y)*uBoundarySize;
+  float distance=length(pixel-uHubColorLens.xy);
+  float reveal=(1.-smoothstep(max(0.,uHubColorLens.z-8.),uHubColorLens.z,distance))*uHubColorLens.w;
+  float luminance=dot(color,vec3(.2126,.7152,.0722));
+  return mix(color,vec3(luminance),monochrome*(1.-reveal));
+}
 vec3 boundaryCurves(float x){
+  if(uBoundaryInk>.5)return vec3(mix(uBoundaryInkLine.x,uBoundaryInkLine.y,x));
   float index=clamp(x*512.,0.,511.999);
   return mix(texture2D(uBoundaryCurve,vec2((floor(index)+.5)/513.,.5)).rgb,
     texture2D(uBoundaryCurve,vec2((floor(index)+1.5)/513.,.5)).rgb,fract(index));
@@ -97,11 +120,13 @@ vec4 boundaryField(vec2 uv){
   vec3 normalScale=sqrt(vec3(1.)+slope*slope);
   vec3 distance=(vec3(q.y)-boundaryCurves(q.x))/normalScale;
   float nearest=min(abs(distance.x),abs(distance.y))*uBoundarySize.y;
-  float coverage=smoothstep(-8.,8.,distance.z*uBoundarySize.y);
-  float frost=(1.-smoothstep(3.,20.,nearest))*(1.-smoothstep(.65,1.,uBoundary.y));
+  float feather=mix(8.,.5,uBoundaryInk);
+  float coverage=smoothstep(-feather,feather,distance.z*uBoundarySize.y);
+  float frost=(1.-smoothstep(3.,20.,nearest))*(1.-smoothstep(.65,1.,uBoundary.y))*(1.-uBoundaryInk);
   return vec4(coverage,frost,distance.z,nearest);
 }
 float boundaryGhostWeight(vec2 uv,float nearest){
+  if(uBoundaryInk>.5)return 0.;
   float phase=smoothstep(.04,.2,uBoundaryGather)*(1.-smoothstep(.82,1.,uBoundaryGather));
   float band=(1.-smoothstep(28.,150.,nearest))*smoothstep(2.,10.,nearest);
   vec2 pixel=vec2(uv.x,1.-uv.y)*uBoundarySize;
@@ -125,9 +150,10 @@ float boundaryPictureDistance(vec2 uv,bool skills){
 float boundaryPictureCoverage(vec2 uv,bool skills){
   vec3 curves=boundaryCurves(uv.x);
   float y=(1.-uv.y)*uBoundarySize.y;
-  if(skills) return smoothstep(-8.,8.,y-curves.y*uBoundarySize.y);
-  float upper=1.-smoothstep(-8.,8.,y-curves.x*uBoundarySize.y);
-  // Restore the full underlying work scene as the two seams finish meeting.
+  float feather=mix(8.,.5,uBoundaryInk);
+  if(skills) return smoothstep(-feather,feather,y-curves.y*uBoundarySize.y);
+  float upper=1.-smoothstep(-feather,feather,y-curves.x*uBoundarySize.y);
+  // The settled directory keeps work as the full base beneath the skills pane.
   return mix(upper,1.,smoothstep(.98,1.,uBoundaryGather));
 }
 vec4 boundaryPicture(vec3 color,float detail,vec2 uv,float nearest,float coverage){

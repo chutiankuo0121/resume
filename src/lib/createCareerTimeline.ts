@@ -1,75 +1,78 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { careerReadingState } from "./careerReadingState";
-import { createCareerDiagramMotion } from "./createCareerDiagramMotion";
+import { createCareerTextStream } from "./career/createCareerTextStream";
 
-/** Pin only the scenery with CSS; real text height determines each chapter's duration. */
+function documentTop(element: HTMLElement) {
+  let top = 0;
+  for (let node: HTMLElement | null = element; node; node = node.offsetParent as HTMLElement | null) top += node.offsetTop;
+  return top;
+}
+
+/** CSS owns the reading height and sticky header; GSAP only animates its children. */
 export function createCareerTimeline(root: HTMLElement) {
   const periods = [...root.querySelectorAll<HTMLElement>(".career-period")];
-  const date = root.querySelector<HTMLElement>(".career-years")!;
-  const dateSlot = root.querySelector<HTMLElement>(".career-date")!;
+  const headerGuide = root.querySelector<HTMLElement>(".career-intro")!;
   const media = gsap.matchMedia();
-  let dustDisposed = false;
-  let stopDust: (() => void) | undefined;
-  void import("./career/createCareerFlight").then(({ createCareerFlight }) => {
-    if (!dustDisposed) stopDust = createCareerFlight(root);
-  }).catch(() => { /* The dark CSS backdrop remains readable without WebGL. */ });
+  const headers = periods.map(period => ({
+    layout: period.querySelector<HTMLElement>(".career-layout")!,
+    headline: period.querySelector<HTMLElement>(".career-headline")!,
+    identity: period.querySelector<HTMLElement>(".career-identity")!,
+  }));
 
-  media.add({ animated: "(prefers-reduced-motion: no-preference)", reduced: "(prefers-reduced-motion: reduce)" }, context => {
-    const animated = Boolean(context.conditions?.animated);
-    let active = -1;
-    let starts: number[] = [];
-    let end = 0;
-    let height = 1;
-    let dateTween: gsap.core.Tween | undefined;
-    const stopDiagramMotion = animated ? createCareerDiagramMotion(root) : undefined;
-
-    function sync(instant = false) {
-      const state = careerReadingState(window.scrollY, starts, end, height);
-      if (state.index === active || !periods[state.index]) return;
-      active = state.index;
-      dateTween?.kill();
-      date.textContent = periods[active].dataset.years!;
-      // One text node is replaced, never two dates painted on top of each other.
-      // Animate the outer slot so the original CSS rotation remains untouched.
-      if (animated && !instant) dateTween = gsap.fromTo(dateSlot, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: .24, ease: "power2.out" });
-      else gsap.set(dateSlot, { clearProps: "opacity,transform" });
-    }
-
-    function measure() {
-      // Articles stay in normal flow; background and handoff transforms cannot alter these bounds.
-      height = root.querySelector<HTMLElement>(".career-stage")!.offsetHeight;
-      starts = periods.map(period => period.getBoundingClientRect().top + window.scrollY);
-      end = root.getBoundingClientRect().top + window.scrollY + root.offsetHeight - height;
-      sync(true);
-    }
-
-    if (animated) {
-      periods.forEach((period, index) => {
-        // The first heading must already be readable through the incoming crystal portal.
-        const parts = period.querySelectorAll<HTMLElement>(
-          index === 0 ? ".career-copy-section:not(:first-child)" : ".career-intro,.career-statement,.career-copy-section,.career-projects",
-        );
-        parts.forEach(part => {
-          // Keep long paragraphs fully readable even if scrolling stops mid-entry.
-          gsap.fromTo(part, { y: 18 }, {
-            y: 0, ease: "none",
-            scrollTrigger: { trigger: part, start: "top 97%", end: "top 80%", scrub: true, invalidateOnRefresh: true },
-          });
-        });
-      });
-    }
-
-    ScrollTrigger.create({
-      trigger: root, start: "top bottom", end: "bottom top",
-      onUpdate: () => sync(), onRefresh: measure,
+  function measureHeaders() {
+    const mobile = matchMedia("(max-width: 799px)").matches;
+    const compactSize = parseFloat(getComputedStyle(root).getPropertyValue("--career-compact-title"));
+    // Finish all layout reads before writing any header size.
+    const measurements = headers.map(({ layout, headline, identity }) => {
+      // Measure untransformed text, including real wrapping after fonts/viewport changes.
+      const titleHeight = headline.offsetHeight * compactSize / parseFloat(getComputedStyle(headline).fontSize);
+      const contentHeight = mobile ? titleHeight + 12 + identity.offsetHeight : Math.max(titleHeight, identity.offsetHeight);
+      const height = Math.ceil(8 + contentHeight + 8 + 1);
+      const titleY = mobile ? 0 : height - 9 - titleHeight - headline.offsetTop;
+      return { layout, height, titleY };
     });
-    measure();
-    return () => {
-      stopDiagramMotion?.();
-      dateTween?.kill();
-      gsap.set(dateSlot, { clearProps: "opacity,transform" });
-    };
+    for (const { layout, height, titleY } of measurements) {
+      if (layout.style.getPropertyValue("--career-header-height") !== `${height}px`)
+        layout.style.setProperty("--career-header-height", `${height}px`);
+      if (layout.style.getPropertyValue("--career-headline-rest-y") !== `${titleY}px`)
+        layout.style.setProperty("--career-headline-rest-y", `${titleY}px`);
+    }
+  }
+  measureHeaders();
+  ScrollTrigger.addEventListener("refreshInit", measureHeaders);
+
+  media.add("(prefers-reduced-motion: no-preference)", () => {
+    periods.forEach(period => {
+      const layout = period.querySelector<HTMLElement>(".career-layout")!;
+      const intro = period.querySelector<HTMLElement>(".career-intro")!;
+      const headline = period.querySelector<HTMLElement>(".career-headline")!;
+      const identity = period.querySelector<HTMLElement>(".career-identity")!;
+      const rule = period.querySelector<HTMLElement>(".career-rule")!;
+      const opening = period.querySelector<HTMLElement>(".career-opening")!;
+      const compactScale = () => parseFloat(getComputedStyle(root).getPropertyValue("--career-compact-title")) / parseFloat(getComputedStyle(headline).fontSize);
+      const lineOffset = () => Math.max(48, headline.offsetTop + headline.offsetHeight + 72 + 32 - intro.offsetHeight);
+
+      gsap.timeline({
+        defaults: { ease: "power2.inOut" },
+        scrollTrigger: {
+          trigger: layout,
+          start: () => documentTop(layout) - parseFloat(getComputedStyle(headerGuide).top),
+          end: () => "+=" + opening.offsetHeight * .8,
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      })
+        .fromTo(headline, { scale: 1, y: 72 }, {
+          scale: compactScale,
+          y: () => parseFloat(getComputedStyle(layout).getPropertyValue("--career-headline-rest-y")),
+          duration: 1,
+        }, 0)
+        .fromTo(rule, { scaleX: .08, y: lineOffset }, { scaleX: 1, y: 0, duration: 1 }, 0)
+        // Reveal the date and affiliation together, after the title has settled.
+        .fromTo(identity, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .18 }, 1);
+
+    });
+    return createCareerTextStream(root);
   });
 
   let disposed = false, refreshFrame = 0;
@@ -78,19 +81,21 @@ export function createCareerTimeline(root: HTMLElement) {
     refreshFrame = requestAnimationFrame(() => { if (!disposed) ScrollTrigger.refresh(); });
   };
   const observer = new ResizeObserver(refresh);
-  // Font loading and responsive wrapping change the reading runway, including deep-link restores.
   periods.forEach(period => observer.observe(period));
   document.fonts.addEventListener("loadingdone", refresh);
   void document.fonts.ready.then(() => { if (!disposed) refresh(); });
   return {
     dispose() {
       disposed = true;
-      dustDisposed = true;
-      stopDust?.();
       cancelAnimationFrame(refreshFrame);
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", refresh);
+      ScrollTrigger.removeEventListener("refreshInit", measureHeaders);
       media.revert();
+      for (const { layout } of headers) {
+        layout.style.removeProperty("--career-header-height");
+        layout.style.removeProperty("--career-headline-rest-y");
+      }
     },
   };
 }

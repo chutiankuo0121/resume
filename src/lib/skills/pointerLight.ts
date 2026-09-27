@@ -38,6 +38,7 @@ void main(){
   gl_FragColor=boundaryPicture(boundaryGrain(color.rgb,vUv,boundary.y),detail,vUv,boundaryPictureDistance(vUv,true),
     boundaryPictureCoverage(vUv,true));
   gl_FragColor.rgb=departureDetails(gl_FragColor.rgb,detail,vUv);
+  gl_FragColor.rgb=hubColorLens(gl_FragColor.rgb,vUv);
   #include <colorspace_fragment>
   #include <premultiplied_alpha_fragment>
 }
@@ -95,7 +96,7 @@ export function createPointerLight(
       const autoClear = renderer.autoClear;
       renderer.autoClear = false;
       renderer.render(scene, camera);
-      renderer.domElement.dataset.boundaryReady = "true";
+      if (renderer.domElement.dataset.boundaryReady !== "true") renderer.domElement.dataset.boundaryReady = "true";
       renderer.autoClear = autoClear;
     },
     dispose() {
