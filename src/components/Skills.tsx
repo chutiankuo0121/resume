@@ -117,7 +117,7 @@ export default function Skills({
       className={`skills ${reducedMotion ? "skills--static" : ""}`}
       aria-label="Skills"
     >
-      <div className="skills-stage">
+      <div className="skills-stage" data-cursor={reducedMotion ? undefined : "drag"}>
         <canvas ref={canvas} className="skills-canvas" aria-hidden="true" />
         <nav className="skills-index" aria-label="Skill index">
           {skills.map((skill, index) => (
@@ -139,6 +139,7 @@ export default function Skills({
         {error && <p className="skills-loading" role="alert">{error}</p>}
         <button
           className="skills-hit"
+          data-cursor="view"
           aria-label={`Explore ${skills[0].title}`}
           data-skill={skills[0].id}
           onClick={(event) => {
@@ -146,16 +147,19 @@ export default function Skills({
               (item) => item.id === event.currentTarget.dataset.skill,
             );
             if (skill) {
+              event.currentTarget.parentElement!.dataset.interacted = "true";
               detailOrigin.current = cardOrigin(event.currentTarget);
               setActive(skill);
             }
           }}
         />
+        {enabled && ready && !active && !detail && !reducedMotion && <p className="gallery-touch-hint">滑动切换 · 点按查看</p>}
         {reducedMotion && (
           <div className="skills-static-grid">
             {skills.map((skill) => (
               <button
                 className="skill-static-card line-button line-button--solid"
+                data-cursor="view"
                 data-skill={skill.id}
                 key={skill.id}
                 onClick={event => {

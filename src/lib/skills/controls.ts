@@ -1,3 +1,5 @@
+import { setCursorIntent } from "../cursorIntent";
+
 /** 鼠标笔触和触摸共用事件入口；独立浏览支持横拖与纵向轻扫，不推动底层页面。 */
 export function bindSkillControls({
   stage,
@@ -46,6 +48,7 @@ export function bindSkillControls({
     startY = lastY = event.clientY;
     vertical = false;
     lastAt = event.timeStamp;
+    setCursorIntent(stage, "dragging");
     stop();
     movePointer(event.clientX, event.clientY, true);
   }
@@ -68,6 +71,7 @@ export function bindSkillControls({
       dragging = true;
       stage.setPointerCapture(event.pointerId);
       stage.dataset.dragging = "true";
+      stage.dataset.interacted = "true";
     }
     event.preventDefault();
     const step = vertical
@@ -87,6 +91,7 @@ export function bindSkillControls({
     id = null;
     dragging = false;
     delete stage.dataset.dragging;
+    setCursorIntent(stage, "drag");
     if (captured !== null && stage.hasPointerCapture(captured))
       stage.releasePointerCapture(captured);
   }

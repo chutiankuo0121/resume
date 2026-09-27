@@ -68,6 +68,7 @@ void main(){
   #endif
   float luminance=composeParticles(background,texture2D(uSoft,uv),texture2D(uSharp,uv).r,mix(.15,1.,uFormReveal));
   // 本合成链直接输出显示域灰度，不再做 gamma 或色调映射。
-  gl_FragColor=vec4(vec3(clamp(luminance,0.,1.)),1.);
+  // 轻提中间调，保留黑位与白色峰值，让晶体与雾光略亮一些。
+  gl_FragColor=vec4(vec3(pow(clamp(luminance,0.,1.),.92)),1.);
 }
 `;

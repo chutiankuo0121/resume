@@ -2,15 +2,10 @@ import multiAssetPortfolio from "./works/multi-asset-portfolio";
 import trendml from "./works/trendml";
 import { careerDetails } from "./careerDetails";
 
-/** Chapter introductions and the campus illustration augment the original copy. */
+/** Chapter introductions augment the original copy. */
 const presentation = [
   {
     introduction: "", statement: "",
-    illustration: {
-      src: "/career-scenes/xmut-sanjian-digital.webp",
-      width: 1586, height: 992,
-      alt: "以厦门理工学院三鉴湖实景为参考的银蓝色数字艺术：湖畔教学建筑、棕榈和黑天鹅",
-    },
   },
   {
     introduction: "从金融数据出发，整理净值、持仓与风险指标，为投研分析提供依据。",

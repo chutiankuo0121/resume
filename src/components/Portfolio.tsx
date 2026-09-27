@@ -99,12 +99,14 @@ export default function Portfolio({
         <canvas
           ref={canvas}
           className="work-canvas"
+          data-cursor="hidden"
           tabIndex={0}
           aria-label="Drag, scroll or use arrow keys to explore. Click a work, or press Enter to open the centered work. Plus and minus zoom. Home returns to the collection title."
         />
         <h2 className="work-sr-only">
           Selected works — ideas in every direction
         </h2>
+        {enabled && ready && !detail && <p className="gallery-touch-hint">拖动浏览 · 点按查看</p>}
         {!ready && !error && (
           <p className="work-status" role="status">
             Opening the collection…

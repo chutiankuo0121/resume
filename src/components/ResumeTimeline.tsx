@@ -1,6 +1,6 @@
-import Image from "next/image";
 import type { Ref } from "react";
 import { experience } from "@/content/experience";
+import { aiPerspective } from "@/content/aiPerspective";
 
 export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
   return (
@@ -35,18 +35,6 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
               <div className="career-opening" aria-hidden="true" />
               <div className="career-copy">
                 {period.introduction && <p className="career-description">{period.introduction}</p>}
-                {"illustration" in period && (
-                  <div className="career-art-track">
-                    <figure className="career-illustration">
-                      <Image
-                        src={period.illustration.src} alt={period.illustration.alt}
-                        width={period.illustration.width} height={period.illustration.height}
-                        sizes="(max-width: 799px) calc(100vw - 48px), (max-width: 903px) calc(100vw - 144px), 760px"
-                        loading="eager"
-                      />
-                    </figure>
-                  </div>
-                )}
                 <div className="career-story">
                   <div className="career-sections">
                     {period.sections.map((section, i) => (
@@ -64,6 +52,14 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                         <a className="career-project" key={project.href} href={project.href} target="_blank" rel="noopener noreferrer">{project.label}</a>
                       ))}
                     </div>
+                  )}
+                  {period.id === "ai-finance-venture" && (
+                    <section className="career-copy-section career-reflection" aria-labelledby="ai-perspective-title">
+                      <h3 id="ai-perspective-title">{aiPerspective.title}</h3>
+                      {aiPerspective.paragraphs.map(paragraph => (
+                        <p className="career-paragraph career-reflection-paragraph" key={paragraph}>{paragraph}</p>
+                      ))}
+                    </section>
                   )}
                 </div>
               </div>

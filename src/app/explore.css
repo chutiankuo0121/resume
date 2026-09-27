@@ -163,6 +163,10 @@ body:has(.hub-stage[data-lens-active="true"]) > .mouse-dot { visibility: hidden;
   outline: 1px solid currentColor;
   outline-offset: 12px;
 }
+.hub-label i { transition: transform 180ms ease; }
+@media (hover: hover) {
+  .hub-choice:hover .hub-label i { transform: translate(3px, -3px); }
+}
 .hub-back {
   pointer-events: auto;
   position: absolute;
@@ -222,8 +226,10 @@ body:has(.hub-stage[data-lens-active="true"]) > .mouse-dot { visibility: hidden;
     height: 100svh;
   }
   .hub-label-rule,
+  .hub-label i,
   .hub-back,
   .hub-choices {
     transition: none;
   }
+  .hub-choice .hub-label i { transform: none; }
 }

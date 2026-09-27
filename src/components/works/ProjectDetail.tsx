@@ -36,6 +36,7 @@ export default function ProjectDetail({ work, origin, onClose }: {
         <div className="work-gallery">
           <div className="work-detail-media" data-kind={work.kind}>
             <button ref={imageButton} type="button" className="work-image-button"
+              data-cursor={zoomed ? "action" : "view"}
               onClick={() => setZoomed(value => !value)} aria-label={zoomed ? "返回作品介绍" : "放大查看图片"}>
               <Image key={source} src={source} alt={alt} width={size.width} height={size.height}
                 loading="eager" sizes={portrait && !zoomed ? "(max-width: 799px) 90vw, 420px" : "(max-width: 799px) 94vw, 1044px"}
@@ -50,10 +51,10 @@ export default function ProjectDetail({ work, origin, onClose }: {
             <div className="work-gallery-controls">
               {images.length > 1 && <>
                 <button type="button" className="line-button line-button--icon" aria-label="上一张图片"
-                  onClick={() => setImageIndex(i => (i - 1 + images.length) % images.length)}>←</button>
+                  onClick={() => setImageIndex(i => (i - 1 + images.length) % images.length)}><span className="action-arrow action-arrow--back" aria-hidden="true">←</span></button>
                 <span aria-live="polite">{imageIndex + 1} / {images.length}</span>
                 <button type="button" className="line-button line-button--icon" aria-label="下一张图片"
-                  onClick={() => setImageIndex(i => (i + 1) % images.length)}>→</button>
+                  onClick={() => setImageIndex(i => (i + 1) % images.length)}><span className="action-arrow action-arrow--forward" aria-hidden="true">→</span></button>
               </>}
               {zoomed && <button type="button" className="line-button" onClick={() => {
                 setZoomed(false);
@@ -76,9 +77,9 @@ export default function ProjectDetail({ work, origin, onClose }: {
               <button type="button" className="line-button" onClick={() => {
                 setZoomed(true);
                 imageButton.current?.focus({ preventScroll: true });
-              }}>查看完整图片 ↗</button>
+              }}>查看完整图片 <span className="action-arrow" aria-hidden="true">↗</span></button>
               {work.href && (
-                <a className="line-button" href={work.href} target="_blank" rel="noopener noreferrer">访问项目 ↗</a>
+                <a className="line-button" href={work.href} target="_blank" rel="noopener noreferrer">访问项目 <span className="action-arrow" aria-hidden="true">↗</span></a>
               )}
             </div>
           </div>

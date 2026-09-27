@@ -156,7 +156,7 @@ export default function GamePlayer({
               ? `正在加载…${progress > 0 ? ` ${Math.round(progress * 100)}%` : ""}`
               : "游戏加载失败。"}
           </p>
-          {status === "error" && <button className="line-button" onClick={retry}>重新加载 ↗</button>}
+          {status === "error" && <button className="line-button" onClick={retry}>重新加载 <span className="action-arrow" aria-hidden="true">↗</span></button>}
         </div>
       )}
     </dialog>

@@ -29,7 +29,7 @@ const entryDates = [...html.matchAll(/class="career-entry-date">([^<]+)</g)].map
 assert.deepEqual(entryDates, careerDetails.map(chapter => chapter.years), "Each article must carry its own accessible date.");
 assert.ok(!/class="career-(?:era|reading|current|total)"/.test(html), "The shared ruler must not retain the corner date / progress UI.");
 assert.equal([...html.matchAll(/class="career-period"/g)].length, careerDetails.length);
-assert.ok(html.includes("/career-scenes/xmut-sanjian-digital.webp"), "The university illustration must remain in the page.");
-assert.ok(existsSync(fileURLToPath(new URL("../out/career-scenes/xmut-sanjian-digital.webp", import.meta.url))), "The university illustration must be included in the deployable output.");
+assert.ok(!html.includes("/career-scenes/xmut-sanjian-digital.webp"), "The university illustration must not be rendered or preloaded.");
+assert.ok(existsSync(fileURLToPath(new URL("../public/career-scenes/xmut-sanjian-digital.webp", import.meta.url))), "Keep the university image file for possible future use.");
 assert.ok(!html.includes("data-career-diagram"), "The retired career SVG illustrations must not be rendered.");
 console.log(`Career checks passed: ${careerDetails.length} chapters and headers, ${original.length} original paragraphs in order, correct dates, decorative particle stage, no retired ruler or SVG illustrations.`);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { createScene } from "@/lib/createScene";
 import { createTransitionTimeline, type Chapter } from "@/lib/transition";
 import ChapterAxis from "./ChapterAxis";
@@ -11,6 +11,7 @@ import ExploreHub from "./ExploreHub";
 import Contact from "./Contact";
 import OpeningTitles from "./OpeningTitles";
 import { opening } from "@/content/opening";
+import { fitOpeningTitles, OPENING } from "@/lib/openingTitles";
 import { loadTypography } from "@/lib/typography";
 import LoadingPrelude from "./LoadingPrelude";
 import { createLoadingProgress } from "@/lib/loading/progress";
@@ -98,11 +99,12 @@ export default function AstraExperience() {
     });
     // 开场与字体一起就绪，避免首屏先闪现系统字体再突然换字形。
     void loadTypography([
-      opening.name, opening.englishName, opening.focus,
       "0123456789%",
-      ...opening.statements.map(({ text, english }) => `${text} ${english}`),
+      ...opening.scenes.flatMap(({ lines, translation }) => [...lines, ...translation]),
     ].join(" ")).then(() => {
-      if (!disposed) loading.complete("fonts");
+      if (disposed) return;
+      if (stage.current) fitOpeningTitles(stage.current);
+      loading.complete("fonts");
     }).catch(() => fail("开场字体载入失败，请重新加载预览。"));
     const disposeScene = createScene({
       canvas: canvas.current,
@@ -154,7 +156,8 @@ export default function AstraExperience() {
       data-exploring={exploring}
       data-loading={!ready}
     >
-      <div ref={journey} className="journey" inert={exploring || !ready}>
+      <div ref={journey} className="journey" inert={exploring || !ready}
+        style={{ "--opening-duration": OPENING.duration } as CSSProperties}>
         <div ref={stage} className={`experience ${ready ? "is-ready" : ""}`}>
           <canvas
             ref={canvas}

@@ -113,9 +113,6 @@
 .career-opening { height: clamp(320px, 58svh, 560px); }
 .career-copy { position: relative; width: min(100%, var(--career-copy-width)); margin-inline: auto; }
 .career-description { margin: 0 0 56px; font: 400 22px/1.85 var(--font-body); text-wrap: pretty; }
-.career-art-track { margin: 0 0 64px; }
-.career-illustration { margin: 0; }
-.career-illustration img { display: block; width: 100%; height: auto; }
 .career-copy-section + .career-copy-section { margin-top: 56px; }
 .career-copy-section h3 { margin: 0 0 24px; font: 400 20px/1.7 var(--font-heading); text-wrap: pretty; }
 .career-paragraph { margin: 0; color: #202020; font: 400 17px/1.95 var(--font-body); text-align: left; overflow-wrap: anywhere; }
@@ -125,6 +122,8 @@
 .career-project { color: var(--career-ink); font: 14px/1.8 var(--font-body); text-underline-offset: 7px; }
 .career-project:hover { text-decoration-thickness: 2px; }
 .career-project:focus-visible { outline: 1px solid currentColor; outline-offset: 6px; }
+.career-reflection { margin-top: clamp(64px, 10svh, 104px); padding-top: 32px; border-top: 1px solid #111; }
+.career-reflection h3 { margin-bottom: 32px; }
 /* Freeze the compact sticky header with the outgoing chapter, preserving its flow space. */
 .career-layout.chapter-held::before { content: ""; display: block; height: var(--career-header-height); }
 .career-layout.chapter-held .career-intro { position: absolute; inset-inline: 0; top: var(--career-held-header-top); }
@@ -152,7 +151,6 @@
   .career-role { font-size: 13px; }
   .career-opening { height: clamp(270px, 48svh, 440px); }
   .career-description { font-size: 18px; margin-bottom: 40px; }
-  .career-art-track { margin-bottom: 40px; }
   .career-copy-section + .career-copy-section { margin-top: 40px; }
   .career-copy-section h3 { font-size: 18px; margin-bottom: 20px; }
   .career-paragraph { font-size: 16px; line-height: 1.9; }

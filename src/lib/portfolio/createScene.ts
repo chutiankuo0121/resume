@@ -12,6 +12,7 @@ import type { PortalPresentation } from "../hub/presentation";
 import { createBoundaryUniforms } from "../hub/boundaryField";
 import { createDepartureDetails } from "../contact/departureDetails";
 import type { CardOrigin } from "../cardMotion";
+import { setCursorIntent, type CursorIntent } from "../cursorIntent";
 
 type Options = {
   presentation: PortalPresentation;
@@ -85,6 +86,7 @@ export function createPortfolioScene({
   const viewPosition = new THREE.Vector3(Infinity, Infinity, Infinity);
   let viewExpansion = -1;
   let hoverPoint: { clientX: number; clientY: number } | null = null;
+  let hoverDirty = false;
   const touches = new Map<number, THREE.Vector2>();
   let pinch = 0;
   let tickerTime = 0;
@@ -97,6 +99,13 @@ export function createPortfolioScene({
     time: number;
     moved: boolean;
   } | null = null;
+
+  function cursor(intent: CursorIntent) {
+    setCursorIntent(canvas, intent);
+    const native = intent === "view" || intent === "play" ? "pointer"
+      : intent === "dragging" ? "grabbing" : intent === "drag" ? "grab" : "auto";
+    if (canvas.style.cursor !== native) canvas.style.cursor = native;
+  }
 
   function frameCamera() {
     const framing = 1 - presentation.expansion;
@@ -172,12 +181,12 @@ export function createPortfolioScene({
     if (builder.pending) {
       for (const src of builder.upload(renderer, mediaView.wanted, loader.release)) loader.uploaded(src);
     }
-    if (hoverPoint && !selected && !drag) {
+    if (hoverPoint && (hoverDirty || !rig.settled) && !selected && !drag && presentation.interactive) {
       const next = hit(hoverPoint)?.work ?? null;
       if (next && next.id !== hover?.id) onIntent();
       hover = next;
-      hoverPoint = null;
-      canvas.style.cursor = next ? "pointer" : "grab";
+      hoverDirty = false;
+      cursor(next ? next.kind === "video" || next.kind === "audio" ? "play" : "view" : "drag");
     }
     surface.update(rig.camera);
     if (!reduced && !selected) tickerTime += dt;
@@ -238,7 +247,7 @@ export function createPortfolioScene({
     root.dataset.interactive = String(presentation.interactive);
     if (!presentation.interactive || presentation.suspended) {
       cancelDrag();
-    }
+    } else if (!selected && !drag) cursor("drag");
     wake();
   }
 
@@ -250,7 +259,7 @@ export function createPortfolioScene({
     pinch = 0;
     hover = null;
     hoverPoint = null;
-    canvas.style.cursor = "grab";
+    cursor(presentation.interactive && !selected && !presentation.suspended ? "drag" : "hidden");
     rig.release();
     wake();
   }
@@ -274,6 +283,8 @@ export function createPortfolioScene({
   function select(destination: WorkTarget) {
     if (selected || !presentation.interactive) return;
     selected = destination;
+    cursor("hidden");
+    canvas.parentElement!.dataset.interacted = "true";
     onIntent();
     hover = null;
     rig.release();
@@ -296,6 +307,8 @@ export function createPortfolioScene({
     if (!selected) return;
     selected = null;
     hover = null;
+    hoverDirty = true;
+    cursor(presentation.interactive ? "drag" : "hidden");
     rig.release();
     wake();
   }
@@ -308,7 +321,7 @@ export function createPortfolioScene({
       new THREE.Vector2(event.clientX, event.clientY),
     );
     canvas.setPointerCapture(event.pointerId);
-    canvas.style.cursor = "grabbing";
+    cursor("dragging");
     if (touches.size === 2) {
       const p = [...touches.values()];
       pinch = p[0].distanceTo(p[1]);
@@ -369,12 +382,14 @@ export function createPortfolioScene({
       drag.y = event.clientY;
       drag.time = event.timeStamp;
       drag.moved = true;
-      canvas.style.cursor = "grabbing";
+      cursor("dragging");
+      canvas.parentElement!.dataset.interacted = "true";
       hover = null;
       wake();
       return;
     }
     hoverPoint = { clientX: event.clientX, clientY: event.clientY };
+    hoverDirty = true;
     wake();
   }
 
@@ -386,7 +401,9 @@ export function createPortfolioScene({
     if (canvas.hasPointerCapture(event.pointerId))
       canvas.releasePointerCapture(event.pointerId);
     drag = null;
-    canvas.style.cursor = "grab";
+    hoverPoint = event.pointerType === "mouse" ? { clientX: event.clientX, clientY: event.clientY } : null;
+    hoverDirty = true;
+    cursor(presentation.interactive ? "drag" : "hidden");
     rig.release();
     if (tap) {
       const tile = hit(event);
@@ -399,6 +416,7 @@ export function createPortfolioScene({
     rig.pointer(0, 0);
     hover = null;
     hoverPoint = null;
+    cursor(presentation.interactive && !selected ? "drag" : "hidden");
     wake();
   }
   function keyboard(event: KeyboardEvent) {
@@ -456,6 +474,8 @@ export function createPortfolioScene({
   const wheel = (event: WheelEvent) => {
     if (!presentation.interactive || selected) return;
     event.preventDefault();
+    hoverDirty = true;
+    canvas.parentElement!.dataset.interacted = "true";
     const unit =
       event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? height : 1;
     if (event.ctrlKey) rig.zoom(event.deltaY * unit * 0.01);
@@ -495,6 +515,7 @@ export function createPortfolioScene({
     restore,
     dispose() {
       disposed = true;
+      cursor("hidden");
       delete canvas.dataset.boundaryReady;
       gsap.ticker.remove(draw);
       loader.dispose();

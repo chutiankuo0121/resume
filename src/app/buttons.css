@@ -21,17 +21,26 @@
 .line-button--dark { --button-ink: #fff; --button-paper: #080808; }
 .line-button--solid { --button-surface: var(--button-paper); }
 .line-button--icon { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; }
-.line-button__icon { display: block; flex: 0 0 18px; width: 18px; height: 18px; }
+.line-button__icon { display: block; flex: 0 0 18px; width: 18px; height: 18px; transition: transform 180ms ease; }
+.action-arrow { display: inline-block; transition: transform 180ms ease; }
+.action-arrow--back { --arrow-x: -3px; --arrow-y: 0px; }
+.action-arrow--forward { --arrow-x: 3px; --arrow-y: 0px; }
 .line-button:disabled { cursor: default; opacity: .45; }
 .line-button:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
 @media (hover: hover) {
   .line-button:not(:disabled):hover {
     background: color-mix(in srgb, var(--button-ink) 9%, var(--button-paper));
   }
+  .line-button:not(:disabled):hover [data-icon="back"] { transform: translateX(-3px); }
+  .line-button:not(:disabled):hover [data-icon="plus"] { transform: rotate(90deg); }
+  :is(a, button):not(:disabled):hover .action-arrow { transform: translate(var(--arrow-x, 3px), var(--arrow-y, -3px)); }
 }
+:is(a, button):focus-visible .action-arrow { transform: translate(var(--arrow-x, 3px), var(--arrow-y, -3px)); }
+.line-button:focus-visible [data-icon="back"], .line-button:not(:disabled):active [data-icon="back"] { transform: translateX(-3px); }
 .line-button:not(:disabled):active {
   background: color-mix(in srgb, var(--button-ink) 16%, var(--button-paper));
 }
 @media (prefers-reduced-motion: reduce) {
-  .line-button { transition: none; }
+  .line-button, .line-button__icon, .action-arrow { transition: none; }
+  .line-button .line-button__icon, .action-arrow { transform: none !important; }
 }

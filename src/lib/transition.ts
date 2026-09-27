@@ -67,10 +67,10 @@ export function createTransitionTimeline(
   const timeline = gsap.timeline({ paused: true, defaults: { ease: "none" } });
   timeline
     .to(state, { progress: 1, duration: DURATION }, 0)
-    // 时间线 0～0.22 留给序章文字；推进时收回鼠标偏移，对准洞口中心。
-    .to(state, { pointerWeight: 0, duration: 0.12, ease: "sine.inOut" }, 0.22)
-    .to(state, { holeApproach: 1, duration: 0.24, ease: "power2.in" }, 0.22)
-    // 0.46～0.5 保持黑场，两幅画面不交叉叠化；随后才显露晶石。
+    // 三幕序章读完再入洞；推进时收回鼠标偏移，对准洞口中心。
+    .to(state, { pointerWeight: 0, duration: 0.12, ease: "sine.inOut" }, OPENING.approachStart)
+    .to(state, { holeApproach: 1, duration: 0.24, ease: "power2.in" }, OPENING.approachStart)
+    // 入洞后保留短暂黑场，两幅画面不交叉叠化；随后才显露晶石。
     .to(
       state,
       { crystalReveal: 1, duration: 0.2, ease: "sine.out" },
@@ -83,7 +83,7 @@ export function createTransitionTimeline(
     )
     .to(state, { cameraTravel: 1, duration: OPENING.orbitStart - CRYSTAL_START }, CRYSTAL_START)
     .to(state, { cameraOrbit: 1, duration: OPENING.exitStart - OPENING.orbitStart }, OPENING.orbitStart)
-    .to(state, { lightReveal: 1, duration: 0.32, ease: "sine.inOut" }, 0.58)
+    .to(state, { lightReveal: 1, duration: 0.32, ease: "sine.inOut" }, OPENING.lightStart)
     // 晶石只剩视野边缘时开始破洞，与原始退出运镜的末段重叠。
     .to(state, { focus: 1, duration: 0.18, ease: "sine.inOut" }, OPENING.exitStart)
     .to(state, { exit: 1, duration: 0.48 }, OPENING.exitStart)
