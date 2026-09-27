@@ -337,9 +337,10 @@ export default function ExploreHub({
               onPointerLeave={() => hover(0)}
             >
               <span className="hub-label">
-                <span>
+                <span className="hub-label-title">
                   作品 <i aria-hidden="true">↗</i>
                 </span>
+                <span className="hub-label-rule" aria-hidden="true" />
               </span>
             </button>
             <button
@@ -354,9 +355,10 @@ export default function ExploreHub({
               onPointerLeave={() => hover(0)}
             >
               <span className="hub-label">
-                <span>
+                <span className="hub-label-title">
                   技能 <i aria-hidden="true">↗</i>
                 </span>
+                <span className="hub-label-rule" aria-hidden="true" />
               </span>
             </button>
           </div>

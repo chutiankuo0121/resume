@@ -55,6 +55,8 @@
   pointer-events: none;
 }
 .hub-choices {
+  --hub-label-inset: max(90px, 8%);
+  --hub-rule-extension: 24px;
   position: absolute;
   inset: 0;
   z-index: 4;
@@ -76,11 +78,12 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  color: #fff;
+  gap: 11px;
+  width: clamp(204px, 15vw, 240px);
+  color: #f7f5ee;
 }
 .hub-choice--work .hub-label {
-  left: max(90px, 9%);
+  left: var(--hub-label-inset);
   top: 14%;
   color: #171717;
   text-shadow:
@@ -88,25 +91,39 @@
     0 0 10px #fff;
 }
 .hub-choice--skills .hub-label {
-  right: 8%;
+  right: var(--hub-label-inset);
   bottom: 15%;
   text-shadow: 0 2px 24px #000a;
 }
-.hub-label > span {
+.hub-label-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: var(--hub-rule-extension);
   font:
     400 62px/1 var(--font-heading);
   letter-spacing: 0.06em;
 }
 .hub-label i {
   display: inline-block;
-  margin-left: 10px;
   font:
     normal 30px/1 var(--font-body);
   vertical-align: middle;
-  transition: transform 0.6s;
 }
-.hub-choice:hover i {
-  transform: translate(4px, -4px);
+.hub-label-rule {
+  display: block;
+  width: calc(100% - var(--hub-rule-extension));
+  height: 1px;
+  background: currentColor;
+  transition: width 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .hub-choice:hover .hub-label-rule {
+    width: 100%;
+  }
+}
+.hub-choice:focus-visible .hub-label-rule {
+  width: 100%;
 }
 .hub-choice:focus-visible {
   outline: 0;
@@ -156,15 +173,21 @@
   .explore-hub {
     height: 220svh;
   }
+  .hub-choices {
+    --hub-label-inset: 30px;
+    --hub-rule-extension: 20px;
+  }
+  .hub-label {
+    width: 176px;
+    gap: 10px;
+  }
   .hub-choice--work .hub-label {
     top: 15%;
-    left: 30px;
   }
   .hub-choice--skills .hub-label {
-    right: 30px;
     bottom: 15%;
   }
-  .hub-label > span {
+  .hub-label-title {
     font-size: 44px;
   }
   .hub-back {
@@ -176,7 +199,7 @@
   .explore-hub {
     height: 100svh;
   }
-  .hub-label i,
+  .hub-label-rule,
   .hub-back,
   .hub-choices {
     transition: none;
