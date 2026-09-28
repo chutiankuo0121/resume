@@ -1,0 +1,77 @@
+import type { SkillGuide } from "./types";
+
+export const vibeCodingGuide: SkillGuide = {
+  scenarios: [
+    {
+      title: "从一句想法到可运行原型",
+      flow: "用自然语言说明用户、场景与期望结果，提供参考和样例数据，让 AI 先实现一条完整使用路径；在预览中亲自操作，再把具体反馈交给 AI 逐轮修改，形成可继续开发的原型。",
+      skills: ["plans", "frontend", "webTesting"],
+      tools: ["v0","Lovable","Replit Agent","Bolt"],
+    },
+    {
+      title: "看着预览打磨界面",
+      flow: "提供草图、截图或设计稿，让 AI 生成页面后逐项调整字体、留白、层级和动效，再检查桌面与手机上的操作和异常状态，将确认的视觉规则沉淀到可复用组件中。",
+      skills: ["frontend", "figma", "designMd", "react", "uiReview"],
+      tools: ["Cursor","HTML / CSS / JavaScript / TypeScript","React / Next.js","Vue / Nuxt / Svelte","ECharts / D3 / Three.js / GSAP"],
+    },
+    {
+      title: "为原型接入真实业务",
+      flow: "围绕用户角色和业务规则约定数据结构、接口与权限，让 AI 实现数据库、后端和前端联动，再用实际流程验证登录、写入、重复提交和失败恢复，将原型推进为可用产品。",
+      skills: ["postgres", "security", "tdd", "webTesting"],
+      tools: ["Python · FastAPI / Django","Node.js · NestJS / Express / Hono","Go / Java / C# / PHP","PostgreSQL / MySQL / SQLite"],
+    },
+    {
+      title: "上下文、Skills 与跨语言协作",
+      flow: "整理项目目录、架构和接口约定，按任务加载合适的 Skills，并通过 MCP 提供必要上下文；让 AI 分模块组织前端、后端与数据层实现，再检查依赖、边界和整体数据流。",
+      skills: ["creator", "mcp", "plans", "composition", "postgres"],
+      tools: ["Codex","Claude Code","Rust / C / C++","Git / Vite / pnpm / uv"],
+    },
+    {
+      title: "AI 功能与个人效率工具",
+      flow: "从日常任务的输入与结果出发，让 AI 搭建界面和处理逻辑，连接模型、文件与业务 API，再补上进度、历史、取消和导出功能，用真实材料试用并持续调整。",
+      skills: ["mcp", "frontend", "postgres", "webTesting"],
+      tools: ["Replit Agent","Python · FastAPI / Django","Redis / MongoDB / Elasticsearch","RabbitMQ / Kafka · WebSocket / SSE"],
+    },
+    {
+      title: "接手项目与持续迭代",
+      flow: "先让 AI 阅读现有入口、模块和数据流，确认当前行为后再限定修改范围，逐步实现新功能；每轮审查差异、回归关联流程并保存版本，同步清理过期实现和文档。",
+      skills: ["plans", "composition", "react", "debug"],
+      tools: ["Codex","Claude Code","Cursor","Git / Vite / pnpm / uv"],
+    },
+    {
+      title: "调试验证与质量收尾",
+      flow: "记录复现步骤、日志和截图，让 AI 沿实际调用链定位原因，完成小范围修复后重跑关键路径，再核对安全、性能与手机端体验，确认修复结果并保留必要的回归检查。",
+      skills: ["webTesting", "tdd", "debug", "security", "perf"],
+      tools: ["Cursor","Codex","Pytest / Vitest / Playwright"],
+    },
+    {
+      title: "预览发布与反馈迭代",
+      flow: "保存代码并生成预览，检查配置、域名和数据迁移后发布，让真实用户完成一次任务；结合使用反馈和运行错误整理下一轮修改，同时保留版本记录与回滚方式。",
+      skills: ["ci", "vercelDeploy", "cfDeploy"],
+      tools: ["v0","Lovable","Git / Vite / pnpm / uv","Linux / Docker / Nginx / Kubernetes"],
+    },
+  ],
+  tools: [
+    {"name":"Codex","href":"https://learn.chatgpt.com/docs/cloud"},
+    {"name":"Claude Code","href":"https://code.claude.com/docs/en/overview"},
+    {"name":"Cursor","href":"https://cursor.com/docs/agent/overview"},
+    {"name":"v0","href":"https://v0.app/docs/quickstart"},
+    {"name":"Lovable","href":"https://docs.lovable.dev/introduction/welcome"},
+    {"name":"Replit Agent","href":"https://docs.replit.com/features/agent/overview"},
+    {"name":"Bolt","href":"https://support.bolt.new/get-started/intro-bolt"},
+    {"name":"HTML / CSS / JavaScript / TypeScript","href":"https://developer.mozilla.org/en-US/docs/Learn_web_development"},
+    {"name":"React / Next.js","href":"https://nextjs.org/docs"},
+    {"name":"Vue / Nuxt / Svelte","href":"https://vuejs.org/guide/introduction.html"},
+    {"name":"ECharts / D3 / Three.js / GSAP","href":"https://threejs.org/docs/"},
+    {"name":"Python · FastAPI / Django","href":"https://fastapi.tiangolo.com/"},
+    {"name":"Node.js · NestJS / Express / Hono","href":"https://nodejs.org/en/learn/getting-started/introduction-to-nodejs"},
+    {"name":"Go / Java / C# / PHP","href":"https://go.dev/doc/"},
+    {"name":"Rust / C / C++","href":"https://www.rust-lang.org/learn"},
+    {"name":"PostgreSQL / MySQL / SQLite","href":"https://www.postgresql.org/docs/"},
+    {"name":"Redis / MongoDB / Elasticsearch","href":"https://redis.io/docs/latest/"},
+    {"name":"RabbitMQ / Kafka · WebSocket / SSE","href":"https://www.rabbitmq.com/docs"},
+    {"name":"Git / Vite / pnpm / uv","href":"https://vite.dev/guide/"},
+    {"name":"Pytest / Vitest / Playwright","href":"https://playwright.dev/docs/intro"},
+    {"name":"Linux / Docker / Nginx / Kubernetes","href":"https://docs.docker.com/"},
+  ],
+};

@@ -1,35 +1,47 @@
 import { useEffect, useRef, useState } from "react";
-import { skills, type Skill } from "@/content/skills";
+import { skills } from "@/content/skills";
 import dynamic from "next/dynamic";
-import { useWorkDetail } from "./works/useWorkDetail";
 import { SkillArtwork } from "./SkillArtwork";
-import { cardOrigin, type CardOrigin } from "@/lib/cardMotion";
+import { useTextNavigation } from "./useTextNavigation";
+import { useSkillScroll } from "./useSkillScroll";
 import type { PortalPresentation } from "@/lib/hub/presentation";
 
-const SkillDetail = dynamic(() => import("./SkillDetail"));
+const SkillDetail = dynamic(() => import("./SkillDetail"), {
+  loading: () => <p className="skills-reader-loading" role="status">正在载入技能内容…</p>,
+});
+type SceneController = { dispose: () => void; select: (index: number) => void };
 
 export default function Skills({
   presentation,
   active: enabled,
+  expanded,
 }: {
   presentation: PortalPresentation;
   active: boolean;
+  expanded: boolean;
 }) {
   const root = useRef<HTMLElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
-  const [active, setActive] = useState<Skill | null>(null);
-  const detailOrigin = useRef<CardOrigin | undefined>(undefined);
-  const { detail, error: detailError, open, clear } = useWorkDetail();
+  const content = useRef<HTMLDivElement>(null);
+  const reader = useRef<HTMLDivElement>(null);
+  const readingContent = useRef<HTMLDivElement>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const navigation = useTextNavigation(selectedIndex);
+  const selected = useRef(0);
+  const scene = useRef<SceneController | undefined>(undefined);
+  const skill = skills[selectedIndex];
   const [reducedMotion, setReducedMotion] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
+
+  useSkillScroll({ root, content, reader, readingContent, active: enabled && expanded, category: skill.id });
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let abort = new AbortController();
     let cancelled = false,
       loading = false;
-    let control: { dispose: () => void } | undefined;
+    let control: SceneController | undefined;
     async function load() {
       if (loading || control || motion.matches || cancelled) return;
       loading = true;
@@ -44,12 +56,18 @@ export default function Skills({
             skills,
             presentation,
             signal,
+            onSelect(index) {
+              selected.current = index;
+              setSelectedIndex(index);
+            },
           });
           if (cancelled || motion.matches || signal.aborted) {
             controller.dispose();
             return;
           }
           control = controller;
+          scene.current = controller;
+          controller.select(selected.current);
           setReady(true);
         }
       } catch (error) {
@@ -74,6 +92,7 @@ export default function Skills({
       abort = new AbortController();
       control?.dispose();
       control = undefined;
+      scene.current = undefined;
       setReady(false);
       setError("");
       setReducedMotion(motion.matches);
@@ -91,21 +110,14 @@ export default function Skills({
       observer.disconnect();
       motion.removeEventListener("change", preference);
       control?.dispose();
+      scene.current = undefined;
     };
   }, [presentation]);
 
-  useEffect(() => { if (!enabled) { clear(); setActive(null); } }, [enabled, clear]);
-
-  function close() {
-    const id = active?.id;
-    setActive(null);
-    clear();
-    if (id)
-      root.current
-        ?.querySelector<HTMLButtonElement>(
-          `${reducedMotion ? ".skill-static-card" : ".skills-hit"}[data-skill="${id}"]`,
-        )
-        ?.focus({ preventScroll: true });
+  function select(index: number) {
+    selected.current = index;
+    setSelectedIndex(index);
+    scene.current?.select(index);
   }
 
   return (
@@ -113,78 +125,43 @@ export default function Skills({
       id="skills"
       ref={root}
       inert={!enabled}
-      data-lenis-prevent={reducedMotion ? true : undefined}
-      className={`skills ${reducedMotion ? "skills--static" : ""}`}
+      data-lenis-prevent
+      data-reading={expanded ? "true" : undefined}
+      className={`skills ${expanded ? "skills--reading" : ""} ${reducedMotion ? "skills--static" : ""}`}
       aria-label="Skills"
     >
-      <div className="skills-stage" data-cursor={reducedMotion ? undefined : "drag"}>
-        <canvas ref={canvas} className="skills-canvas" aria-hidden="true" />
-        <nav className="skills-index" aria-label="Skill index">
-          {skills.map((skill, index) => (
-            <button
-              key={skill.id}
-              type="button"
-              data-skill-index={index}
-              aria-current={index === 0 ? "true" : undefined}
-            >
-              {skill.title}
-            </button>
-          ))}
-        </nav>
-        {!ready && !reducedMotion && !error && (
-          <p className="skills-loading" role="status">
-            Gathering light…
-          </p>
-        )}
-        {error && <p className="skills-loading" role="alert">{error}</p>}
-        <button
-          className="skills-hit"
-          data-cursor="view"
-          aria-label={`Explore ${skills[0].title}`}
-          data-skill={skills[0].id}
-          onClick={(event) => {
-            const skill = skills.find(
-              (item) => item.id === event.currentTarget.dataset.skill,
-            );
-            if (skill) {
-              event.currentTarget.parentElement!.dataset.interacted = "true";
-              detailOrigin.current = cardOrigin(event.currentTarget);
-              setActive(skill);
-            }
-          }}
-        />
-        {enabled && ready && !active && !detail && !reducedMotion && <p className="gallery-touch-hint">滑动切换 · 点按查看</p>}
-        {reducedMotion && (
-          <div className="skills-static-grid">
-            {skills.map((skill) => (
-              <button
-                className="skill-static-card line-button line-button--solid"
-                data-cursor="view"
-                data-skill={skill.id}
-                key={skill.id}
-                onClick={event => {
-                  detailOrigin.current = cardOrigin(event.currentTarget);
-                  setActive(skill);
-                }}
-                aria-label={`Explore ${skill.title}`}
-              >
-                <SkillArtwork skill={skill} loading="lazy" />
-              </button>
-            ))}
-          </div>
-        )}
+      <div className="skills-backdrop" aria-hidden="true">
+        <canvas ref={canvas} className="skills-canvas" />
       </div>
-      {active && !detail && (
-        <SkillDetail
-          key={active.id}
-          skill={active}
-          origin={detailOrigin.current}
-          onClose={close}
-          onWork={(work, origin) => { void open(work.id, origin); }}
-        />
-      )}
-      {detailError && <p className="skills-loading" role="alert">{detailError}</p>}
-      {detail && <detail.Component key={detail.work.id} work={detail.work} origin={detail.origin} onClose={clear} />}
+      <div ref={content} className="skills-content">
+        <nav className="skills-index" aria-label="技能分类">
+          <div ref={navigation} className="text-navigation">
+          {skills.map((item, index) => <button key={item.id} type="button"
+            aria-current={selectedIndex === index ? "true" : undefined}
+            aria-controls="skill-reading-area" onClick={() => select(index)}>
+            {item.title}
+          </button>)}
+            <span className="text-navigation-indicator" aria-hidden="true" />
+          </div>
+        </nav>
+        <div className="skills-stage" data-cursor={reducedMotion ? undefined : "drag"}
+          role="group" aria-label={`${skill.title}立体方块，左右拖动或使用方向键切换技能`}
+          tabIndex={enabled && !reducedMotion ? 0 : -1}>
+          {!ready && !reducedMotion && !error && (
+            <p className="skills-loading" role="status">
+              Gathering light…
+            </p>
+          )}
+          {error && <p className="skills-loading" role="alert">{error}</p>}
+          {(reducedMotion || error) && <div className="skills-still"><SkillArtwork skill={skill} /></div>}
+        </div>
+        {expanded && <div ref={reader} key={skill.id} id="skill-reading-area" className="skills-reader"
+          role="region" aria-label={`${skill.title}讲解`} tabIndex={0}>
+          <div ref={readingContent}>
+            <SkillDetail skill={skill} />
+          </div>
+        </div>}
+      </div>
     </section>
   );
 }

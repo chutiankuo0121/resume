@@ -45,7 +45,7 @@ export default function Contact({
             <h2 id="contact-title"><span>下一段探索，</span><span>从对话开始。</span></h2>
             <p className="signal-description">一个想法，一次合作，或一句你好。</p>
             <div className="signal-actions">
-            <button className="line-button line-button--dark" type="button" onClick={() => dialog.current?.showModal()}><span>微信聊聊</span><LineIcon name="plus" /></button>
+            <button className="line-button line-button--dark line-button--clear" type="button" onClick={() => dialog.current?.showModal()}><span>微信聊聊</span><LineIcon name="plus" /></button>
             </div>
           </div>
         </div>

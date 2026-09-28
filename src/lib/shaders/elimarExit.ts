@@ -3,9 +3,7 @@ import { pictureDetailGLSL } from "./pictureDetail";
 
 /** 圆形传送门：alpha 揭开真实 DOM；同一个场输出 HDR 亮边供独立 Bloom 使用。 */
 export const paperFragment = /* glsl */ `
-uniform sampler2D uScene, uArrival, uArrivalText;
-uniform vec4 uArrivalRect;
-uniform float uArrivalReady;
+uniform sampler2D uScene, uArrivalText;
 uniform vec3 uGhostWake[6];
 uniform float uReveal;
 uniform float uBlackout;
@@ -67,16 +65,10 @@ void main(){
   float alpha=max(coverage,particleAlpha);
   #ifndef PORTAL_GLOW
     // Extract BEFORE blackout: fading the surface must not erase its detail field.
-    vec2 pixel=vec2(vUv.x,1.-vUv.y)*uViewport;
-    vec2 arrivalUV=(pixel-uArrivalRect.xy)/uArrivalRect.zw;
-    vec3 arriving=texture2D(uArrival,clamp(vec2(arrivalUV.x,1.-arrivalUV.y),0.,1.)).rgb;
-    float arrivalDetail=pictureDetails(arriving);
-    vec2 margin=min(arrivalUV,1.-arrivalUV)*uArrivalRect.zw;
-    float valid=smoothstep(0.,5.,min(margin.x,margin.y))*uArrivalReady;
     float textDetail=pictureDetails(texture2D(uArrivalText,vUv).rgb);
     // Each side owns its source: career content must never leak onto the crystal.
     float outgoingDetail=pictureDetails(original)*.5;
-    float incomingDetail=max(arrivalDetail*valid*.5,textDetail*.6);
+    float incomingDetail=textDetail*.6;
     float hover=0.;
     for(int i=0;i<6;i++){
       vec2 mouseDelta=(vUv-uGhostWake[i].xy)*uViewport/105.;

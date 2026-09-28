@@ -4,7 +4,6 @@
   --card-fill: #eeeee7;
   --card-ink: #292d29;
   --card-muted: #62695f;
-  --card-accent: #334737;
   --card-radius: 32px;
   --card-inner-radius: 20px;
   --card-shadow: 0 18px 64px #16201816;
@@ -65,27 +64,14 @@
 .detail-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 6px 16px 14px; }
 .card-eyebrow { margin: 0; font: 12px/1.6 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--card-muted); }
 .card-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 22px 0; list-style: none; }
-.card-tags li, .card-chip { display: inline-block; padding: 7px 13px; border-radius: 999px; background: #e9ede4; color: #465843; font: 13px/1.5 var(--font-body); }
-.card-artwork { min-width: 0; transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform .3s ease-out; }
-.card-practice { background: var(--card-fill); padding: 24px; border-radius: 24px; }
-.card-practice + .card-practice { margin-top: 12px; }
-.card-practice-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--card-muted); font: 12px/1.7 var(--font-body); }
-.card-practice h4 { margin: 14px 0 8px; font: 400 21px/1.5 var(--font-heading); }
-.card-practice p { color: var(--card-muted); font: 16px/1.85 var(--font-body); margin: 0; }
-.card-practice details { margin-top: 12px; }
-.card-practice summary { min-height: 44px; padding: 12px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; cursor: pointer; font: 15px/1.5 var(--font-body); }
-.card-practice summary::-webkit-details-marker { display: none; }
-.card-practice summary::after { content: "↓"; transition: transform .2s ease; }
-.card-practice details[open] summary::after { transform: rotate(180deg); }
+.card-tags li { display: inline-block; padding: 7px 13px; border-radius: 999px; background: #e9ede4; color: #465843; font: 13px/1.5 var(--font-body); }
 .detail-dialog :is(a, button, summary):focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
 @media (max-width: 799px) {
   .detail-dialog { width: calc(100vw - 24px); max-height: calc(100svh - 24px); border-radius: 26px; }
   .detail-shell { padding: 12px; }
   .detail-header { padding: 0 0 12px 8px; }
-  .card-practice { padding: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .detail-dialog::backdrop { animation: none; }
   .detail-shell::before, .detail-shell::after { animation: none; }
-  .card-artwork { transition: none; transform: none; }
 }

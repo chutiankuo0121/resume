@@ -8,6 +8,7 @@ import { bindSkillControls } from "./controls";
 import { createPointerField } from "./pointerField";
 import { createPointerLight } from "./pointerLight";
 import { createEnvironmentPalette, createPaletteUniforms } from "./palette";
+import { createPointerInput } from "../createPointerInput";
 
 import type { PortalPresentation } from "../hub/presentation";
 
@@ -17,6 +18,7 @@ type Options = {
   skills: Skill[];
   signal: AbortSignal;
   presentation: PortalPresentation;
+  onSelect: (index: number) => void;
 };
 const smooth = (x: number) => THREE.MathUtils.smootherstep(x, 0, 1);
 const modulo = (x: number, n: number) => ((x % n) + n) % n;
@@ -28,6 +30,7 @@ export async function createSkillsScene({
   skills,
   signal,
   presentation,
+  onSelect,
 }: Options) {
   const loader = new THREE.TextureLoader();
   const loaded = await Promise.allSettled(
@@ -72,6 +75,8 @@ export async function createSkillsScene({
   const time = { value: 0 };
   const pointer = new THREE.Vector2(),
     follow = new THREE.Vector2();
+  const pointerInput = createPointerInput(canvas);
+  const mobileReading = matchMedia("(max-width: 900px)");
   const palette = createEnvironmentPalette(skills.map(skill => skill.palette));
   const environment = createEnvironment(renderer, scene, time, palette.uniforms);
   const pointerLight = createPointerLight(
@@ -96,7 +101,10 @@ export async function createSkillsScene({
       createPaletteUniforms(skills[index].palette),
     ),
   );
-  screens.forEach((screen) => scene.add(screen.group));
+  const artwork = new THREE.Group();
+  screens.forEach((screen) => artwork.add(screen.group));
+  scene.add(artwork);
+  const artworkInverse = new THREE.Matrix4();
   const positions = new Float32Array(800 * 3),
     seeds = new Float32Array(800);
   for (let i = 0; i < seeds.length; i++) {
@@ -129,19 +137,24 @@ export async function createSkillsScene({
   scene.add(motes);
 
   const stage = root.querySelector<HTMLElement>(".skills-stage")!;
-  const hit = root.querySelector<HTMLButtonElement>(".skills-hit")!;
-  const skillIndex = root.querySelector<HTMLElement>(".skills-index")!;
-  const indexButtons = [
-    ...skillIndex.querySelectorAll<HTMLButtonElement>("[data-skill-index]"),
-  ];
-  let width = 1,
-    height = 1,
+  const layout = { x: 0, y: 0 };
+  let layoutDirty = true, wasReading = false;
+  function invalidateLayout() { layoutDirty = true; pointerInput.invalidate(); }
+  function measureLayout() {
+    const bounds = canvas.getBoundingClientRect();
+    const target = stage.getBoundingClientRect();
+    layout.x = (target.left - bounds.left + target.width / 2) / width - 0.5;
+    layout.y = 0.5 - (target.top - bounds.top + target.height / 2) / height;
+    layoutDirty = false;
+  }
+  let width = 0,
+    height = 0,
+    pixelRatio = 0,
     compact = false;
   let inViewport = false, viewExpansion = -1;
   let progress = 0,
     lastTime = 0,
-    disposed = false,
-    lastActive = -1;
+    disposed = false;
   let pointerActive = false,
     pointerX = 0,
     pointerY = 0,
@@ -213,16 +226,21 @@ export async function createSkillsScene({
   }
 
   function resize() {
-    width = canvas.clientWidth;
-    height = canvas.clientHeight;
-    if (!width || !height) return;
-    viewExpansion = -1;
-    compact = width < 800;
+    const nextWidth = canvas.clientWidth, nextHeight = canvas.clientHeight;
+    if (!nextWidth || !nextHeight) return;
+    invalidateLayout();
     const dpr = Math.min(
       devicePixelRatio,
       1.6,
-      Math.sqrt(2_200_000 / (width * height)),
+      Math.sqrt(2_200_000 / (nextWidth * nextHeight)),
     );
+    // 阅读区重新排版不代表画布尺寸变化，避免重建相同尺寸的帧缓冲。
+    if (width === nextWidth && height === nextHeight && pixelRatio === dpr) return;
+    width = nextWidth;
+    height = nextHeight;
+    pixelRatio = dpr;
+    viewExpansion = -1;
+    compact = width < 800;
     renderer.setPixelRatio(dpr);
     renderer.setSize(width, height, false);
     resolution.value.set(canvas.width, canvas.height);
@@ -234,22 +252,6 @@ export async function createSkillsScene({
     moteMaterial.uniforms.uPixelRatio.value = dpr;
   }
 
-  function updateNavigation() {
-    const nearest = Math.round(progress),
-      active = modulo(nearest, skills.length);
-    const focus = 1 - smooth(Math.abs(progress - nearest) / 0.47);
-    if (lastActive !== active) {
-      hit.setAttribute("aria-label", `Explore ${skills[active].title}`);
-      hit.dataset.skill = skills[active].id;
-      indexButtons.forEach((button, index) => {
-        if (index === active) button.setAttribute("aria-current", "true");
-        else button.removeAttribute("aria-current");
-      });
-      lastActive = active;
-    }
-    if (hit.disabled !== (focus < 0.35)) hit.disabled = focus < 0.35;
-  }
-
   function tick(seconds: number) {
     if (disposed || document.hidden || presentation.suspended) {
       lastTime = 0;
@@ -259,7 +261,7 @@ export async function createSkillsScene({
       !presentation.visible ||
       !inViewport
     ) {
-      stage.inert = true;
+      if (!stage.inert) stage.inert = true;
       lastTime = 0;
       if (wasVisible) {
         controls.cancel();
@@ -270,7 +272,17 @@ export async function createSkillsScene({
       return;
     }
     wasVisible = true;
-    stage.inert = !presentation.interactive;
+    if (stage.inert === presentation.interactive) stage.inert = !presentation.interactive;
+    const reading = root.dataset.reading === "true";
+    if (reading !== wasReading) { invalidateLayout(); wasReading = reading; }
+    if (layoutDirty) measureLayout();
+    const input = presentation.interactive ? pointerInput.sample() : null;
+    pointerActive = input !== null;
+    if (input) {
+      pointer.set(input.x, input.y);
+      pointerX = (input.x + 1) * width / 2;
+      pointerY = (input.y + 1) * height / 2;
+    } else pointer.set(0, 0);
     const dt = Math.min(0.05, lastTime ? seconds - lastTime : 0.016);
     lastTime = seconds;
     scrollNudge *= Math.exp(-dt * 5);
@@ -318,7 +330,7 @@ export async function createSkillsScene({
       -follow.y * 0.825,
       distance - follow.y * 1.03 + zoom,
     );
-    camera.lookAt(0, compact ? -0.25 : 0, 0);
+    camera.lookAt(0, compact && !reading ? -0.25 : 0, 0);
     camera.rotateZ(roll + sceneRoll);
     // 预览把主卡取景到右下，展开时连续归位，水面仍覆盖整个画幅。
     const framing = 1 - presentation.expansion;
@@ -335,18 +347,25 @@ export async function createSkillsScene({
       );
     }
     camera.updateMatrixWorld();
-    light.value.set(
+    // 布局在展开前准备好，方块沿同一转场直接移向左侧，保持原始尺寸。
+    const viewHeight = 2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const viewWidth = viewHeight * camera.aspect;
+    const placement = reading ? presentation.expansion : 0;
+    artwork.position.set(layout.x * viewWidth * placement, layout.y * viewHeight * placement, 0);
+    artwork.updateMatrixWorld();
+    artworkInverse.copy(artwork.matrixWorld).invert();
+    projector.position.set(
       camera.position.x * 0.175,
-      (compact ? 0.8 : 0) + camera.position.y * 0.175,
+      (compact && !reading ? 0.8 : 0) + camera.position.y * 0.175,
       6.25,
     );
-    projector.position.copy(light.value);
-    projector.lookAt(0, compact ? 0.8 : 0, -13.5);
+    light.value.copy(projector.position).applyMatrix4(artwork.matrixWorld);
+    projector.lookAt(0, compact && !reading ? 0.8 : 0, -13.5);
     projector.updateMatrixWorld();
     projection.value.multiplyMatrices(
       projector.projectionMatrix,
       projector.matrixWorldInverse,
-    );
+    ).multiply(artworkInverse);
     // 保持参考站约 30° 的换屏弧度，在视野外复用卡片，避免内容数量影响转动幅度。
     const spacing = Math.PI / 6;
     const radius = 7.7 / (2 * Math.tan(spacing / 2));
@@ -374,7 +393,7 @@ export async function createSkillsScene({
       if (!visible) return;
       screen.group.position.set(
         Math.sin(theta) * radius,
-        compact ? 0.8 : 0,
+        compact && !reading ? 0.8 : 0,
         (Math.cos(theta) - 1) * radius,
       );
       screen.group.rotation.y = theta;
@@ -385,13 +404,12 @@ export async function createSkillsScene({
     environment.update();
     renderer.render(scene, camera);
     pointerLight.render();
-
-    updateNavigation();
   }
 
   function scrollToSkill(target: number) {
     navigation?.kill();
     destination = target;
+    onSelect(modulo(Math.round(target), skills.length));
     const current = targetProgress;
     // 反向时可见屏幕还落在旧目标之后。把驱动位置接回画面所在处，消除继续前冲的余量；
     // progress 本身不跳变，镜头倾斜和拉远仍沿原有阻尼自然收回。
@@ -420,14 +438,10 @@ export async function createSkillsScene({
   }
   const controls = bindSkillControls({
     stage,
+    allowVerticalScroll: () => root.dataset.reading === "true" && mobileReading.matches,
     movePointer(x, y, active) {
-      const rect = canvas.getBoundingClientRect();
-      pointerActive = active && presentation.interactive;
-      pointerX = x - rect.left;
-      pointerY = y - rect.top;
-      if (pointerActive)
-        pointer.set((pointerX / width) * 2 - 1, (pointerY / height) * 2 - 1);
-      else pointer.set(0, 0);
+      if (active && presentation.interactive) pointerInput.move(x, y);
+      else pointerInput.clear();
     },
     stop: () => {
       navigation?.kill();
@@ -447,6 +461,7 @@ export async function createSkillsScene({
   });
   function wheel(event: WheelEvent) {
     if (stage.inert || document.querySelector("dialog[open]")) return;
+    if (root.dataset.reading === "true" && mobileReading.matches) return;
     const delta =
       (Math.abs(event.deltaY) > Math.abs(event.deltaX)
         ? event.deltaY
@@ -477,6 +492,7 @@ export async function createSkillsScene({
   const key = (event: KeyboardEvent) => {
     if (
       stage.inert ||
+      !stage.contains(event.target as Node) ||
       document.querySelector("dialog[open]") ||
       event.altKey ||
       event.ctrlKey ||
@@ -488,17 +504,7 @@ export async function createSkillsScene({
       navigate(event.key === "ArrowRight" ? 1 : -1);
     }
   };
-  const selectSkill = (event: MouseEvent) => {
-    if (
-      stage.inert ||
-      document.querySelector("dialog[open]") ||
-      !(event.target instanceof Element)
-    )
-      return;
-    const button =
-      event.target.closest<HTMLButtonElement>("[data-skill-index]");
-    if (!button) return;
-    const index = Number(button.dataset.skillIndex);
+  const selectSkill = (index: number) => {
     // 循环后仍选取离当前画面最近的一轮，不跳回页面最初的位置。
     const cycle = Math.round((progress - index) / skills.length);
     scrollToSkill(index + cycle * skills.length);
@@ -506,26 +512,29 @@ export async function createSkillsScene({
   };
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(canvas);
+  resizeObserver.observe(stage);
+  root.addEventListener("scroll", invalidateLayout, { passive: true });
   const visibility = new IntersectionObserver(entries => {
     inViewport = entries[entries.length - 1].isIntersecting;
   });
   visibility.observe(canvas);
   stage.addEventListener("wheel", wheel, { passive: false });
   window.addEventListener("keydown", key);
-  skillIndex.addEventListener("click", selectSkill);
   resize();
   gsap.ticker.add(tick);
   return {
+    select: selectSkill,
     dispose() {
       disposed = true;
       gsap.ticker.remove(tick);
       resizeObserver.disconnect();
+      root.removeEventListener("scroll", invalidateLayout);
       visibility.disconnect();
       controls.dispose();
+      pointerInput.dispose();
       navigation?.kill();
       stage.removeEventListener("wheel", wheel);
       window.removeEventListener("keydown", key);
-      skillIndex.removeEventListener("click", selectSkill);
       screens.forEach((screen) => {
         gsap.killTweensOf(screen.material.uniforms.uReveal);
         screen.dispose();

@@ -1,9 +1,11 @@
 import { careerArchive } from "./careerArchive";
 import { education } from "./education";
+import { trendmlCareerPages } from "./trendmlCareer";
+import { portfolioCareerPages } from "./portfolioCareer";
 
 type CareerPage = { heading: string; paragraphs: string[] };
 
-/** 技能详情使用的完整原文，独立于经历页的展示版本。 */
+/** 将原始经历文本中的标题归组，保留原文顺序。 */
 function groupCopy(lines: readonly string[]): CareerPage[] {
   const pages: CareerPage[] = [];
   let heading = "", page: CareerPage | undefined;
@@ -43,12 +45,9 @@ export const careerDetails = [
   })),
   {
     id: "ai-finance-venture", years: "2026.03—今", title: "AI 金融创业", role: "产品与全栈开发",
-    pages: [{
-      heading: "从策略研究，到日常可用的产品。",
-      paragraphs: [
-        "围绕投资研究与辅助决策开展 AI 金融创业，将策略研究、数据工程和产品开发连接起来。",
-        "落地多资产投资组合系统，实盘规模 120 万元；独立设计开发 TrendML 期货量化平台，模型策略用于 100 万元实盘，模型与因子组合用于 1500 万元模拟盘。覆盖策略计算、交易执行、异常恢复、监控与 Web 前端。",
-      ],
-    }],
+    pages: [
+      ...trendmlCareerPages,
+      ...portfolioCareerPages,
+    ],
   },
 ];

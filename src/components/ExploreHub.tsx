@@ -125,8 +125,9 @@ export default function ExploreHub({
     }
     function expand(target: HubDestination, updateHistory: boolean) {
       element.inert = false;
-      back.current!.disabled = false;
-      gsap.set(back.current, { clearProps: "opacity,visibility,transform" });
+      back.current!.disabled = true;
+      gsap.set(back.current, { autoAlpha: 0, y: -4 });
+      gsap.set(element, { "--skills-copy-opacity": 0 });
       const y = element.getBoundingClientRect().top;
       onOpenChange(true);
       document.documentElement.style.overflow = "hidden";
@@ -144,6 +145,7 @@ export default function ExploreHub({
         onUpdate: notify,
         onComplete: () => {
           busy = false;
+          back.current!.disabled = false;
           presentations.current[target].interactive = true;
           presentations.current[target === "work" ? "skills" : "work"].visible =
             false;
@@ -152,10 +154,19 @@ export default function ExploreHub({
           back.current?.focus({ preventScroll: true });
         },
       });
+      const sceneDuration = reduced.matches ? 0 : 1.25;
+      const controlsDuration = reduced.matches ? 0 : .22;
       animation
         .fromTo(element, { y }, { y: 0 }, 0)
         .to(state, { expansion: 1 }, 0)
-        .to(presentations.current[target], { expansion: 1 }, 0);
+        .to(presentations.current[target], { expansion: 1 }, 0)
+        // 场景展开完成后，文字和返回按钮同时进入画面。
+        .to(back.current, {
+          autoAlpha: 1, y: 0, duration: controlsDuration, ease: "power2.out",
+        }, sceneDuration);
+      if (target === "skills") animation.to(element, {
+        "--skills-copy-opacity": 1, duration: controlsDuration, ease: "power2.out",
+      }, sceneDuration);
     }
     function close() {
       if (!current || closing) return;
@@ -178,7 +189,9 @@ export default function ExploreHub({
       busy = true;
       work.interactive = skills.interactive = false;
       animation?.kill();
-      const buttonExit = reduced.matches ? 0 : .16;
+      const copyVisible = target === "skills" && Number(gsap.getProperty(element, "--skills-copy-opacity")) > 0;
+      const controlsVisible = copyVisible || Number(gsap.getProperty(back.current!, "opacity")) > 0;
+      const controlsExit = reduced.matches || !controlsVisible ? 0 : .18;
       animation = gsap.timeline({
         defaults: {
           duration: reduced.matches ? 0 : 1.05,
@@ -193,7 +206,7 @@ export default function ExploreHub({
           element.classList.remove("is-open");
           delete element.dataset.closing;
           element.inert = false;
-          back.current!.disabled = false;
+          back.current!.disabled = true;
           gsap.set(back.current, { clearProps: "opacity,visibility,transform" });
           gsap.set(element, { clearProps: "transform" });
           document.documentElement.style.overflow = previousOverflow;
@@ -205,20 +218,24 @@ export default function ExploreHub({
         },
       });
       animation
-        .fromTo(back.current, { opacity: 1 }, {
-          autoAlpha: 0, y: -4, duration: buttonExit, ease: "power2.in",
+        .to(back.current, {
+          autoAlpha: 0, y: -4, duration: controlsExit, ease: "power2.in",
+        }, 0)
+        // 用父级变量覆盖当前及切换中重新挂载的正文，避免残留在转场里。
+        .to(element, {
+          "--skills-copy-opacity": 0, duration: controlsExit, ease: "power2.in",
         }, 0)
         .call(() => {
-          // Keep the selected scene intact until its return control has disappeared.
+          // 文字与按钮完全退场后，才恢复探索画面并收回场景。
           work.visible = skills.visible = true;
           setInteractive(false);
           onReturnToExplore();
           state.gather = 1;
           notify();
-        }, [], buttonExit)
-        .to(state, { expansion: 0 }, buttonExit)
-        .to(presentations.current[target], { expansion: 0 }, buttonExit)
-        .to(element, { y: 0 }, buttonExit);
+        }, [], controlsExit)
+        .to(state, { expansion: 0 }, controlsExit)
+        .to(presentations.current[target], { expansion: 0 }, controlsExit)
+        .to(element, { y: 0 }, controlsExit);
     }
     function keyboard(event: KeyboardEvent) {
       if (!current || document.querySelector("dialog[open]")) return;
@@ -230,7 +247,7 @@ export default function ExploreHub({
       if (event.key === "Tab") {
         const candidates = [
           ...element.querySelectorAll<HTMLElement>(
-            "button:not(:disabled),[tabindex='0'],a[href]",
+            "button:not(:disabled),[tabindex='0'],a[href],summary",
           ),
         ].filter(
           (item) =>
@@ -256,6 +273,7 @@ export default function ExploreHub({
           first?.focus({ preventScroll: true });
         }
       }
+      if (event.target instanceof Element && event.target.closest(".skills-reader")) return;
       if (
         ["PageDown", "PageUp", " ", "End"].includes(event.key) &&
         !(event.target instanceof HTMLButtonElement)
@@ -280,6 +298,7 @@ export default function ExploreHub({
       cancelAnimationFrame(initial);
       cancelPreparation?.();
       animation?.kill();
+      element.style.removeProperty("--skills-copy-opacity");
       element.inert = false;
       delete element.dataset.closing;
       gsap.killTweensOf(state);
@@ -334,6 +353,7 @@ export default function ExploreHub({
             <Skills
               presentation={presentations.current.skills}
               active={opened === "skills" && interactive}
+              expanded={opened === "skills"}
             />
           </div>
           <div ref={frameGuide} className="hub-frame-guide" aria-hidden="true" />
@@ -379,10 +399,11 @@ export default function ExploreHub({
           </div>
           <button
             ref={back}
-            className="hub-back line-button line-button--solid"
+            className="hub-back line-button line-button--dark line-button--clear"
             type="button"
             onClick={() => controls.current?.close()}
-            tabIndex={opened ? 0 : -1}
+            disabled={!interactive}
+            tabIndex={interactive ? 0 : -1}
           >
             <LineIcon name="back" /><span>返回探索</span>
           </button>

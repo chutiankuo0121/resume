@@ -16,6 +16,7 @@ import { paperFragment, portalCompositeFragment } from "./shaders/elimarExit";
 import type { LoadingState, LoadingTask } from "./loading/progress";
 import { createPreludeDrawing } from "./loading/drawPrelude";
 import { createPortalArrival } from "./portalArrival";
+import { createPointerInput } from "./createPointerInput";
 
 type Options = {
   canvas: HTMLCanvasElement;
@@ -93,6 +94,7 @@ export function createScene({
   lighting.depthTexture.minFilter = THREE.NearestFilter;
   lighting.depthTexture.magFilter = THREE.NearestFilter;
   const hole = createBlackHole(renderer);
+  const pointerInput = createPointerInput(canvas);
   const holeCenter = new THREE.Vector2(0.5, 0.505);
   const followScale = new THREE.Vector2();
   const portalPointerTarget = new THREE.Vector3(-2, -2, 0);
@@ -245,6 +247,7 @@ export function createScene({
   };
 
   function resize() {
+    pointerInput.invalidate();
     whiteCleared = false;
     loadingBackgroundReady = false;
     width = canvas.clientWidth;
@@ -295,17 +298,14 @@ export function createScene({
     if (loading.reveal < 1) return;
     // 触摸用于滚动，不残留鼠标悬停偏移。
     if (e.pointerType !== "touch") {
-      const r = canvas.getBoundingClientRect();
-      const x = ((e.clientX - r.left) / r.width) * 2 - 1,
-        y = ((e.clientY - r.top) / r.height) * 2 - 1;
-      pointer.set(x, y);
-      crystal.setPointer(x, y);
-      portalPointerTarget.set((x + 1) * .5, (1 - y) * .5, 1);
+      pointerInput.move(e.clientX, e.clientY);
     } else {
+      pointerInput.clear();
       portalPointerTarget.z = 0;
     }
   }
   function leave() {
+    pointerInput.clear();
     portalPointerTarget.z = 0;
     pointer.set(0, 0);
     crystal.setPointer(0, 0);
@@ -506,6 +506,17 @@ export function createScene({
     const elapsed = lastTimestamp ? (timestamp - lastTimestamp) / 1000 : 0;
     lastTimestamp = timestamp;
     if (document.hidden) return;
+    if (ready && loading.reveal >= 1 && transition.portalReveal === 1) {
+      previousScroll = window.scrollY;
+      draw();
+      return;
+    }
+    const input = pointerInput.sample();
+    if (input) {
+      pointer.set(input.x, input.y);
+      crystal.setPointer(input.x, input.y);
+      portalPointerTarget.set((input.x + 1) * .5, (1 - input.y) * .5, 1);
+    }
     const dt = Math.min(elapsed, 0.05);
     const reduced = motionPreference.matches;
     // Same local response as the collage seam: exponential follow, gentle
@@ -548,6 +559,7 @@ export function createScene({
     disposed = true;
     unsubscribe();
     observer.disconnect();
+    pointerInput.dispose();
     hole.dispose();
     portalArrival.dispose();
     prelude?.dispose();

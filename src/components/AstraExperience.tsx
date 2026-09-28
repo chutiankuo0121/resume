@@ -155,9 +155,13 @@ export default function AstraExperience() {
       className={`astra ${ready ? "is-ready" : ""}`}
       data-exploring={exploring}
       data-loading={!ready}
+      style={{
+        "--opening-duration": OPENING.duration,
+        // 破洞展开一半时接入经历的自然滚动，全开时正文已进入视野。
+        "--career-entry-overlap": OPENING.duration - OPENING.portalStart - OPENING.portalDuration * .5,
+      } as CSSProperties}
     >
-      <div ref={journey} className="journey" inert={exploring || !ready}
-        style={{ "--opening-duration": OPENING.duration } as CSSProperties}>
+      <div ref={journey} className="journey" inert={exploring || !ready}>
         <div ref={stage} className={`experience ${ready ? "is-ready" : ""}`}>
           <canvas
             ref={canvas}

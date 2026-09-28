@@ -44,9 +44,10 @@ button:focus-visible {
 .journey {
   position: relative;
   /* 高度随叙事时间线同步，增加幕数不改变晶体与破洞的滚动速度。 */
-  height: calc(100svh + 550svh * var(--opening-duration));
+  height: calc(100svh + var(--opening-scroll-unit) * var(--opening-duration));
 }
 .astra {
+  --opening-scroll-unit: 550svh;
   isolation: isolate;
   position: relative;
 }
@@ -322,8 +323,8 @@ button:focus-visible {
   }
 }
 @media (max-width: 699px) {
-  .journey {
-    height: calc(100svh + 460svh * var(--opening-duration));
+  .astra {
+    --opening-scroll-unit: 460svh;
   }
 }
 .reduced-journey {

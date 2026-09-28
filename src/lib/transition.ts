@@ -272,8 +272,11 @@ export function createTransitionTimeline(
         return;
       }
       if (chapter === "career") {
-        const start = careerRoot.getBoundingClientRect().top + window.scrollY;
-        // 全文采用自然文档流，定位到教育经历开头。
+        // 章节已在破洞中途开始滚动；导航仍落在洞口完全打开后的阅读位置。
+        const portalEnd = trigger ? trigger.start + (trigger.end - trigger.start)
+          * (OPENING.portalStart + OPENING.portalDuration) / DURATION : 0;
+        const start = media.matches ? handoffs.positions.career
+          : Math.ceil(Math.max(handoffs.positions.career, portalEnd));
         lenis.scrollTo(start, { duration: media.matches ? 0 : 2.4, lerp: 0, immediate });
         return;
       }

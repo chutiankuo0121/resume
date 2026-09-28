@@ -1,6 +1,5 @@
-import multiAssetPortfolio from "./works/multi-asset-portfolio";
-import trendml from "./works/trendml";
 import { careerDetails } from "./careerDetails";
+import { aiPerspective } from "./aiPerspective";
 
 /** Chapter introductions augment the original copy. */
 const presentation = [
@@ -29,20 +28,26 @@ const presentation = [
   },
   {
     introduction: "", statement: "",
-    projects: [
-      { label: "多资产投资组合 ↗", href: multiAssetPortfolio.href },
-      { label: "TrendML 期货量化 ↗", href: trendml.href },
-    ],
   },
 ] as const;
 
-export const experience = careerDetails.map((entry, index) => {
-  const art = presentation[index];
-  const sections: { heading: string; paragraphs: string[] }[] = [];
+export const experience = [
+  ...careerDetails,
+  {
+    id: "ai-perspective", years: "", title: aiPerspective.title, role: "",
+    pages: [{ heading: "", paragraphs: [...aiPerspective.paragraphs] }],
+  },
+].map((entry, index) => {
+  const art = presentation[index] ?? { introduction: "", statement: "" };
+  const sections: { heading: string; paragraphs: string[]; project?: { label: string; href: string } }[] = [];
   for (const page of entry.pages) {
     const previous = sections.at(-1);
     if (previous?.heading === page.heading) previous.paragraphs.push(...page.paragraphs);
-    else sections.push({ heading: page.heading, paragraphs: [...page.paragraphs] });
+    else sections.push({
+      heading: page.heading,
+      paragraphs: [...page.paragraphs],
+      ...("project" in page && page.project ? { project: page.project } : {}),
+    });
   }
   return { ...entry, ...art, sections };
 });

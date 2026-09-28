@@ -7,12 +7,14 @@ export function bindSkillControls({
   dragBy,
   settle,
   stop,
+  allowVerticalScroll,
 }: {
   stage: HTMLElement;
   movePointer: (x: number, y: number, active: boolean) => void;
   dragBy: (steps: number) => void;
   settle: (velocity: number) => void;
   stop: () => void;
+  allowVerticalScroll: () => boolean;
 }) {
   let id: number | null = null,
     dragging = false;
@@ -24,13 +26,12 @@ export function bindSkillControls({
     lastAt = 0,
     velocity = 0,
     suppressClickUntil = 0;
+  let dragWidth = 240, dragHeight = 260;
   const blocked = () =>
     stage.inert || Boolean(document.querySelector("dialog[open]"));
   const surface = (target: EventTarget | null) =>
     target instanceof Element &&
-    !target.closest(".skills-index") &&
-    (!target.closest("button") || target.closest(".skills-hit"));
-  const span = () => Math.max(240, stage.clientWidth * 0.55);
+    !target.closest("button,a");
 
   function down(event: PointerEvent) {
     if (
@@ -40,6 +41,9 @@ export function bindSkillControls({
       event.button !== 0
     )
       return;
+    dragWidth = Math.max(240, stage.clientWidth * 0.55);
+    dragHeight = Math.max(260, stage.clientHeight * 0.55);
+    stage.focus({ preventScroll: true });
     id = event.pointerId;
     dragging = false;
     velocity = 0;
@@ -67,6 +71,10 @@ export function bindSkillControls({
       dy = event.clientY - startY;
     if (!dragging) {
       if (Math.hypot(dx, dy) < 8) return;
+      if (event.pointerType === "touch" && Math.abs(dy) > Math.abs(dx) && allowVerticalScroll()) {
+        cancel();
+        return;
+      }
       vertical = event.pointerType === "touch" && Math.abs(dy) > Math.abs(dx);
       dragging = true;
       stage.setPointerCapture(event.pointerId);
@@ -75,8 +83,8 @@ export function bindSkillControls({
     }
     event.preventDefault();
     const step = vertical
-      ? (lastY - event.clientY) / Math.max(260, stage.clientHeight * 0.55)
-      : (lastX - event.clientX) / span();
+      ? (lastY - event.clientY) / dragHeight
+      : (lastX - event.clientX) / dragWidth;
     velocity = Math.max(
       -3,
       Math.min(3, step / Math.max(0.016, (event.timeStamp - lastAt) / 1000)),

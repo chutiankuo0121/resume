@@ -40,6 +40,8 @@
 .line-button:not(:disabled):active {
   background: color-mix(in srgb, var(--button-ink) 16%, var(--button-paper));
 }
+.line-button--clear,
+.line-button--clear:not(:disabled):is(:hover, :active) { background: transparent; }
 @media (prefers-reduced-motion: reduce) {
   .line-button, .line-button__icon, .action-arrow { transition: none; }
   .line-button .line-button__icon, .action-arrow { transform: none !important; }

@@ -1,6 +1,5 @@
 import type { Ref } from "react";
 import { experience } from "@/content/experience";
-import { aiPerspective } from "@/content/aiPerspective";
 
 export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
   return (
@@ -23,7 +22,7 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                     <span key={i}>{part}{i < parts.length - 1 ? "，" : ""}</span>
                   ))}
                 </h2>
-                <div className="career-identity">
+                <div className="career-identity" hidden={!period.years && !period.role}>
                   <p className="career-entry-date">{period.years}</p>
                   <p className="career-affiliation">
                     <span className="career-company">{period.title}</span>{" "}
@@ -38,29 +37,21 @@ export default function ResumeTimeline({ ref }: { ref: Ref<HTMLElement> }) {
                 <div className="career-story">
                   <div className="career-sections">
                     {period.sections.map((section, i) => (
-                      <section className="career-copy-section" key={i}>
-                        {section.heading && <h3>{section.heading}</h3>}
+                      <section className={`career-copy-section${section.project ? " career-project-section" : ""}`} key={i}>
+                        {section.heading && (
+                          <h3 className={section.project ? "career-project-heading" : undefined}>
+                            <span>{section.heading}</span>
+                            {section.project && (
+                              <a className="career-project" href={section.project.href} target="_blank" rel="noopener noreferrer">{section.project.label}</a>
+                            )}
+                          </h3>
+                        )}
                         {section.paragraphs.map((paragraph, j) => (
                           <p key={j} className={`career-paragraph${/^\d+\.\s/.test(paragraph) ? " career-paragraph--numbered" : ""}`}>{paragraph}</p>
                         ))}
                       </section>
                     ))}
                   </div>
-                  {"projects" in period && (
-                    <div className="career-projects">
-                      {period.projects.map(project => (
-                        <a className="career-project" key={project.href} href={project.href} target="_blank" rel="noopener noreferrer">{project.label}</a>
-                      ))}
-                    </div>
-                  )}
-                  {period.id === "ai-finance-venture" && (
-                    <section className="career-copy-section career-reflection" aria-labelledby="ai-perspective-title">
-                      <h3 id="ai-perspective-title">{aiPerspective.title}</h3>
-                      {aiPerspective.paragraphs.map(paragraph => (
-                        <p className="career-paragraph career-reflection-paragraph" key={paragraph}>{paragraph}</p>
-                      ))}
-                    </section>
-                  )}
                 </div>
               </div>
             </div>

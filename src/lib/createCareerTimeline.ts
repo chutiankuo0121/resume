@@ -26,7 +26,8 @@ export function createCareerTimeline(root: HTMLElement) {
     const measurements = headers.map(({ layout, headline, identity }) => {
       // Measure untransformed text, including real wrapping after fonts/viewport changes.
       const titleHeight = headline.offsetHeight * compactSize / parseFloat(getComputedStyle(headline).fontSize);
-      const contentHeight = mobile ? titleHeight + 12 + identity.offsetHeight : Math.max(titleHeight, identity.offsetHeight);
+      const identityHeight = identity.offsetHeight;
+      const contentHeight = mobile && identityHeight ? titleHeight + 12 + identityHeight : Math.max(titleHeight, identityHeight);
       const height = Math.ceil(8 + contentHeight + 8 + 1);
       const titleY = mobile ? 0 : height - 9 - titleHeight - headline.offsetTop;
       return { layout, height, titleY };

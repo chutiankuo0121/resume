@@ -14,7 +14,8 @@
   position: relative;
   isolation: isolate;
   z-index: 1;
-  margin-top: -100svh;
+  /* 与破洞后半程重叠，标题、吸顶和正文沿同一文档位置提前推进。 */
+  margin-top: calc(-100svh - var(--opening-scroll-unit) * var(--career-entry-overlap));
   background: var(--career-paper);
   color: var(--career-ink);
   color-scheme: light;
@@ -115,15 +116,15 @@
 .career-description { margin: 0 0 56px; font: 400 22px/1.85 var(--font-body); text-wrap: pretty; }
 .career-copy-section + .career-copy-section { margin-top: 56px; }
 .career-copy-section h3 { margin: 0 0 24px; font: 400 20px/1.7 var(--font-heading); text-wrap: pretty; }
+.career-copy-section .career-project-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 28px; font-size: clamp(26px, 2.4vw, 32px); line-height: 1.45; }
+.career-copy-section + .career-project-section { padding-top: 36px; border-top: 1px solid var(--career-ink); }
+.career-project-heading .career-project { flex: 0 0 auto; white-space: nowrap; }
 .career-paragraph { margin: 0; color: #202020; font: 400 17px/1.95 var(--font-body); text-align: left; overflow-wrap: anywhere; }
 .career-paragraph + .career-paragraph { margin-top: 24px; }
 .career-paragraph--numbered { padding-left: 1.45em; text-indent: -1.45em; }
-.career-projects { display: flex; flex-wrap: wrap; gap: 20px 32px; margin-top: 40px; }
 .career-project { color: var(--career-ink); font: 14px/1.8 var(--font-body); text-underline-offset: 7px; }
 .career-project:hover { text-decoration-thickness: 2px; }
 .career-project:focus-visible { outline: 1px solid currentColor; outline-offset: 6px; }
-.career-reflection { margin-top: clamp(64px, 10svh, 104px); padding-top: 32px; border-top: 1px solid #111; }
-.career-reflection h3 { margin-bottom: 32px; }
 /* Freeze the compact sticky header with the outgoing chapter, preserving its flow space. */
 .career-layout.chapter-held::before { content: ""; display: block; height: var(--career-header-height); }
 .career-layout.chapter-held .career-intro { position: absolute; inset-inline: 0; top: var(--career-held-header-top); }
@@ -153,6 +154,8 @@
   .career-description { font-size: 18px; margin-bottom: 40px; }
   .career-copy-section + .career-copy-section { margin-top: 40px; }
   .career-copy-section h3 { font-size: 18px; margin-bottom: 20px; }
+  .career-copy-section .career-project-heading { font-size: 23px; }
+  .career-copy-section + .career-project-section { padding-top: 28px; }
   .career-paragraph { font-size: 16px; line-height: 1.9; }
 }
 @media (prefers-reduced-motion: reduce) {

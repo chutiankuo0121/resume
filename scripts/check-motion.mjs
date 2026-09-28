@@ -13,6 +13,7 @@ require.extensions[".ts"] = (module, filename) => {
 const { createInkBoundary } = require("../src/lib/hub/createInkBoundary.ts");
 const { createPortalContour } = require("../src/lib/chapters/portalContour.ts");
 const { createColorLens } = require("../src/lib/hub/createColorLens.ts");
+const { createPointerInput } = require("../src/lib/createPointerInput.ts");
 globalThis.devicePixelRatio = 1;
 const polygon = clip => [...clip.matchAll(/(-?[\d.]+)px (-?[\d.]+)px/g)].map(m => [Number(m[1]), Number(m[2])]);
 const area = p => Math.abs(p.reduce((sum, a, i) => {
@@ -91,4 +92,28 @@ state.expansion = 1;
 lens.update(1 / 60);
 assert.equal(state.colorLens.strength, 0);
 lens.dispose();
+
+// The opening and skills scenes share this input path: coalesce bursts and
+// invalidate coordinates after nested scroll, resize, leave and re-entry.
+let inputReads = 0;
+let bounds = { left: 20, top: 40, width: 1000, height: 600 };
+const input = createPointerInput({ getBoundingClientRect() { inputReads++; return bounds; } });
+for (let i = 0; i < 100; i++) input.move(421 + i, 340);
+assert.equal(inputReads, 0, "Input bursts must not force layout.");
+assert.deepEqual(input.sample(), { x: 0, y: 0 });
+for (let i = 0; i < 90; i++) { input.move(520, 340); input.sample(); }
+assert.equal(inputReads, 1, "Unchanged geometry is measured once, not every frame.");
+bounds = { ...bounds, left: 120, top: 140 };
+window.dispatchEvent(new Event("scroll"));
+const shifted = input.sample();
+assert.ok(Math.abs(shifted.x + .2) < 1e-9 && Math.abs(shifted.y + 1 / 3) < 1e-9);
+assert.equal(inputReads, 2);
+input.clear();
+window.dispatchEvent(new Event("resize"));
+assert.equal(input.sample(), null);
+assert.equal(inputReads, 2, "Inactive scenes do not measure the pointer.");
+input.move(620, 440);
+assert.deepEqual(input.sample(), { x: 0, y: 0 });
+assert.equal(inputReads, 3);
+input.dispose();
 console.log("Motion checks passed: desktop/mobile seams, exact forward/reverse portal, hit coverage, fullscreen reset, cached geometry and pointer layout reads.");

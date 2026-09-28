@@ -175,15 +175,12 @@ body:has(.hub-stage[data-lens-active="true"]) > .mouse-dot { visibility: hidden;
   left: 34px;
   visibility: hidden;
   opacity: 0;
+  mix-blend-mode: difference;
 }
 .hub-stage.is-open .hub-choices {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-}
-.hub-stage.is-open .hub-back {
-  visibility: visible;
-  opacity: 1;
 }
 .hub-stage:not(.is-open) .skills-index {
   visibility: hidden;

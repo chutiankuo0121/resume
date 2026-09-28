@@ -3,159 +3,63 @@ import { assetUrl } from "@/lib/assetUrl";
 /** 暗部、主色、高光共同决定卡片与空间的色调。 */
 export type SkillPalette = { shadow: string; tone: string; light: string };
 
-/** 技能按应用能力组织；作品 ID 关联案例，经历 ID 补充尚无公开媒体的实践。 */
+/** 技能按应用能力组织，详情与来源在 skillGuides 中维护。 */
 export type Skill = {
-  id: string;
-  family: string;
+  id: "generative-media" | "voice" | "agent-workflows" | "vibe-coding" | "product-development" | "cloudflare";
   title: string;
   description: string;
   image: string;
   alt: string;
   palette: SkillPalette;
-  tools: string[];
-  works: string[];
-  experiences: string[];
 };
 
 export const skills: Skill[] = [
   {
-    id: "generative-media",
-    family: "01 / GENERATIVE MEDIA",
-    title: "图像与视频",
-    description: "使用 ComfyUI 与生成式 AI 工具进行图像、视频创作，组合提示词、模型与处理节点，搭建适合内容生产的工作流。将生成环节与素材管理、视频处理连接起来。",
-    image: assetUrl("/skills/comfyui.webp"),
-    alt: "冰蓝色厚涂质感的 ComfyUI 图形",
-    palette: { shadow: "#070e29", tone: "#3977ce", light: "#c5eaff" },
-    tools: [
-      "ComfyUI",
-      "Stable Diffusion",
-      "可灵",
-      "即梦",
-      "FFmpeg"
-    ],
-    works: [],
-    experiences: [
-      "creative-automation"
-    ]
-  },
-  {
-    id: "voice",
-    family: "02 / VOICE SYSTEMS",
-    title: "语音应用",
-    description: "应用 Whisper 等语音识别模型，搭建 TTS 推理服务。将模型与 Web API、任务队列和对象存储连接，处理语音任务的提交、调度与音频交付。",
-    image: assetUrl("/skills/voice.webp"),
-    alt: "紫色光雾中的乐谱与音符",
-    palette: { shadow: "#160b2d", tone: "#9063ca", light: "#ebd6ff" },
-    tools: [
-      "ASR / TTS",
-      "Whisper",
-      "Go",
-      "Python",
-      "RabbitMQ",
-      "OSS"
-    ],
-    works: [],
-    experiences: [
-      "ai-product"
-    ]
-  },
-  {
-    id: "agent-workflows",
-    family: "03 / CONNECTED WORKFLOWS",
-    title: "智能体与自动化",
-    description: "通过模型 API、Dify、扣子和 n8n 组织任务流程，配合 Python 与浏览器自动化，连接内容生成、数据采集和业务操作。将重复步骤沉淀为可复用的工作流。",
-    image: assetUrl("/skills/n8n.webp"),
-    alt: "珊瑚色厚涂质感的 n8n 节点图形",
-    palette: { shadow: "#290d18", tone: "#dc6866", light: "#ffe0c5" },
-    tools: [
-      "Dify",
-      "扣子",
-      "n8n",
-      "Playwright",
-      "Selenium",
-      "模型 API"
-    ],
-    works: [],
-    experiences: [
-      "creative-automation",
-      "ai-product"
-    ]
-  },
-  {
-    id: "python",
-    family: "04 / PYTHON ENGINEERING",
-    title: "Python 工程",
-    description: "使用 Python 开发 API、数据管线和量化交易服务。在多资产组合中完成策略计算与历史回放，在 TrendML 中实现异步交易链路、SQLite 事务账本、增量状态与异常恢复。",
+    id: "vibe-coding",
+    title: "Vibe Coding",
+    description: "让想法在对话中成为可以使用的产品。通过自然语言、参考图与即时反馈引导 AI 编写和修改代码，边预览、边试用、边迭代；结合 Codex、Claude Code、Cursor 与应用生成平台，将需求、设计、前后端和数据库串联起来，再完成调试验证与上线交付。",
     image: assetUrl("/skills/python.webp"),
     alt: "蓝金色 Python 图形悬浮于薄雾中",
     palette: { shadow: "#0a1b32", tone: "#438eac", light: "#ffe3a2" },
-    tools: [
-      "FastAPI",
-      "Pandas",
-      "NumPy",
-      "asyncio",
-      "SQLite",
-      "OpenPyXL",
-      "PyQt",
-      "FFmpeg"
-    ],
-    works: ["multi-asset-portfolio", "trendml"],
-    experiences: [
-      "data-automation",
-      "ai-finance-venture"
-    ]
   },
   {
-    id: "product-development",
-    family: "05 / PRODUCT DEVELOPMENT",
-    title: "产品与应用",
-    description: "从需求梳理与原型设计开始，使用 React、Next.js 和 TypeScript 完成界面与服务联调。通过 ECharts 展示投资净值、绩效归因与风险，结合 WebSocket 提供实时持仓，让策略与交易结果可查询、可解释。",
-    image: assetUrl("/skills/figma.webp"),
-    alt: "青绿色磨砂质感的 Figma 图形",
-    palette: { shadow: "#071e1c", tone: "#319e88", light: "#cef4d8" },
-    tools: [
-      "PRD",
-      "Figma",
-      "React",
-      "Next.js",
-      "TypeScript",
-      "ECharts",
-      "Tauri"
-    ],
-    works: [
-      "astra",
-      "multi-asset-portfolio",
-      "trendml"
-    ],
-    experiences: [
-      "ai-product",
-      "ai-finance-venture"
-    ]
+    id: "agent-workflows",
+    title: "智能体与自动化",
+    description: "使用 Codex、Claude Code、Cursor 组织代码理解、开发与验证；通过 Skills、MCP 和工作流连接模型与业务工具。结合影刀 RPA、n8n、Dify、脚本及浏览器自动化，把重复操作整理为可复用、可追踪、可恢复的流程。",
+    image: "/skills/openai-agents.webp",
+    alt: "珊瑚红光晕中的暖白陶瓷 OpenAI 标志",
+    palette: { shadow: "#290d18", tone: "#dc6866", light: "#ffe0c5" },
   },
   {
     id: "cloudflare",
-    family: "06 / DELIVERY & INFRASTRUCTURE",
     title: "部署与交付",
-    description: "使用 Cloudflare Workers 交付前端与同源 API 网关，以 Vercel、Supabase 和 Turso 承接云端数据链路。为 TrendML 建立 Linux / systemd 七服务部署、分层健康检查、数据校验与回滚流程。",
+    description: "将网站、API、数据库和后台任务交付为持续运行的服务。结合 Cloudflare、Vercel、GitHub、Linux 与容器工具，组织环境、发布、监控、备份和故障恢复，让每次迭代都可以验证、追踪和回退。",
     image: assetUrl("/skills/cloudflare.webp"),
     alt: "由琥珀色光雾构成的 Cloudflare 图形",
     palette: { shadow: "#281207", tone: "#d67c32", light: "#ffe8b9" },
-    tools: [
-      "Docker",
-      "Linux / systemd",
-      "Cloudflare Workers",
-      "Vercel",
-      "Supabase",
-      "Turso",
-      "D1 / R2",
-      "Redis",
-      "MySQL",
-      "RabbitMQ"
-    ],
-    works: ["multi-asset-portfolio", "trendml"],
-    experiences: [
-      "ai-product",
-      "ai-finance-venture"
-    ]
+  },
+  {
+    id: "product-development",
+    title: "产品设计",
+    description: "从用户任务、信息架构和交互流程出发，结合 Google Stitch、Figma、Figma Make 与 Spline 探索产品方案。将 AI 生成、设计系统、可运行原型和工程交付连接起来，兼顾视觉表达、真实内容、响应式和使用体验。",
+    image: assetUrl("/skills/figma.webp"),
+    alt: "青绿色磨砂质感的 Figma 图形",
+    palette: { shadow: "#071e1c", tone: "#319e88", light: "#cef4d8" },
+  },
+  {
+    id: "generative-media",
+    title: "AI 图片与视频",
+    description: "熟悉生成式图像与视频从策划、脚本、视觉设定到生成、剪辑和交付的完整流程。根据电商、短剧、漫剧、品牌与知识内容的不同需求，组合模型、无限画布和 Agent Skills，将创作方法沉淀为可复用的工作流。",
+    image: assetUrl("/skills/comfyui.webp"),
+    alt: "冰蓝色厚涂质感的 ComfyUI 图形",
+    palette: { shadow: "#070e29", tone: "#3977ce", light: "#c5eaff" },
+  },
+  {
+    id: "voice",
+    title: "AI 语音应用",
+    description: "将 AI 音乐、文字转语音、语音转文字、角色配音、译配与实时对话连接到同一套音频工作流。根据短剧、漫剧、广告、课程与交互产品的需要，完成从脚本、声音设计到字幕、混音和交付的制作，也能将模型封装为可调用的语音服务。",
+    image: assetUrl("/skills/voice.webp"),
+    alt: "紫色光雾中的乐谱与音符",
+    palette: { shadow: "#160b2d", tone: "#9063ca", light: "#ebd6ff" },
   }
 ];
