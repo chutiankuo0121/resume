@@ -297,7 +297,6 @@ export class EnemyManager {
     this.ctx.effects.blood(info.point || e.center, dir, amt, { ink: e.T.ink === INK.BLACK ? INK.BLACK : INK.RED });
     if (info.crit) audio.headshot(e.center); else audio.hitEnemy(e.center);
     this.ctx.hud.hitmarker(e.hp <= 0, info.crit);
-    if (info.source !== 'deflect') this.ctx.input.rumble(0.1, 0.3, 30);
     if (e.state === 'spawn') { e.state = 'hunt'; e.root.scale.setScalar(e.T.scale); }
     if (e.T.boss && this.onBoss) this.onBoss(e);
     if (e.hp <= 0) { this.ctx.game.hitstop(info.crit ? 0.05 : 0.025, 0.25); this.kill(e, info); }

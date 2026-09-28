@@ -25,7 +25,7 @@ export class HUD {
       <div class="screen" id="screen"><div class="panel" id="panel"></div></div>`;
     const q = (id) => root.querySelector('#' + id);
     this.el = { crosshair: q('crosshair'), gret: q('gret'), hitmarker: q('hitmarker'), dmg: q('dmg'), score: q('score'), combo: q('combo'), wave: q('wave'), modifier: q('modifier'), left: q('left'), timer: q('timer'), hpfill: q('hpfill'), hpnum: q('hpnum'), mag: q('mag'), reserve: q('reserve'), reloading: q('reloading'), tally: q('tally'), weapon: q('weapon'), hint: q('hint'), slots: q('slots'), tip: q('tip'), msg: q('msg'), msgsub: q('msgsub'), killfeed: q('killfeed'), screen: q('screen'), panel: q('panel'), nades: q('nades'), scope: q('scope'), focusmark: q('focusmark'), focusmeter: q('focusmeter'), fmfill: q('fmfill'), bossbar: q('bossbar'), bossname: q('bossname'), bossfill: q('bossfill'), gstam: q('gstam'), gstamfill: q('gstamfill') };
-    this._msgT = 0; this._scope = false; this._nades = -1; this._pad = false; this.onDevice = null; this._fmShow = false; this._fmFrac = -1; this._fmReady = false; this._lastTally = -1; this._lastSlots = ''; this._ads = false; this._mode = ''; this.onScreenClick = null; this._tipT = 0;
+    this._msgT = 0; this._scope = false; this._nades = -1; this._fmShow = false; this._fmFrac = -1; this._fmReady = false; this._lastTally = -1; this._lastSlots = ''; this._ads = false; this._mode = ''; this.onScreenClick = null; this._tipT = 0;
     this.el.screen.addEventListener('click', () => { if (this.onScreenClick) this.onScreenClick(); });
   }
   // katana charge gauge: fills with katana kills, catches fire when a focus slash is ready
@@ -39,9 +39,7 @@ export class HUD {
     if (ready !== this._fmReady) { this._fmReady = ready; m.classList.toggle('ready', ready); }
   }
   setGrenades(n) { if (n === this._nades) return; this._nades = n; let h = ''; for (let i = 0; i < n; i++) h += '<i></i>'; this.el.nades.innerHTML = h; }
-  // control labels follow whatever you touched last
-  setDevice(pad) { if (pad === this._pad) return; this._pad = pad; this.root.classList.toggle('pad', pad); if (this.onDevice) this.onDevice(pad); }
-  key(action) { return (this._pad ? PAD_KEYS : KB_KEYS)[action] || action; }
+  key(action) { return KB_KEYS[action] || action; }
   setScope(on) { if (on === this._scope) return; this._scope = on; this.el.scope.classList.toggle('on', on); }
   setFocusMark(x, y) {
     const m = this.el.focusmark;
@@ -88,10 +86,9 @@ export class HUD {
 }
 
 export const KB_KEYS = { fire: 'LMB', aim: 'RMB', block: 'RMB', jump: 'Space', sprint: 'Shift', slide: 'C', dash: 'C', grapple: 'Q', melee: 'F', reload: 'R', grenade: 'G', focus: '左右键同按（或 X）', next: '滚轮', pause: 'Esc', confirm: 'Space' };
-export const PAD_KEYS = { fire: 'R2', aim: 'L2', block: 'L2', jump: '✕', sprint: 'L3', slide: '○', dash: '○', grapple: 'L1', melee: 'R1', reload: '□', grenade: 'R3', focus: 'L2 + R2', next: '△', pause: 'Options', confirm: '✕' };
 export const CONTROLS_HTML = `
-<div class="cols">
-  <div><div class="colhead">鼠标 + 键盘</div>
+<div class="controls">
+    <div class="colhead">鼠标 + 键盘</div>
     <div><b>WASD</b> 移动 &nbsp; <b>鼠标</b> 视角 &nbsp; <b>Shift</b> 疾跑</div>
     <div><b>LMB</b> 开火 / 挥砍 &nbsp; <b>RMB</b> 开镜瞄准 / 格挡</div>
     <div><b>Space</b> 跳跃（在墙上再按 = 蹬墙跳）</div>
@@ -103,16 +100,4 @@ export const CONTROLS_HTML = `
     <div><b>Esc</b> 暂停</div>
     <div><b>左右键同按</b> 能量满后施展冲刺斩</div>
     <div><b>1-4 / 滚轮</b> 步枪 · 霰弹枪 · 狙击枪 · 太刀</div>
-  </div>
-  <div><div class="colhead">PS5 手柄</div>
-    <div><b>左摇杆</b> 移动 &nbsp; <b>右摇杆</b> 视角 &nbsp; <b>L3</b> 疾跑</div>
-    <div><b>R2</b> 开火 / 挥砍 &nbsp; <b>L2</b> 瞄准 / 格挡</div>
-    <div><b>✕</b> 跳跃 &nbsp; <b>○</b> 滑铲 · 空中冲刺</div>
-    <div><b>L1</b> 抓钩（长按收绳，✕ 起飞）</div>
-    <div><b>L2 + R2</b> 太刀能量满后施展冲刺斩</div>
-    <div><b>R1</b> 太刀快速挥砍，随后自动切回枪械</div>
-    <div><b>□</b> 换弹 &nbsp; <b>△</b> 下一把武器</div>
-    <div><b>R3 / 十字键上</b> 手雷 · 按住可扔得更远</div>
-    <div><b>Options</b> 暂停</div>
-  </div>
 </div>`;

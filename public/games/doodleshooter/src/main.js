@@ -36,7 +36,7 @@ let musicWanted = localStorage.getItem('doodle_music') !== '0';
 let checkpoint = Number(localStorage.getItem('doodle_checkpoint') || 0);
 const settings = { sens: Number(localStorage.getItem('doodle_sens') || 100), invert: localStorage.getItem('doodle_invert') === '1' };
 function applySettings() {
-  input.mouseSens = 0.0022 * settings.sens / 100; input.padSensX = 3.4 * settings.sens / 100; input.padSensY = 2.6 * settings.sens / 100; input.invertY = settings.invert;
+  input.mouseSens = 0.0022 * settings.sens / 100; input.invertY = settings.invert;
   localStorage.setItem('doodle_sens', String(settings.sens)); localStorage.setItem('doodle_invert', settings.invert ? '1' : '0');
 }
 // 战斗状态与计分。
@@ -213,7 +213,7 @@ function enterFocus() {
   if (fresh) { audio.focusIn(); hud.tip(`<b>斩击就绪</b> · 按住 ${hud.key('focus')} 冲刺`, 2.2); }
 }
 function endFocus() { if (!game.focus.active && !game.focus.dash) return; game.focus.active = false; game.focus.target = null; game.focus.chain = 0; game.focus.dash = null; game.katanaStreak = 0; player.dashLock = false; hud.setFocusMark(null); }
-function startFocusDash(target) { game.focus.dash = { target, t: 0, trail: player.center.clone(), lastTrail: 0 }; player.dashLock = true; player.body.vel.set(0, 0, 0); audio.dash(); player.kickFov(5); input.rumble(0.5, 0.4, 120); hud.setFocusMark(null); }
+function startFocusDash(target) { game.focus.dash = { target, t: 0, trail: player.center.clone(), lastTrail: 0 }; player.dashLock = true; player.body.vel.set(0, 0, 0); audio.dash(); player.kickFov(5); hud.setFocusMark(null); }
 function marchBody(b, nx, nz, dist) {
   let moved = 0;
   for (let step = Math.min(0.22, dist); moved + 1e-4 < dist;) { const s2 = Math.min(step, dist - moved); b.pos.x += nx * s2; b.pos.z += nz * s2; if (world.overlapsBody(b)) { b.pos.y += 0.65; if (world.overlapsBody(b)) { b.pos.y -= 0.65; b.pos.x -= nx * s2; b.pos.z -= nz * s2; return moved; } } moved += s2; }
@@ -240,7 +240,7 @@ function focusExecute(target) {
   player.weapons[player.katanaIndex].startSlash(player._weaponState(false, false, 0));
   _fv.subVectors(target.center, player.eye); const dir = _fv.clone().normalize(); const chainBefore = game.focus.chain;
   enemies.damage(target, 100000, { point: target.center.clone(), dir, part: 'head', source: 'focus', crit: true });
-  audio.focusSlash(); game.hitstop(0.1, 0.08); effects.shakeAmt += 0.35; input.rumble(0.9, 0.7, 140); player.kickFov(6); player.hp = Math.min(player.maxHp, player.hp + 6);
+  audio.focusSlash(); game.hitstop(0.1, 0.08); effects.shakeAmt += 0.35; player.kickFov(6); player.hp = Math.min(player.maxHp, player.hp + 6);
   if (game.focus.chain === chainBefore) game.focus.t = Math.min(game.focus.t, 0.35);
   game.focus.target = null; hud.setFocusMark(null);
 }
@@ -322,7 +322,7 @@ function resetGame() {
 function begin() {
   audio.init(); audio.resume();
   if (game.state === 'start' || game.state === 'dead') { resetGame(); startWave(1); }
-  if (!input.usingGamepad) input.requestLock();
+  input.requestLock();
   if (musicWanted && !audio.musicPlaying) audio.musicOn(true);
   hud.hideScreen(); hud.setGameplayVisible(true); game.state = 'play';
 }
@@ -335,25 +335,24 @@ hud.onScreenClick = () => {
   if (['start', 'pause', 'dead'].includes(game.state)) begin();
 };
 canvas.addEventListener('click', () => {
-  if (game.state === 'play' && !input.pointerLocked && !input.usingGamepad) input.requestLock();
+  if (game.state === 'play' && !input.pointerLocked) input.requestLock();
 });
-input.onLockChange = (locked) => { if (!locked && !input.usingGamepad) pause(); };
-input.onDeviceChange = (pad) => { hud.setDevice(pad); hud.setWeapon(player.weapon.name, player.weapon.hint); };
+input.onLockChange = (locked) => { if (!locked) pause(); };
 // 浏览器要求用手势开启声音；返回暂停画面后由下一次点击恢复。
 for (const event of ['pointerdown', 'keydown']) window.addEventListener(event, () => { audio.init(); audio.resume(); }, { passive: true });
-hud.setDevice(input.usingGamepad); applySettings(); hud.setWeapon(player.weapon.name, player.weapon.hint); showStart();
+applySettings(); hud.setWeapon(player.weapon.name, player.weapon.hint); showStart();
 
 let last = performance.now(), lockTipT = 0.5, musicHealT = 2, frame;
 function tick(now) { frame = requestAnimationFrame(tick); step(now); }
 function step(now) {
   // 切回标签页时限制时间步长，避免物理和武器弹簧因长间隔突然跳动。
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  input.update(dt);
+  input.update();
   if (game.state === 'play' && input.pressed('pause')) { pause(); input.exitLock(); }
   else if (['start', 'pause', 'dead'].includes(game.state) && (input.pressed('jump') || input.pressed('confirm') || (game.state === 'pause' && input.pressed('pause')))) begin();
   if (input.pressed('music')) { musicWanted = !musicWanted; localStorage.setItem('doodle_music', musicWanted ? '1' : '0'); audio.musicOn(musicWanted); hud.tip(musicWanted ? '音乐已开启' : '音乐已关闭', 1.5); }
   const st = game.state, playing = st === 'play' || st === 'dying';
-  if (st === 'play' && !input.pointerLocked && !input.usingGamepad) { lockTipT -= dt; if (lockTipT <= 0) { lockTipT = 2.5; hud.tip('点击画面以锁定鼠标', 2); } }
+  if (st === 'play' && !input.pointerLocked) { lockTipT -= dt; if (lockTipT <= 0) { lockTipT = 2.5; hud.tip('点击画面以锁定鼠标', 2); } }
   let scale = 1;
   if (game.hitstopT > 0) { game.hitstopT -= dt; scale = game.hitstopScale; }
   else if (game.focus.active) scale = FOCUS_SCALE;
