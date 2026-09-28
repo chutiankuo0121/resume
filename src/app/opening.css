@@ -39,13 +39,14 @@
 }
 .opening-chinese, .opening-translation {
   /* 以两种语言中较宽的一行为准，共用字号，始终各占一行。 */
-  font-size: min(var(--opening-size), calc(100cqw * var(--opening-line-width, 1) / var(--opening-line-em)));
+  font-size: calc(min(var(--opening-size), calc(100cqw * var(--opening-line-width, 1) / var(--opening-line-em))) * var(--opening-scale, 1));
   font-weight: 400;
   line-height: 1.35;
   white-space: nowrap;
 }
 /* 两行中文从左向右错位铺开，整组在晶体画面中垂直居中。 */
 .opening-beat[data-world="crystal"] {
+  --opening-scale: .8;
   --opening-size: clamp(72px, 9.8vw, 160px);
   --opening-line-width: calc(11 / 12);
   width: min(1960px, calc(100% - 96px));
