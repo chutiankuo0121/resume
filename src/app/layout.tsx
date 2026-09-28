@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { profile } from "@/content/profile";
-import { assetUrl, ASSET_ORIGIN } from "@/lib/assetUrl";
+import { ASSET_ORIGIN } from "@/lib/assetUrl";
 import fonts from "@/content/fonts.generated.json";
 import MouseDot from "@/components/MouseDot";
+import AnimatedTabTitle from "@/components/AnimatedTabTitle";
 import "./globals.css";
 import "./buttons.css";
 import "./cursor.css";
@@ -20,9 +21,8 @@ import "./contact.css";
 import "@/components/sound/sound.css";
 
 export const metadata: Metadata = {
-  title: `${profile.name} · ${profile.englishName} | AI 应用开发与作品集`,
+  title: `${profile.name} · ${profile.englishName}`,
   description: profile.introduction,
-  icons: { icon: assetUrl("/site-icon.svg") },
 };
 
 export default function RootLayout({
@@ -40,6 +40,7 @@ export default function RootLayout({
       <body>
         {children}
         <MouseDot />
+        <AnimatedTabTitle />
       </body>
     </html>
   );

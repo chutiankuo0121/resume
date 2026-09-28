@@ -20,6 +20,7 @@ Thumbs.db
 *.gif
 *.svg
 *.ico
+!/src/app/favicon.ico
 *.bmp
 *.tif
 *.tiff
