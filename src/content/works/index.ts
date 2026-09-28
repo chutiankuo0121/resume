@@ -3,9 +3,6 @@ import type { Work } from "./types";
 import { assetUrl } from "@/lib/assetUrl";
 export { workKinds } from "./types";
 export type { Work, WorkKind, GameWork, AudioWork, ProjectWork } from "./types";
-import astra from "./astra";
-import multiAssetPortfolio from "./multi-asset-portfolio";
-import trendml from "./trendml";
 import doodleshooter from "./doodleshooter";
 import ooqo from "./ooqo";
 import bruno from "./bruno";
@@ -177,8 +174,6 @@ import minimaxYouthUprising from "./minimax-youth-uprising";
 import minimaxVelvetTones from "./minimax-velvet-tones";
 
 const records: Work[] = [
-  multiAssetPortfolio,
-  trendml,
   sunoDancingWithMyEyesClosed,
   sunoANewWorld,
   sunoStayOrLeave,
@@ -196,7 +191,6 @@ const records: Work[] = [
   minimaxYouthUprising,
   minimaxVelvetTones,
 
-  astra,
   doodleshooter,
   ooqo,
   bruno,
