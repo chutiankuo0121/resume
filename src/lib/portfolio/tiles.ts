@@ -1,16 +1,14 @@
 import * as THREE from "three";
 import type { WorkSummary, PortfolioMedia } from "@/content/works/gallery";
-import { GRID, contain, type PortfolioLayout, type Rect } from "./layout";
+import { GRID, type PortfolioLayout, type Rect } from "./layout";
 import { gridFragment, tileFragment, tileVertex } from "./shaders";
 import { createAudioTile, audioFragment } from "./audioTile";
 import { mediaSeed } from "./order";
-import { canvasFont } from "../typography";
 
 export type Tile = {
   mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
-  work: WorkSummary | null;
+  work: WorkSummary;
   key: string;
-  photo: boolean;
   width: number;
   height: number;
 };
@@ -43,28 +41,11 @@ export function createPortfolioTiles(
     return map;
   }
 
-  function textMap(
-    key: string,
-    width: number,
-    height: number,
-    draw: (ctx: CanvasRenderingContext2D) => void,
-  ) {
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    draw(canvas.getContext("2d")!);
-    const map = new THREE.CanvasTexture(canvas);
-    map.colorSpace = THREE.SRGBColorSpace;
-    textures.set(key, map);
-    return map;
-  }
-
   function add(
     rect: Rect,
     map: THREE.Texture,
     key: string,
-    work: WorkSummary | null,
-    photo: boolean,
+    work: WorkSummary,
     textWidth?: number,
     imageAspect = map.image.width / map.image.height,
   ) {
@@ -83,7 +64,7 @@ export function createPortfolioTiles(
           ),
         },
         uSize: { value: new THREE.Vector2(rect.width, rect.height) },
-        uRadius: { value: photo ? GRID.radius - GRID.inset : 0 },
+        uRadius: { value: GRID.radius - GRID.inset },
         uHover: { value: 0 },
         uTime: { value: 0 },
         uDirection: { value: mediaSeed(key) > 0.5 ? 1 : -1 },
@@ -101,41 +82,11 @@ export function createPortfolioTiles(
       mesh,
       work,
       key,
-      photo,
       width: rect.width,
       height: rect.height,
     };
     tiles.push(tile);
   }
-
-  const title = textMap("title", 1440, 850, (ctx) => {
-    ctx.fillStyle = "#292923";
-    ctx.textAlign = "center";
-    ctx.font = canvasFont("body", 28);
-    ctx.fillText("AI / TOOLS / VISUAL EXPLORATIONS", 720, 125);
-    ctx.font = canvasFont("heading", 154);
-    ctx.fillText("Selected", 720, 335);
-    ctx.font = canvasFont("heading", 206);
-    ctx.fillText("works.", 720, 533);
-    ctx.font = canvasFont("body", 34);
-    ctx.fillText("Ideas, in every direction.", 720, 655);
-    ctx.font = canvasFont("body", 26);
-    ctx.fillText("DRAG TO EXPLORE  /  CLICK TO ENTER", 720, 750);
-  });
-  add(
-    contain(
-      {
-        ...layout.title,
-        width: layout.title.width - 0.5,
-        height: layout.title.height - 0.3,
-      },
-      1440 / 850,
-    ),
-    title,
-    "title",
-    null,
-    false,
-  );
 
   const byKey = new Map(media.map((item) => [item.key, item]));
   for (const placement of layout.items) {
@@ -143,8 +94,8 @@ export function createPortfolioTiles(
     if (item.work.kind === "audio") {
       const audio = createAudioTile(item.work);
       textures.set(item.key, audio.texture);
-      add(placement.media, audio.texture, item.key, item.work, true, audio.textWidth);
-    } else add(placement.media, texture(item), item.key, item.work, true, undefined,
+      add(placement.media, audio.texture, item.key, item.work, audio.textWidth);
+    } else add(placement.media, texture(item), item.key, item.work, undefined,
       item.textureWidth / item.textureHeight);
   }
 
@@ -195,9 +146,9 @@ export function createPortfolioTiles(
   grid.renderOrder = -1;
   grid.position.z = -0.001;
   template.add(grid);
-  const audioTiles = tiles.filter(tile => tile.work?.kind === "audio");
+  const audioTiles = tiles.filter(tile => tile.work.kind === "audio");
   const byWork = new Map<string, Tile[]>();
-  for (const tile of tiles) if (tile.work) {
+  for (const tile of tiles) {
     const group = byWork.get(tile.work.id) ?? [];
     group.push(tile);
     byWork.set(tile.work.id, group);

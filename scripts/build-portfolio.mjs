@@ -28,6 +28,8 @@ const media = works.flatMap(work => [...new Set([
 }));
 const start = performance.now();
 const layout = createPortfolioLayout(media);
+if (layout.cells.length !== media.length || layout.items.length !== media.length)
+  throw new Error("作品布局必须全部由作品填满，不能保留空白占位");
 for (const { media: rect, key } of layout.items)
   if (![rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) || rect.width <= 0 || rect.height <= 0)
     throw new Error(`作品矩形无效：${key}`);

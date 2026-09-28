@@ -86,13 +86,13 @@ function partition(cards: MosaicCard[], box: Rect) {
 }
 
 /** 分区完成后交换更合适的封面位置，优先匹配画幅，同时保留大小节奏。 */
-function fitCards(cards: MosaicCard[], placements: Map<string, Rect>, title: Rect) {
+function fitCards(cards: MosaicCard[], placements: Map<string, Rect>) {
   const cost = (card: MosaicCard, rect: Rect) => !fits(card, rect.width, rect.height) ? Infinity :
     Math.log(rect.width / rect.height / (card.width / card.height)) ** 2 +
     0.15 * Math.log(rect.width * rect.height / (card.width * card.height)) ** 2;
   const featured = cards.filter(card => card.nearCenter);
-  const distance = (rect: Rect) => Math.hypot(rect.x - title.x, rect.y - title.y);
-  // 游戏优先放进离标题最近的一圈格子，并在其中匹配横竖画幅。
+  const distance = (rect: Rect) => Math.hypot(rect.x, rect.y);
+  // 游戏优先放进初始视野附近的格子，并在其中匹配横竖画幅。
   // 只交换现成矩形的内容，不挪格线、不补空白；其余素材继续参与全局画幅匹配。
   const nearby = [...placements.values()].sort((a, b) => distance(a) - distance(b))
     .slice(0, Math.max(6, featured.length * 2));
@@ -129,46 +129,24 @@ function fitCards(cards: MosaicCard[], placements: Map<string, Rect>, title: Rec
   return placements;
 }
 
-export function arrangeMosaic(cards: MosaicCard[], title: Rect) {
-  const area = cards.reduce((sum, card) => sum + card.width * card.height, title.width * title.height);
+export function arrangeMosaic(cards: MosaicCard[]) {
+  if (!cards.length) throw new Error("Portfolio needs at least one work");
+  const area = cards.reduce((sum, card) => sum + card.width * card.height, 0);
   let width = Math.max(8, Math.sqrt(area * 1.12));
   let height = Math.max(7, area / width);
   for (;;) {
-    if (cards.length < 4) {
-      const titleKey = "\u0000title";
-      const plan = partition([{ key: titleKey, width: title.width, height: title.height }, ...cards],
-        { x: 0, y: 0, width, height });
-      if (Number.isFinite(plan.score)) {
-        Object.assign(title, plan.placements.get(titleKey));
-        plan.placements.delete(titleKey);
-        return { width, height, placements: fitCards(cards, plan.placements, title) };
-      }
-    } else {
-      // 四块区域环绕标题接成风车，主接缝错开，避免整屏贯通的行列。
-      const x = title.width / 2, y = title.height / 2;
-      const left = -width / 2, bottom = -height / 2;
-      const boxes: Rect[] = [
-        { x: (left + x) / 2, y: (y + height / 2) / 2, width: x - left, height: height / 2 - y },
-        { x: (x + width / 2) / 2, y: (-y + height / 2) / 2, width: width / 2 - x, height: height / 2 + y },
-        { x: (-x + width / 2) / 2, y: (bottom - y) / 2, width: width / 2 + x, height: -y - bottom },
-        { x: (left - x) / 2, y: (bottom + y) / 2, width: -x - left, height: y - bottom },
-      ];
-      const plans = boxes.map((box, index) => {
-        const group = cards.filter((_, rank) => rank % 4 === index);
-        let best = partition(group, box);
-        // 大集合减少候选排列，避免新增大量影片后初始化卡顿；画幅仍由后续交换匹配。
-        const trials = group.length > 24 ? 3 : 8;
-        for (let trial = 0; trial < trials; trial++) {
-          const shuffled = [...group].sort((a, b) =>
-            mediaSeed(`${a.key}:fit:${trial}`) - mediaSeed(`${b.key}:fit:${trial}`));
-          const next = partition(shuffled, box);
-          if (next.score < best.score) best = next;
-        }
-        return best;
-      });
-      if (plans.every(plan => Number.isFinite(plan.score)))
-        return { width, height, placements: fitCards(cards, new Map(plans.flatMap(plan => [...plan.placements])), title) };
+    // 全部作品共同覆盖整个周期，中心也参与分区，不再预留文字格。
+    const box = { x: 0, y: 0, width, height };
+    let best = partition(cards, box);
+    const trials = cards.length > 24 ? 3 : 8;
+    for (let trial = 0; trial < trials; trial++) {
+      const shuffled = [...cards].sort((a, b) =>
+        mediaSeed(`${a.key}:fit:${trial}`) - mediaSeed(`${b.key}:fit:${trial}`));
+      const next = partition(shuffled, box);
+      if (next.score < best.score) best = next;
     }
+    if (Number.isFinite(best.score))
+      return { width, height, placements: fitCards(cards, best.placements) };
     // 无法同时满足最短边时，扩大满铺周期；绝不靠缩小卡片或增加空白补位。
     width *= 1.06;
     height *= 1.06;

@@ -1,6 +1,6 @@
 import { shuffleMedia, mediaSeed } from "../src/lib/portfolio/order";
 import { arrangeMosaic, type MosaicCard } from "./portfolio-mosaic";
-import { GRID, type Rect, type LayoutMedia, type PortfolioLayout } from "../src/lib/portfolio/layout";
+import { GRID, type LayoutMedia, type PortfolioLayout } from "../src/lib/portfolio/layout";
 
 function card(item: LayoutMedia): MosaicCard {
   const naturalAspect = item.width / item.height;
@@ -21,7 +21,6 @@ function card(item: LayoutMedia): MosaicCard {
 export function createPortfolioLayout(media: LayoutMedia[]): PortfolioLayout {
   if (new Set(media.map((item) => item.key)).size !== media.length)
     throw new Error("Portfolio media keys must be unique");
-  const title: Rect = { x: 0, y: 0, width: 4.8, height: 3 };
   const shuffled = shuffleMedia(media);
   const audio = shuffled.filter(item => item.kind === "audio");
   const cards = shuffled.filter(item => item.kind !== "audio").map(card);
@@ -36,7 +35,7 @@ export function createPortfolioLayout(media: LayoutMedia[]): PortfolioLayout {
     (host.bands ??= []).push({ key: item.key, aspect });
     host.height += host.width / aspect;
   }
-  const { width, height, placements } = arrangeMosaic(cards, title);
+  const { width, height, placements } = arrangeMosaic(cards);
   // 图像与音频先作为一个包络参与拼图，再无损切开。音频保持 3.6–5.2:1，
   // 图像仍有 1.55 的短边下限；共享切口不产生空洞，也不塞入碎小封面。
   for (const host of hosts) {
@@ -51,8 +50,8 @@ export function createPortfolioLayout(media: LayoutMedia[]): PortfolioLayout {
   }
 
   return {
-    width, height, title,
-    cells: [title, ...placements.values()],
+    width, height,
+    cells: [...placements.values()],
     items: media.map((item) => {
       const cell = placements.get(item.key)!;
       return {

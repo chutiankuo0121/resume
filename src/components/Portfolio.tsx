@@ -30,7 +30,7 @@ export default function Portfolio({
         ]);
         const audioTitles = works.filter(work => work.kind === "audio")
           .map(work => work.title).join(" ");
-        await loadTypography(`Selected works. AI / TOOLS / VISUAL EXPLORATIONS ${audioTitles}`);
+        await loadTypography(audioTitles);
         if (abort.signal.aborted) return;
         const control = createPortfolioScene({
           presentation,
@@ -101,7 +101,7 @@ export default function Portfolio({
           className="work-canvas"
           data-cursor="hidden"
           tabIndex={0}
-          aria-label="Drag, scroll or use arrow keys to explore. Click a work, or press Enter to open the centered work. Plus and minus zoom. Home returns to the collection title."
+          aria-label="Drag, scroll or use arrow keys to explore. Click a work, or press Enter to open the centered work. Plus and minus zoom. Home returns to the initial view."
         />
         <h2 className="work-sr-only">
           Selected works — ideas in every direction

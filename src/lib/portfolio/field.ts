@@ -19,13 +19,9 @@ export function createPortfolioField(
 ) {
   const period = new THREE.Vector2(layout.width, layout.height);
   const cells: { root: THREE.Group; key: string }[] = [];
-  const photos = new Map(
-    builder.tiles
-      .filter((t) => t.work && t.photo)
-      .map((t) => [t.key, t]),
-  );
+  const photos = new Map(builder.tiles.map((t) => [t.key, t]));
   let scale = 1;
-  const audioTiles = builder.tiles.filter(tile => tile.work?.kind === "audio");
+  const audioTiles = builder.tiles.filter(tile => tile.work.kind === "audio");
   const buckets = new Map<string, Tile[]>();
   const bucketSize = 3;
   // 所有卡片位于同一平面。一次射线平面求交后只检查附近矩形，仍使用原圆角公式。
@@ -63,7 +59,7 @@ export function createPortfolioField(
 
   function target(tile: Tile, x: number, y: number): WorkTarget {
     return {
-      work: tile.work!,
+      work: tile.work,
       key: tile.key,
       width: tile.width * scale,
       height: tile.height * scale,
@@ -155,7 +151,7 @@ export function createPortfolioField(
       const hx = (upper.x - lower.x) / 2, hy = (upper.y - lower.y) / 2;
       const near: { key: string; score: number }[] = [], visible: string[] = [];
       for (const tile of photos.values()) {
-        if (tile.work!.kind === "audio") continue;
+        if (tile.work.kind === "audio") continue;
         const tx = tile.mesh.position.x * scale, ty = tile.mesh.position.y * scale;
         const x = tx + Math.round((cx - tx) / period.x) * period.x;
         const y = ty + Math.round((cy - ty) / period.y) * period.y;
@@ -177,7 +173,7 @@ export function createPortfolioField(
       const ox = col * period.x, oy = row * period.y;
       const x = (point.x - ox) / scale, y = (point.y - oy) / scale;
       for (const tile of buckets.get(`${Math.floor(x / bucketSize)},${Math.floor(y / bucketSize)}`) ?? []) {
-        const radius = tile.photo ? GRID.radius - GRID.inset : 0;
+        const radius = GRID.radius - GRID.inset;
         const qx = Math.abs(x - tile.mesh.position.x) - tile.width / 2 + radius;
         const qy = Math.abs(y - tile.mesh.position.y) - tile.height / 2 + radius;
         if (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) <= radius)
